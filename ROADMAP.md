@@ -9,7 +9,13 @@ organic-os is built as the inverse - a gated execution loop, not another
 dashboard. Issues and PRs against any item here are welcome, including
 reprioritization - see `CONTRIBUTING.md`.
 
-## v0.2 - First-week wins and loop hardening
+## v0.2 - First-week wins and loop hardening - COMPLETE
+
+Closed by the v0.2.0 release (2026-07-19): the final item, approval
+expiry, shipped there (ADR-0008) - approvals lapse after a per-site TTL,
+default 30 days, and an expired item requires re-confirmation before the
+next mutating stage runs. Everything else in this phase landed early
+across v0.1.3 through v0.1.10, as itemized below.
 
 **Landed early:** brain-repo schema versioning + migration entry point
 shipped in v0.1.3 (`core.contracts.check_schema()`,
@@ -48,13 +54,6 @@ against a client that records intended writes instead of performing
 them, proven by verify-gates probe 7), and Bing Webmaster + IndexNow
 submission (key generation, root-file verification, and per-ship URL
 submission with the status recorded in the outcome) - see CHANGELOG.md.
-
-### Remaining for v0.2
-
-- **Approval expiry.** Honest gap today: an item sitting at `approved` or
-  `drafted` for weeks is still actionable with no re-confirmation step. A
-  staleness window means a stale item requires re-confirmation before the
-  next mutating stage runs. Pending a product decision on TTL semantics.
 
 ## v0.3 - Execution breadth
 

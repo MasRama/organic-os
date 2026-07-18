@@ -2,6 +2,38 @@
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-07-19
+
+Approval expiry - the last v0.2 item - and the release that closes the
+v0.2 phase.
+
+- **core:** approval expiry (ADR-0008). Approvals lapse after 30 days by
+  default, configurable per site with the additive `approvals:
+  {ttl_days: n}` key in `site-profile.yaml` (`schema_version` stays 1;
+  below 1 refuses). Both gates - `require_approved` and
+  `require_approval_lineage` - now verify the latest approved record is
+  younger than the TTL, comparing UTC dates at gate time, so the check
+  applies retroactively to existing records with no migration. Expiry
+  means re-confirm, never silent rejection: the item keeps its status and
+  the gate blocks with the exact `python3 -m core approve` command to
+  run; that command (or a Telegram reply of `approve` to the original
+  proposal message) appends a fresh approval entry through
+  `record_decision`, refreshing the clock, while a replay within the TTL
+  stays a silent no-op. Proven end to end by verify-gates probe 8
+  (12 new tests).
+
+**v0.2 in aggregate.** Most of the phase shipped ahead of this release in
+v0.1.3 through v0.1.10; this entry closes it. The headline capabilities:
+the setup verification block (postflight scorecard, runtime-location
+awareness, connector wizard with live verification, one-secret-at-a-time
+credentials), the observe-side detectors (striking-distance,
+cannibalization, content decay, site drift watch), the audit-and-propose
+interview with the AI-visibility baseline at setup, cost transparency plus
+dry-run mode plus Bing/IndexNow submission, and the field-run hardening
+wave (contracts CLI, reply-context Telegram approvals, the
+partially-applied state, headless resilience) - now capped by approval
+expiry, so a gate never acts on a stale yes.
+
 ## [0.1.10] - 2026-07-19
 
 Approval UX and contract ergonomics - fixes from the first full pipeline
