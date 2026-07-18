@@ -348,6 +348,55 @@ OAuth client secret.
 - **Never echo a secret into the transcript**, regardless of which path
   the user picks.
 
+## AI-visibility baseline (optional, ~5 minutes)
+
+Offered once, after the interview's connectors and credentials steps and
+before the Postflight scorecard - never required, always skippable. Full
+setup only; quick-start does not collect the keywords/competitors this
+step needs, so it is not offered there.
+
+1. Ask, AskUserQuestion: "Want a one-time AI-visibility baseline - where
+   you show up in AI answers today versus up to two competitors? About 5
+   minutes, reuses the keywords and competitors already on file." Options:
+   **Run it now** / **Skip - I'll run /organic-os:citations later**.
+2. Skipped, or no keywords configured yet: note "AI-visibility baseline:
+   skipped" (or "deferred - no keywords yet") in the closing summary table
+   and stop here. Do not write a report or a signal.
+3. Build the query set from `keywords.targets` (cap 8 - first 8 in file
+   order if more are configured) and the competitor set from `competitors`
+   (cap 2 - first 2 in file order).
+4. For each query, check whichever AI answer surfaces are actually
+   reachable from this session with WebSearch/WebFetch. This is a sample,
+   not a census - record honestly which engines this session could
+   actually reach, and never let the report imply broader coverage than
+   that. Record per query: does the site's own brand/domain appear in the
+   answer, does each tracked competitor appear, and who is actually cited
+   (the source the answer points to, not just anything mentioned in
+   passing).
+5. Write `runs/<UTCdate>-ai-baseline/REPORT.md`:
+   - A per-query table: query | brand mentioned? | competitor(s)
+     mentioned | cited source(s).
+   - Three summary numbers, each labeled with the sampling caveat inline:
+     brand mention rate (queries where the brand appeared / queries
+     checked), competitor mention rate (same, for the tracked
+     competitors), share-of-voice ratio (brand mentions / (brand mentions
+     + competitor mentions), or "n/a - no competitor mentions this run" if
+     that denominator is zero).
+   - One explicit line naming which engines/surfaces this session could
+     actually reach - this method samples, it does not measure every
+     engine.
+6. Append one signal via `append_signal`: that the baseline now exists,
+   its three headline numbers, and the falsifiability line - "re-run
+   monthly via /organic-os:citations; if the mention rate has not moved
+   within 90 days of shipped content work, that is evidence the content
+   strategy hypothesis is wrong, not that the baseline was wrong."
+7. **Degradation - no web access this session:** if WebSearch/WebFetch are
+   unavailable, or every query fails to reach any engine, do not write a
+   partial or fabricated report. Append a signal line "AI-visibility
+   baseline: deferred - no web access in this session" instead, and tell
+   the user to run `/organic-os:citations` later once a session with web
+   access is available.
+
 ## Postflight scorecard (mandatory final step)
 
 Setup does not claim success on its own - the scorecard does. Run every

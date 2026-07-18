@@ -17,3 +17,7 @@ description: Use to measure AI answer-engine visibility - "are we cited by ChatG
 5. Persist to runs/YYYYMMDD-citations/ + append one signal line with the
    headline movement vs the previous run (diff the last runs/ folder).
 6. New citation appearing or disappearing on a money query -> P1 signal.
+7. When `runs/<date>-ai-baseline/REPORT.md` exists in the brain (written by
+   `/organic-os:setup`'s AI-visibility baseline step), compare this run's
+   headline numbers against it and report movement, not just this run's
+   absolutes.
