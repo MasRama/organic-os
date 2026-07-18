@@ -1,9 +1,11 @@
+import datetime as dt
 import json
 import sys
 from pathlib import Path
 LIB = Path(__file__).resolve().parents[1] / "plugin" / "lib"
 sys.path.insert(0, str(LIB))
 
+import pytest  # noqa: E402
 from core.init_site_repo import init_site_repo  # noqa: E402
 from core import contracts as C  # noqa: E402
 from core import approval as A  # noqa: E402
@@ -17,6 +19,42 @@ def test_pending_lists_and_approve_records(tmp_path):
                       decision="approved", actor="shivaa", channel="telegram")
     assert A.pending(root) == []
     assert C.load_item(p)["meta"]["status"] == "approved"
+
+
+def _age_latest_approval(path, days):
+    """Simulates aging: rewrites the newest approval timestamp to `days` ago."""
+    item = C.load_item(path)
+    old = (dt.datetime.now(dt.timezone.utc)
+           - dt.timedelta(days=days)).strftime("%Y-%m-%dT%H:%M:%SZ")
+    item["meta"]["approvals"][-1]["at"] = old
+    C._dump(Path(path), item["meta"], item["body"])
+
+
+def test_reconfirm_expired_approval_appends_fresh_entry(tmp_path):
+    root = init_site_repo(tmp_path / "b", "https://e.com", "E")
+    p = C.create_item(root, "onpage-fix", "stale", "t", "b", "https://e.com/s", "s")
+    item_id = C.load_item(p)["meta"]["id"]
+    A.record_decision(root, item_id, "approved", actor="shivaa", channel="in-session")
+    _age_latest_approval(p, days=31)
+    with pytest.raises(C.ContractError, match="expired"):
+        C.require_approved(p)
+
+    # re-confirming via the same record_decision path refreshes the clock
+    A.record_decision(root, item_id, "approved", actor="shivaa", channel="telegram")
+    approvals = C.load_item(p)["meta"]["approvals"]
+    assert len(approvals) == 2
+    assert approvals[-1]["channel"] == "telegram"
+    C.require_approved(p)          # gate reopens
+    C.require_approval_lineage(p)  # lineage gate reopens too
+
+
+def test_non_expired_replay_still_noops(tmp_path):
+    root = init_site_repo(tmp_path / "b", "https://e.com", "E")
+    p = C.create_item(root, "onpage-fix", "fresh", "t", "b", "https://e.com/f", "s")
+    item_id = C.load_item(p)["meta"]["id"]
+    A.record_decision(root, item_id, "approved", actor="shivaa", channel="in-session")
+    A.record_decision(root, item_id, "approved", actor="shivaa", channel="in-session")
+    assert len(C.load_item(p)["meta"]["approvals"]) == 1  # exactly one entry
 
 
 class FakeTelegramHTTP:

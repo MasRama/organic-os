@@ -12,6 +12,12 @@ Usage (PYTHONPATH must point at the plugin's lib/ directory):
 Prints the resulting status line on success. A refused write (illegal
 transition, missing item) exits nonzero with the ContractError message on
 stderr.
+
+`approve` also re-confirms an expired approval: when a gate blocks because
+the latest approved record is older than the site TTL (approvals.ttl_days
+in site-profile.yaml, default 30), running `approve` on the same item
+appends a fresh approval entry and the gates open again. The item's status
+never changes on expiry - expiry means re-confirm, not rejection.
 """
 import argparse
 import sys
@@ -26,8 +32,9 @@ def _build_parser() -> argparse.ArgumentParser:
         prog="python3 -m core",
         description="Record item decisions and status changes through the contracts.")
     sub = parser.add_subparsers(dest="cmd", required=True)
-    for name, help_text in (("approve", "record an approval"),
-                            ("reject", "record a rejection")):
+    for name, help_text in (
+            ("approve", "record an approval (also re-confirms an expired one)"),
+            ("reject", "record a rejection")):
         p = sub.add_parser(name, help=help_text)
         p.add_argument("item_path", help="path to the brief/proposal .md file")
         p.add_argument("--actor", required=True)

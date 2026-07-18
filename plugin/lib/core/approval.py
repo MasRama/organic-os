@@ -27,9 +27,25 @@ def find(root, item_id: str):
 
 def record_decision(root, item_id: str, decision: str, actor: str, channel: str,
                     note: str | None = None) -> None:
-    """Records a decision. Replay-tolerant: poll loops may deliver the same decision twice."""
+    """Records a decision. Replay-tolerant: poll loops may deliver the same
+    decision twice, and a replay within the TTL is a silent no-op. When the
+    item already sits at the decision but its latest matching record has
+    expired per the site TTL, the same call is the re-confirm path: a fresh
+    approval entry is appended, refreshing the clock the gates check."""
     path = find(root, item_id)
-    if C.load_item(path)["meta"]["status"] == decision:
+    item = C.load_item(path)
+    if item["meta"]["status"] == decision:
+        matching = [a for a in item["meta"].get("approvals") or []
+                    if isinstance(a, dict) and a.get("decision") == decision
+                    and a.get("at")]
+        latest = max(matching, key=lambda a: a["at"]) if matching else None
+        if latest is not None and C._entry_expired(latest, C.approval_ttl_days(root)):
+            entry = {"actor": actor, "channel": channel, "decision": decision,
+                     "at": C._now()}
+            if note:
+                entry["note"] = note
+            item["meta"]["approvals"].append(entry)
+            C._dump(Path(path), item["meta"], item["body"])
         return
     C.set_status(path, decision, actor=actor, channel=channel, note=note)
     C.rebuild_queue(root)

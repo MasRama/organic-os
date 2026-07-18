@@ -9,6 +9,9 @@ it happens pre-applied, so applied -> failed is deliberately illegal.
 "partially-applied" marks an approved item where some changes landed and the
 rest hit a permission or capability wall; a human finishes it -> applied, or
 the partial work is rolled back -> failed. See docs/adr/0007.)
+Approvals expire: both gates require the latest approved record to be
+younger than the site TTL (approvals.ttl_days, default 30 days). An expired
+item keeps its status; re-approving it refreshes the clock. See docs/adr/0008.
 Skillbook: append-only entries with IDs; updates touch single entries only.
 """
 from __future__ import annotations
@@ -68,6 +71,59 @@ def check_schema(root) -> dict:
 
 def _now() -> str:
     return _dt.datetime.now(_dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+# -- approval expiry -----------------------------------------------------------
+
+DEFAULT_APPROVAL_TTL_DAYS = 30
+
+
+def approval_ttl_days(root) -> int:
+    """Approval TTL for this site, in days. Reads `approvals: {ttl_days: n}`
+    from site-profile.yaml; default 30. The key is additive (schema stays 1;
+    absence means the default)."""
+    path = Path(root) / "site-profile.yaml"
+    data = yaml.safe_load(path.read_text()) if path.exists() else {}
+    ttl = ((data or {}).get("approvals") or {}).get("ttl_days",
+                                                   DEFAULT_APPROVAL_TTL_DAYS)
+    if not isinstance(ttl, int) or isinstance(ttl, bool) or ttl < 1:
+        raise ContractError(
+            "ttl_days must be positive; to disable expiry set a large value deliberately")
+    return ttl
+
+
+def latest_approval(item) -> dict | None:
+    """Newest approvals entry with decision == 'approved', by its timestamp."""
+    approved = [a for a in item["meta"].get("approvals") or []
+                if isinstance(a, dict) and a.get("decision") == "approved"
+                and a.get("at")]
+    return max(approved, key=lambda a: a["at"]) if approved else None
+
+
+def _entry_expired(entry: dict, ttl: int) -> bool:
+    """True when the entry's timestamp is at least `ttl` days old (UTC dates)."""
+    approved_date = _dt.date.fromisoformat(str(entry["at"])[:10])
+    age = (_dt.datetime.now(_dt.timezone.utc).date() - approved_date).days
+    return age >= ttl
+
+
+def _require_fresh_approval(path, item) -> None:
+    """Blocks when the latest approved record is older than the site TTL.
+    Expiry means re-confirm, never silent rejection: the item's status is
+    left exactly as it was; only the gate refuses until a fresh approval
+    is recorded."""
+    latest = latest_approval(item)
+    if latest is None:
+        return
+    root = Path(path).resolve().parent.parent  # items live at <root>/{briefs,proposals}/
+    ttl = approval_ttl_days(root)
+    if _entry_expired(latest, ttl):
+        approved_date = _dt.date.fromisoformat(str(latest["at"])[:10])
+        raise ContractError(
+            f"MUTATION BLOCKED: approval for {Path(path).name} expired "
+            f"(approved {approved_date.isoformat()}, ttl {ttl} days) - "
+            f"re-confirm with: python3 -m core approve {path} "
+            "--actor <you> --channel <channel>")
 
 
 # -- signals ------------------------------------------------------------------
@@ -147,6 +203,7 @@ def require_approved(path) -> dict:
         raise ContractError(
             f"MUTATION BLOCKED: {Path(path).name} is '{item['meta']['status']}', "
             "needs 'approved' with a recorded approval")
+    _require_fresh_approval(path, item)
     return item
 
 
@@ -227,12 +284,13 @@ def write_scorecard(root, checks: list) -> Path:
 
 
 def require_approval_lineage(path) -> dict:
-    """For post-approval lifecycle stages (e.g. drafted) where require_approved's status check no longer applies; safe because approved -> rejected is an illegal transition, so an approved lineage cannot be revoked."""
+    """For post-approval lifecycle stages (e.g. drafted) where require_approved's status check no longer applies; safe because approved -> rejected is an illegal transition, so an approved lineage cannot be revoked. The lineage must also be fresh: an approved decision older than the site TTL blocks until re-confirmed."""
     item = load_item(path)
     approvals = item["meta"].get("approvals") or []
     if not any(a.get("decision") == "approved" for a in approvals):
         raise ContractError(
             f"MUTATION BLOCKED: {Path(path).name} has no approved decision in its lineage")
+    _require_fresh_approval(path, item)
     return item
 
 

@@ -1,3 +1,4 @@
+import datetime as dt
 import sys
 from pathlib import Path
 
@@ -221,6 +222,103 @@ def test_approval_lineage_fresh_proposed_raises(root):
                       target="", source="s")
     with pytest.raises(C.ContractError):
         C.require_approval_lineage(p)
+
+
+# -- approval expiry -----------------------------------------------------------
+
+def _age_latest_approval(path, days):
+    """Simulates aging: rewrites the newest approval timestamp to `days` ago."""
+    item = C.load_item(path)
+    old = (dt.datetime.now(dt.timezone.utc)
+           - dt.timedelta(days=days)).strftime("%Y-%m-%dT%H:%M:%SZ")
+    item["meta"]["approvals"][-1]["at"] = old
+    C._dump(Path(path), item["meta"], item["body"])
+
+
+def _set_ttl(root, ttl):
+    profile = root / "site-profile.yaml"
+    profile.write_text(profile.read_text() + f"approvals:\n  ttl_days: {ttl}\n")
+
+
+def test_approval_ttl_days_defaults_to_30(root):
+    assert C.approval_ttl_days(root) == 30
+
+
+def test_approval_ttl_days_reads_profile_override(root):
+    _set_ttl(root, 5)
+    assert C.approval_ttl_days(root) == 5
+
+
+def test_approval_ttl_days_zero_raises(root):
+    _set_ttl(root, 0)
+    with pytest.raises(C.ContractError, match="ttl_days must be positive"):
+        C.approval_ttl_days(root)
+
+
+def test_approval_ttl_days_negative_raises(root):
+    _set_ttl(root, -3)
+    with pytest.raises(C.ContractError, match="ttl_days must be positive"):
+        C.approval_ttl_days(root)
+
+
+def test_latest_approval_picks_newest_approved_entry(root):
+    p = C.create_item(root, kind="onpage-fix", slug="latest", title="t", body="b",
+                      target="https://ex.com/l", source="s")
+    assert C.latest_approval(C.load_item(p)) is None
+    C.set_status(p, "approved", actor="shivaa", channel="in-session")
+    entry = C.latest_approval(C.load_item(p))
+    assert entry is not None
+    assert entry["decision"] == "approved"
+    assert entry["actor"] == "shivaa"
+
+
+def test_fresh_approval_passes_both_gates(root):
+    p = C.create_item(root, kind="onpage-fix", slug="fresh", title="t", body="b",
+                      target="https://ex.com/f", source="s")
+    C.set_status(p, "approved", actor="shivaa", channel="in-session")
+    C.require_approved(p)          # no raise
+    C.require_approval_lineage(p)  # no raise
+
+
+def test_expired_approval_blocks_require_approved(root):
+    p = C.create_item(root, kind="onpage-fix", slug="stale", title="t", body="b",
+                      target="https://ex.com/s", source="s")
+    C.set_status(p, "approved", actor="shivaa", channel="in-session")
+    _age_latest_approval(p, days=31)
+    with pytest.raises(C.ContractError, match="expired"):
+        C.require_approved(p)
+    # re-confirm, never silent rejection: the gate does not touch the status
+    assert C.load_item(p)["meta"]["status"] == "approved"
+
+
+def test_expiry_message_names_the_reconfirm_command(root):
+    p = C.create_item(root, kind="onpage-fix", slug="stale-msg", title="t", body="b",
+                      target="https://ex.com/sm", source="s")
+    C.set_status(p, "approved", actor="shivaa", channel="in-session")
+    _age_latest_approval(p, days=31)
+    with pytest.raises(C.ContractError, match=r"re-confirm with: python3 -m core approve"):
+        C.require_approved(p)
+
+
+def test_expired_approval_blocks_lineage_gate_on_drafted_item(root):
+    p = C.create_item(root, kind="content-brief", slug="stale-draft", title="t", body="b",
+                      target="", source="s")
+    C.set_status(p, "approved", actor="shivaa", channel="in-session")
+    C.set_status(p, "drafted", actor="agent")
+    _age_latest_approval(p, days=31)
+    with pytest.raises(C.ContractError, match="expired"):
+        C.require_approval_lineage(p)
+    assert C.load_item(p)["meta"]["status"] == "drafted"  # state untouched
+
+
+def test_profile_ttl_makes_shorter_window_expire(root):
+    _set_ttl(root, 5)
+    p = C.create_item(root, kind="onpage-fix", slug="short-ttl", title="t", body="b",
+                      target="https://ex.com/st", source="s")
+    C.set_status(p, "approved", actor="shivaa", channel="in-session")
+    _age_latest_approval(p, days=6)
+    with pytest.raises(C.ContractError, match="ttl 5 days"):
+        C.require_approved(p)
 
 
 # -- schema versioning ---------------------------------------------------------
