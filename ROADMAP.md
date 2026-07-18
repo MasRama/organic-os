@@ -15,20 +15,15 @@ reprioritization - see `CONTRIBUTING.md`.
 shipped in v0.1.3 (`core.contracts.check_schema()`,
 `schema_version: 1` in `site-profile.yaml`, the migration entry point in
 `/organic-os:setup` update mode) rather than waiting for v0.2 - see
-CHANGELOG.md.
+CHANGELOG.md. Also landed early in v0.1.4: the striking-distance detector
+in the weekly routine (`hoo-weekly`), the Monday report (`hoo-monday-
+report`), and the gate self-verification script (`scripts/verify-gates.sh`)
+- see CHANGELOG.md.
 
-- **Striking-distance detector in the weekly routine.** Pages sitting at
-  positions 4-15 in GSC surfaced as gated proposals - pure GSC math, no new
-  credentials to configure
-  ([source](https://llmfy.ai/blog/striking-distance-keywords)).
 - **Cannibalization detector.** Two URLs splitting one query is often the
   real blocker behind a page stuck at positions 4-15, not a content or
   authority gap
   ([source](https://www.averi.ai/how-to/striking-distance-keywords-the-ai-era-playbook-for-positions-4-15)).
-- **The Monday report.** A stakeholder-shareable weekly summary in
-  markdown. Reporting is the documented top time sink for solo operators -
-  25 to 35 hours a week spent across reporting, rank checks, and audits
-  ([source](https://seojuice.com/blog/automating-repetitive-seo-tasks-for-freelancers/)).
 - **AI-visibility baseline at setup.** Where you appear in AI answers today
   versus two competitors, captured once during onboarding. 45 percent of
   marketing leaders say they cannot measure this today, and commercial
@@ -44,10 +39,10 @@ CHANGELOG.md.
   already runs; drift detection rides it. (Pattern credit:
   [AgriciDaniel/claude-seo](https://github.com/AgriciDaniel/claude-seo)'s
   drift monitoring, adapted to a continuous loop.)
-- **Gate self-verification script** (`scripts/verify-gates.sh`) plus a
-  dry-run mode for `onsite-apply`. Confirms `require_approved` /
-  `require_approval_lineage` actually block an unapproved write, without
-  touching a real WordPress site.
+- **Dry-run mode for `onsite-apply`.** Preview what a write would do
+  against a live WordPress site without touching it - the counterpart to
+  `scripts/verify-gates.sh` (landed early, see above), which already
+  proves the approval gates themselves fail closed.
 - **Approval expiry.** Honest gap today: an item sitting at `approved` or
   `drafted` for weeks is still actionable with no re-confirmation step. A
   staleness window means a stale item requires re-confirmation before the
