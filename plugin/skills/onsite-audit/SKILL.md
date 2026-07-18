@@ -10,8 +10,9 @@ description: Use to audit on-page SEO for a URL or a whole site section - "audit
    meta description, H1 count, heading structure, canonical, robots meta,
    image alts, internal links out, JSON-LD present/valid, answer-capsule
    presence in the first 200 words, server-rendered content check.
-3. If WordPress credentials exist: pull the post via wp.py `get_post` +
-   `get_head` for the rendered truth; list RankMath field values.
+3. If CMS credentials exist: pull the post via the CMS adapter (WordPress
+   today) with `get_post` + `get_rendered_head` for the rendered truth;
+   list the SEO meta field values (RankMath fields on WordPress).
 4. Launch technical-seo-auditor for site-level context when auditing > 3 URLs.
 5. Output: per-URL scorecard table + prioritized issue list. File signals for
    P0/P1 issues if a brain repo exists. Propose nothing here; that is

@@ -1,13 +1,14 @@
 """Site drift watch: snapshot the on-page SEO fields organic-os cares about
 and compare against a stored baseline to catch changes made outside the
 loop - a theme update rewriting titles, a plugin dropping schema, a manual
-edit nobody logged. WP-only: there is nothing to snapshot without a
-WordPress connection.
+edit nobody logged. Needs a connected CMS adapter (onsite/cms.py;
+WordPress today): there is nothing to snapshot without one.
 
-Uses only wp.get_post() - no new WP client surface needed. The baseline
-lives at <root>/drift/baseline.json, written through core.contracts'
-atomic-write helper (lib/onsite writes brain-repo files only through
-core, per plugin/docs/site-repo-contract.md).
+Uses only the adapter's get_post() - no new adapter surface needed. The
+tracked field names are the WordPress adapter's today (rank_math_*,
+agent_jsonld). The baseline lives at <root>/drift/baseline.json, written
+through core.contracts' atomic-write helper (lib/onsite writes brain-repo
+files only through core, per plugin/docs/site-repo-contract.md).
 """
 from __future__ import annotations
 import json
@@ -21,9 +22,11 @@ FIELDS = ("title", "rank_math_title", "rank_math_description", "canonical",
 
 def snapshot_pages(wp, page_ids) -> dict:
     """{page_id: {title, rank_math_title, rank_math_description, canonical,
-    slug, status, jsonld_present}} for each id in page_ids, via wp.get_post().
-    Keys are stringified page ids (JSON round-trips object keys as strings,
-    so snapshots and the loaded baseline compare on the same key type)."""
+    slug, status, jsonld_present}} for each id in page_ids, via the
+    adapter's get_post(). `wp` is any CmsAdapter (duck-typed: only
+    get_post is used). Keys are stringified page ids (JSON round-trips
+    object keys as strings, so snapshots and the loaded baseline compare
+    on the same key type)."""
     snap = {}
     for page_id in page_ids:
         post = wp.get_post(page_id)

@@ -11,11 +11,13 @@ description: Use to publish an APPROVED, drafted content item to WordPress - "pu
    `core.contracts.require_approval_lineage(brief_path)` must pass; abort on
    ContractError. A rejected item must never reach `create_post`. The profile
    user must also confirm the final draft in-session or via channel.
-3. Create the post via wp.py `create_post` (status draft by default; status
+3. Create the post via the CMS adapter (`onsite.cms.adapter_for`;
+   WordPress today): `create_post` (status draft by default; status
    "publish" only when site-profile sets publishing: direct), then
-   `update_rankmath` with title/description/focus keyword from the draft's
-   frontmatter, and `agent_jsonld` if the draft includes schema.
-4. Verify with `get_head`; on success `PYTHONPATH="$CLAUDE_PLUGIN_ROOT/lib"
+   `update_seo_meta` with title/description/focus keyword from the draft's
+   frontmatter, and schema if the draft includes it. (`update_rankmath`
+   remains as the WordPress adapter's alias for `update_seo_meta`.)
+4. Verify with `get_rendered_head`; on success `PYTHONPATH="$CLAUDE_PLUGIN_ROOT/lib"
    python3 -m core status <brief-path> published --actor agent` and
    write the outcome record with measurement dates; on failure leave the post
    in draft and record the post id + failure reason in the outcome record.
@@ -28,9 +30,10 @@ description: Use to publish an APPROVED, drafted content item to WordPress - "pu
    path in the outcome record for manual upload (media upload is not in v1).
 
 Dry-run: with `onsite: {dry_run: true}` in site-profile.yaml, run the same
-gated flow with `WPClient(..., dry_run=True)` - nothing is created, the
-brief stays `drafted`, and the outcome record is marked dry-run listing
-every write from `wp.dry_run_log` (see skills/onsite-apply).
+gated flow with the adapter constructed `dry_run=True` - nothing is
+created, the brief stays `drafted`, and the outcome record is marked
+dry-run listing every write from the adapter's `dry_run_log` (see
+skills/onsite-apply).
 
 Never edit brain frontmatter directly. The contract CLI is the only write
 path for status and approvals.

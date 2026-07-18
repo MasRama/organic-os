@@ -45,7 +45,7 @@ stays `1`, and the directory only comes into existence the first time
 connector (`onsite.drift.save_baseline` creates it on demand). A brain
 repo with no WordPress connection never gets a `drift/` directory at all.
 
-Three optional `site-profile.yaml` keys are additive the same way
+Four optional `site-profile.yaml` keys are additive the same way
 (`schema_version` stays `1`; absence means off, or the stated default):
 
 - `onsite: {dry_run: true}` - `onsite-apply` and `onsite-publish` run
@@ -61,6 +61,12 @@ Three optional `site-profile.yaml` keys are additive the same way
   default of 30. Below 1 refuses - to disable expiry, set a large value
   deliberately (see `plugin/docs/approval-channels.md` and docs/adr/0008
   in the repo).
+- `cms: {type: wordpress}` - which CMS adapter the onsite write path
+  uses (`onsite.cms.adapter_for` builds it; the contract is `CmsAdapter`
+  in `plugin/lib/onsite/cms.py`, per docs/adr/0009 in the repo). Absence
+  defaults to `wordpress` when the profile has a wordpress endpoint
+  configured; an unknown type refuses, naming the supported types.
+  WordPress is adapter one.
 
 ## Items: briefs and proposals
 

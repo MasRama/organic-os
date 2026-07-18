@@ -3,6 +3,11 @@ Session injected for tests; real use builds a stdlib session (no requests dep).
 The session contract is requests-compatible: request(method, url, headers=...,
 json=..., timeout=...).
 
+Implements the CmsAdapter contract (onsite/cms.py); WordPress is adapter
+one. The WordPress-specific names (update_rankmath, get_head) stay as the
+implementations, with the contract names (update_seo_meta,
+get_rendered_head) delegating to them.
+
 RankMath meta keys must be REST-registered on the site (the bundled
 plugin/wordpress/organic-os-bridge.php mu-plugin, or Devora's
 rank-math-api-manager). See plugin/docs/credentials/wordpress.md.
@@ -13,6 +18,8 @@ import json as _json
 import urllib.error
 import urllib.parse
 import urllib.request
+
+from .cms import CmsAdapter
 
 RANKMATH_KEYS = {"title": "rank_math_title", "description": "rank_math_description",
                  "canonical": "rank_math_canonical_url",
@@ -43,7 +50,7 @@ class StdlibSession:
         return R()
 
 
-class WPClient:
+class WPClient(CmsAdapter):
     def __init__(self, endpoint: str, username: str, app_password: str, session=None,
                  dry_run: bool = False):
         self.endpoint = endpoint.rstrip("/")
@@ -131,3 +138,28 @@ class WPClient:
         if self.dry_run:
             return self._dry("rollback", payload, snap["post_id"])
         return self._call("POST", f"/wp/v2/posts/{snap['post_id']}", payload)
+
+    # -- CmsAdapter contract surface (see onsite/cms.py) --
+    def update_seo_meta(self, post_id: int, **seo) -> dict:
+        """Contract name. update_rankmath stays the implementation (and the
+        dry_run_log method name) as this adapter's WordPress-specific
+        alias; both write the same RankMath meta."""
+        return self.update_rankmath(post_id, **seo)
+
+    def get_rendered_head(self, page_url: str) -> dict:
+        """Contract name for get_head."""
+        return self.get_head(page_url)
+
+    def capabilities(self) -> dict:
+        return {
+            "seo_meta_fields": True,        # RankMath keys via the bridge
+            "schema_injection": True,       # agent_jsonld via the bridge
+            "rendered_head_verify": True,   # RankMath Headless getHead
+            # The Editor role cannot do these (see the capability matrix in
+            # plugin/docs/credentials/wordpress.md); such steps end the item
+            # partially-applied with a note, never faked as done.
+            "needs_human": ["seo-plugin-cache-purge", "plugin-settings"],
+        }
+
+    def adapter_name(self) -> str:
+        return "wordpress"

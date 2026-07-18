@@ -13,9 +13,13 @@ description: Use to execute APPROVED on-page proposals - "apply the approved fix
       catch that error to proceed; report it and skip.
    b. `snapshot()` the post (title + meta + content if the proposal touches it)
       -> save to `outcomes/<item-id>-rollback.json` in the brain repo.
-   c. Apply via wp.py: `update_rankmath` / `update_post` per the proposal body.
-   d. Verify: `get_head(target_url)` - assert the new title/description appear
-      in the rendered head. On mismatch: `rollback()` immediately, then
+   c. Apply via the CMS adapter (`onsite.cms.adapter_for`; WordPress today):
+      `update_seo_meta` / `update_post` per the proposal body.
+      (`update_rankmath` remains as the WordPress adapter's alias for
+      `update_seo_meta`.)
+   d. Verify: `get_rendered_head(target_url)` - assert the new
+      title/description appear in the rendered head. On mismatch:
+      `rollback()` immediately, then
       `PYTHONPATH="$CLAUDE_PLUGIN_ROOT/lib" python3 -m core status
       <item-path> failed --actor agent`, append a signal
       "apply-verify failed", and alert. Never leave the item approved.
@@ -39,16 +43,18 @@ description: Use to execute APPROVED on-page proposals - "apply the approved fix
 ## Dry-run mode
 
 When site-profile.yaml has `onsite: {dry_run: true}` (additive key, schema
-stays 1), construct the client with `WPClient(..., dry_run=True)` and run
+stays 1), construct the CMS adapter with `dry_run=True`
+(`adapter_for(profile, ..., dry_run=True)`) and run
 the full flow above unchanged - `require_approved` is still enforced
 BEFORE the dry-run write, so a dry run rehearses the real path, gate
 included, not a shortcut around it. Nothing reaches the site: every
-mutating call lands in `wp.dry_run_log` instead of the session, and reads
-(snapshot, get_head) behave normally. Skip step 2d's verify assertion (a
+mutating call lands in the adapter's `dry_run_log` instead of the session,
+and reads (snapshot, get_rendered_head) behave normally. Skip step 2d's
+verify assertion (a
 write that never happened cannot appear in the rendered head) and do NOT
 set the item to `applied` - it stays `approved` so a real apply can follow.
 Write the outcome record marked `dry-run: true`, listing every entry from
-`wp.dry_run_log` - each write that would have happened, with method,
+the adapter's `dry_run_log` - each write that would have happened, with method,
 post id, and fields. Skip the drift-baseline refresh (2f); the page did
 not change.
 
