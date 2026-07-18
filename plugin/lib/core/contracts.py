@@ -24,9 +24,41 @@ TRANSITIONS = {
 }
 KINDS = {"onpage-fix", "content-brief", "publish", "strategy"}
 
+SCHEMA_VERSION = 1
+
 
 class ContractError(Exception):
     pass
+
+
+# -- schema versioning ---------------------------------------------------------
+
+def check_schema(root) -> dict:
+    """Returns {"version": int, "compatible": bool, "action": str}.
+
+    Missing site-profile.yaml -> version 0, compatible False, action
+    "run /organic-os:setup". Missing schema_version key (pre-v0.1.3 brain)
+    -> version 1 assumed, compatible True, action "stamp" (layout is
+    identical; setup update mode adds the key). version == SCHEMA_VERSION
+    -> compatible True, action "none". version < SCHEMA_VERSION ->
+    compatible False, action "run /organic-os:setup to migrate".
+    version > SCHEMA_VERSION -> compatible False, action "update the
+    plugin (/plugin update organic-os)".
+    """
+    path = Path(root) / "site-profile.yaml"
+    if not path.exists():
+        return {"version": 0, "compatible": False, "action": "run /organic-os:setup"}
+    data = yaml.safe_load(path.read_text()) or {}
+    if "schema_version" not in data:
+        return {"version": 1, "compatible": True, "action": "stamp"}
+    version = data["schema_version"]
+    if version == SCHEMA_VERSION:
+        return {"version": version, "compatible": True, "action": "none"}
+    if version < SCHEMA_VERSION:
+        return {"version": version, "compatible": False,
+                "action": "run /organic-os:setup to migrate"}
+    return {"version": version, "compatible": False,
+            "action": "update the plugin (/plugin update organic-os)"}
 
 
 def _now() -> str:

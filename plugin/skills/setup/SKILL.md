@@ -53,19 +53,26 @@ Read `PYTHONPATH="$CLAUDE_PLUGIN_ROOT/lib" python3 -c "..."` calling
 
 1. READ the existing `site-profile.yaml` for the active site first. Present
    the current values back to the user.
-2. Re-ask **only** the sections the user picks (site, brand, audience,
+2. Schema check: run `core.contracts.check_schema(brain_path)`. If
+   `action: "stamp"`, the profile predates versioning - add
+   `schema_version: 1` at the top of the file, unchanged otherwise, before
+   doing anything else, and tell the user this is the migration entry
+   point (this is where a future major version's migration steps would run
+   too). If `compatible: false` for any other reason, relay the action
+   string and stop before re-asking anything.
+3. Re-ask **only** the sections the user picks (site, brand, audience,
    keywords, competitors, connectors, Google Ads, WordPress, approval
    channel, runtime). Do not re-run the full interview.
-3. Rewrite `site-profile.yaml` with just those changes.
-4. Skillbook: NEVER re-append an operator note unless its text is new - read
+4. Rewrite `site-profile.yaml` with just those changes.
+5. Skillbook: NEVER re-append an operator note unless its text is new - read
    `skillbook.md` first, skip anything that already matches an existing
    entry's text.
-5. NEVER touch `signals/`, `decisions/`, `reflections/`, or existing
+6. NEVER touch `signals/`, `decisions/`, `reflections/`, or existing
    skillbook entries beyond the dedup check above - those are memory, not
    config, and setup does not rewrite memory.
-6. Do not re-register routines unless the user explicitly asks to change
+7. Do not re-register routines unless the user explicitly asks to change
    cadence or runtime.
-7. **Rule of thumb to state to the user: config is editable, memory is not.**
+8. **Rule of thumb to state to the user: config is editable, memory is not.**
    `site-profile.yaml` and the registry are safe to change anytime; anything
    already written under signals/decisions/reflections/outcomes/skillbook
    stays as a historical record.

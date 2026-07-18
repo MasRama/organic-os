@@ -53,6 +53,19 @@ summary). Do not duplicate its questions here.
 
 ### Registry has sites
 
+Resolve the active site's brain path, then run
+`core.contracts.check_schema(brain_path)` before anything else in this
+branch:
+
+- `action: "stamp"` - tell the user this brain predates schema versioning
+  and that running `/organic-os:setup` in update mode will stamp
+  `schema_version: 1` into it; continue to the status view below (stamping
+  is informational, not blocking).
+- `action` anything else with `compatible: false` - relay the action string
+  verbatim and stop. Do not show status or the menu, and do not route into
+  a routine, until the user has resolved it.
+- `compatible: true` with `action: "none"` - continue silently.
+
 Show a compact status, read-only, no writes:
 
 1. Active site: name + url (`core.registry.get_active()`).

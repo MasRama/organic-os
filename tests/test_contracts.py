@@ -136,6 +136,48 @@ def test_approval_lineage_fresh_proposed_raises(root):
         C.require_approval_lineage(p)
 
 
+# -- schema versioning ---------------------------------------------------------
+
+def test_check_schema_missing_profile(tmp_path):
+    empty = tmp_path / "no-brain-here"
+    empty.mkdir()
+    result = C.check_schema(empty)
+    assert result == {"version": 0, "compatible": False, "action": "run /organic-os:setup"}
+
+
+def test_check_schema_missing_key_assumes_v1_and_stamps(root):
+    # root's site-profile.yaml was scaffolded with schema_version: 1 already;
+    # simulate a pre-v0.1.3 brain by stripping the key out.
+    profile = root / "site-profile.yaml"
+    lines = [l for l in profile.read_text().splitlines() if "schema_version" not in l]
+    profile.write_text("\n".join(lines) + "\n")
+    result = C.check_schema(root)
+    assert result == {"version": 1, "compatible": True, "action": "stamp"}
+
+
+def test_check_schema_current_version(root):
+    result = C.check_schema(root)
+    assert result == {"version": 1, "compatible": True, "action": "none"}
+
+
+def test_check_schema_older_version_needs_migration(root):
+    profile = root / "site-profile.yaml"
+    text = profile.read_text().replace("schema_version: 1", "schema_version: 0")
+    profile.write_text(text)
+    result = C.check_schema(root)
+    assert result == {"version": 0, "compatible": False,
+                       "action": "run /organic-os:setup to migrate"}
+
+
+def test_check_schema_newer_version_needs_plugin_update(root):
+    profile = root / "site-profile.yaml"
+    text = profile.read_text().replace("schema_version: 1", "schema_version: 2")
+    profile.write_text(text)
+    result = C.check_schema(root)
+    assert result == {"version": 2, "compatible": False,
+                       "action": "update the plugin (/plugin update organic-os)"}
+
+
 def test_mark_notified_and_is_notified(root):
     p = C.create_item(root, kind="onpage-fix", slug="notify-me", title="t", body="b",
                       target="https://ex.com/n", source="s")

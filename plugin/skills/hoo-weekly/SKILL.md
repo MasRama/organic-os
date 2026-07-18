@@ -8,6 +8,9 @@ description: Use for the weekly health check + reflection - "run the weekly", sc
 Resolve the brain: use registry.get_active() when running interactively;
 scheduled runs receive the brain path from the routine configuration.
 
+0. Run `core.contracts.check_schema(brain_path)` first. If not compatible,
+   relay the action string and stop before any of the steps below.
+
 1. Read profile. Launch analytics-reporting-chief and serp-ai-monitor agents
    (parallel) with the profile path.
 2. Save their reports under runs/YYYYMMDD-weekly/ (01-analytics.md,
