@@ -2,6 +2,41 @@
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-07-19
+
+Channel neutrality, made explicit and made checkable.
+
+- **docs:** expiry re-confirmation is channel-neutral. The approval-expiry
+  section now leads with the contract-layer fact - expiry is enforced at
+  the gate, not in any channel, so every channel's approvals age
+  identically - and documents the re-confirm path per channel: in-session
+  re-ask, Telegram reply to the original message, slack/email reply where
+  the adapter reads replies, pr-merge comment plus CLI re-approval
+  (merging is a one-time event), and the universal `python3 -m core
+  approve`. README's human-gates section states the rule in one line.
+- **docs:** ADR-0009, capability slots over tool bindings. Every external
+  dependency belongs to a named capability slot (analytics, search-data,
+  image-generation, approval-channel, cms, indexing) with tools as
+  swappable adapters behind it: contract and gate logic never references
+  a specific tool, skills name the configured adapter from the site
+  profile, and new tools (Microsoft Clarity for analytics, Gemini for
+  image generation) are adapter additions, never rewrites. The roadmap
+  names ADR-0009 as the governing principle for all adapter work and adds
+  the analytics and image-generation slots to v0.3.
+- **audit:** check 8, information integrity. `docs/INFORMATION-MAP.md`
+  tables every load-bearing fact (plugin version, test and inventory
+  counts, approval TTL, schema version, install commands, brain layout)
+  with its canonical source, every quoting file, and who checks it; audit
+  check 8 mechanically verifies that relative markdown links resolve,
+  that the README version badge and marketplace.json match plugin.json,
+  and that the README tests badge and inventory line match pytest and the
+  filesystem. Its first run against the repo caught real drift: the
+  README version badge still said 0.1.9 and both test-count quotes still
+  said 90 (actual: 125) after two releases, the install SVG still showed
+  v0.1.3 with 19 skills and 19 commands, and CONTRIBUTING still said 52
+  tests. All fixed; CONTRIBUTING now states the expectation without a
+  number, which removes that drift surface for good.
+
 ## [0.2.0] - 2026-07-19
 
 Approval expiry - the last v0.2 item - and the release that closes the
