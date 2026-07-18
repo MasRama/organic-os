@@ -9,6 +9,20 @@ You are onboarding or managing sites in organic-os. Everything site-specific
 comes from this interview. Never assume; ask. One question at a time,
 AskUserQuestion with options where possible.
 
+## Interview style (every mode, every question)
+
+- **One question at a time.** Never present a wall of questions. Ask, wait
+  for the answer, then ask the next one.
+- **Offer a default with every question.** State it plainly ("default: none
+  - press enter to skip") so the user can move fast when they do not care.
+- **Show progress.** Prefix each question with where the user is - "question
+  4 of 12" for the full first-run interview, "question 2 of 3" for
+  quick-start, "question 1 of 2" for a targeted update-mode re-ask.
+- **End with a summary table.** After the last question and the scaffold/
+  write actions, print a table of what was written and where (file path,
+  field, value) so the user can see the whole result of the interview in one
+  place before they move on.
+
 ## Step 0: environment checks
 
 - Confirm `python3` is on PATH.
@@ -21,7 +35,13 @@ AskUserQuestion with options where possible.
 Read `PYTHONPATH="$CLAUDE_PLUGIN_ROOT/lib" python3 -c "..."` calling
 `core.registry.load()` (default path `~/.config/organic-os/sites.yaml`).
 
-- **Registry empty** (no sites): go straight to the first-run interview below.
+- **Registry empty** (no sites): if the caller (e.g. `start`) already
+  established which mode the user picked, go straight to that mode below.
+  Otherwise ask first, AskUserQuestion with options:
+  - `Quick start (3 questions, sensible defaults, ~2 minutes)` - go to the
+    quick-start interview below.
+  - `Full setup (the complete interview)` - go to the first-run interview
+    below.
 - **Sites exist**: ask the user what they want, AskUserQuestion with options:
   - `update <active site name>` - refresh the currently active site's profile
   - `add another website` - onboard a new site (full interview, own brain path)
@@ -68,6 +88,49 @@ brain path), which one is active, and - for the active site - whether its
 site-profile.yaml, skillbook.md, and approvals/queue.md exist and a one-line
 summary of each.
 
+## Quick-start interview (3 questions, ~2 minutes)
+
+Everything not asked here gets a stated default, not a silent one - tell the
+user what was defaulted in the closing summary table so nothing is a
+surprise later.
+
+1. Site URL. (No default - this is the one thing quick-start cannot guess.)
+2. Brand name + a one-line voice note ("how should this sound - direct,
+   playful, formal?"). Default: brand name guessed from the URL's domain
+   label, voice note left blank.
+3. Approval channel: in-session | telegram | slack | email | pr-merge.
+   Default: in-session - no setup required, works immediately.
+
+Defaulted silently (state each one in the summary table, do not ask):
+
+- **Geos**: inferred from the URL's TLD (`.in` -> `IN`, `.co.uk` -> `GB`,
+  a generic `.com`/`.io`/etc. -> left empty). Never asked in quick-start.
+- **Keywords, competitors, operator notes**: left empty. Note in the summary
+  that they can be filled in later via `/organic-os:setup` update mode.
+- **Connectors, Google Ads, WordPress**: left `unknown`/`none`/unconnected.
+  Quick-start never probes connectors or asks for credentials - analysis-only
+  is the correct default outcome for a 2-minute setup.
+- **Runtime**: `manual`. The user runs commands themselves until they choose
+  to schedule routines (`docs/routines.md`).
+- **Brain path**: `~/organic-hq/<slug>`, same derivation as full setup.
+- **Brain mode**: `local` (no git init, no GitHub repo offer). Quick-start
+  optimizes for "see something work in two minutes," not for versioned
+  memory from the first run - the user can move to a git brain later via
+  update mode if they want it.
+
+### Actions after the quick-start interview
+
+1. Run: `PYTHONPATH="$CLAUDE_PLUGIN_ROOT/lib" python3 "$CLAUDE_PLUGIN_ROOT/lib/core/init_site_repo.py" <brain-path> --url <url> --name <name>`
+2. Fill `site-profile.yaml`: the three answered fields, plus every defaulted
+   field from the list above (geos, approval channel, runtime: manual, brain
+   mode: local, brain repo path).
+3. Call `core.registry.register(<url>, <name>, <brain-path>)`.
+4. Print the summary table (interview style, above): what was asked and
+   answered, what was defaulted, and where each value landed in
+   `site-profile.yaml`. Point at `/organic-os:setup` update mode for filling
+   in keywords, competitors, connectors, or WordPress later, and at
+   `/organic-os:onsite-audit` as the first thing to try right now.
+
 ## First-run interview (also used for "add another website")
 
 1. Site: URL, brand name, sitemap URL (offer to guess `<url>/sitemap.xml` and verify with a fetch).
@@ -88,7 +151,7 @@ summary of each.
     to hyphens - e.g. `example.com` -> `example-com`). Offer to change the path.
 13. Brain mode: git repo (recommended; needed for claude-scheduled and ci runtimes and for versioned memory) or local folder.
 
-## Actions after the interview (first-run / add mode)
+## Actions after the interview (full setup - first-run / add mode)
 
 1. Run: `PYTHONPATH="$CLAUDE_PLUGIN_ROOT/lib" python3 "$CLAUDE_PLUGIN_ROOT/lib/core/init_site_repo.py" <brain-path> --url <url> --name <name>`
 2. Fill `site-profile.yaml` with every answer (edit the file directly).
