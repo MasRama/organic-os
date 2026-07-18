@@ -207,7 +207,21 @@ proposal arrives as a pull request against the brain repo; merging the PR
 is the approval, and the PR's merge commit is the approval record. Rejecting
 is closing the PR without merging. Because GitHub's own history captures
 who merged and when, this channel needs no separate polling step - the next
-run simply checks whether the PR merged.
+run simply checks whether the PR merged (`gh pr view <n> --json
+state,mergedBy`) and records the decision that merge represents through
+the contract CLI (`python3 -m core approve <item-path> --actor <merger>
+--channel pr-merge`), the same entry every other channel writes. The
+gates check the recorded entry; GitHub keeps the durable history.
+
+This channel pairs naturally with the git-static CMS adapter
+(`cms: {type: git-static}`, see `site-repo-contract.md`): there, approved
+changes are themselves delivered as a pull request against the SITE repo,
+so the same gesture governs both layers - merging the brain-repo proposal
+PR approves the item, and merging the site-repo change PR is the human's
+final act that publishes it. Two-layer honesty: no file is written to any
+branch without an approved item, and nothing reaches the live site
+without a human merging. The flow lives in skills/onsite-apply and
+skills/onsite-publish.
 
 ## slack / email
 

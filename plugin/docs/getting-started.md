@@ -102,7 +102,10 @@ approved drafts, always through the approval gate. See
 `plugin/docs/credentials/wordpress.md`. Want to try the loop risk-free
 first? Set `onsite: {dry_run: true}` in `site-profile.yaml` - apply and
 publish run the whole gated flow, write nothing, and the outcome record
-lists every write that would have happened.
+lists every write that would have happened. Static site built from a git
+repo instead of WordPress? Set `cms: {type: git-static, repo_root: ...}`
+and approved changes arrive as pull requests against the site repo -
+merging is the human's final act (see `plugin/docs/site-repo-contract.md`).
 
 **Add Google Ads.** A developer token, even at the lowest access tier,
 opens up keyword research beyond what GSC alone can mine. See

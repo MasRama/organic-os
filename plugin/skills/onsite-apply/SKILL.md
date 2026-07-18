@@ -13,7 +13,9 @@ description: Use to execute APPROVED on-page proposals - "apply the approved fix
       catch that error to proceed; report it and skip.
    b. `snapshot()` the post (title + meta + content if the proposal touches it)
       -> save to `outcomes/<item-id>-rollback.json` in the brain repo.
-   c. Apply via the CMS adapter (`onsite.cms.adapter_for`; WordPress today):
+   c. Apply via the CMS adapter (`onsite.cms.adapter_for`; wordpress or
+      git-static per `cms.type` - the git-static branch below replaces
+      steps b-g):
       `update_seo_meta` / `update_post` per the proposal body.
       (`update_rankmath` remains as the WordPress adapter's alias for
       `update_seo_meta`.)
@@ -39,6 +41,66 @@ description: Use to execute APPROVED on-page proposals - "apply the approved fix
       A non-200 is recorded, never retried in-run, and never fails the
       apply. Skipped in dry-run - nothing changed, nothing to submit.
 3. Commit + push the brain repo if git. Summarize: applied / skipped / failed.
+
+## Git-static sites (cms.type git-static)
+
+The adapter is chosen by `cms.type` (`onsite.cms.adapter_for`). When it is
+git-static, the write target is a local clone of the site repo
+(`cms.repo_root`) and the pull request is the delivery mechanism. The gate
+does not move: step 2a's `require_approved` runs unchanged, BEFORE any
+file is written to any branch. The adapter never runs git; this skill runs
+every git/gh command below.
+
+0. pr-merge channel only, before the gate: proposals on such sites arrive
+   as PRs against the brain repo, and the human merge IS the approval.
+   Detect newly merged proposal PRs (`gh pr view <n> --json
+   state,mergedBy`) and record each decision the merge represents:
+   `PYTHONPATH="$CLAUDE_PLUGIN_ROOT/lib" python3 -m core approve
+   <item-path> --actor <merger> --channel pr-merge`. The merge commit is
+   GitHub's durable record; the CLI entry is the one the gates check. A
+   closed-unmerged proposal PR is a rejection - record it with `core
+   reject` the same way. (This mirrors step 1's telegram poll.)
+   On every other channel the item was approved before this skill ran,
+   and the site PR below is created only AFTER that approval.
+1. Gate: `require_approved(path)` - unchanged, never caught to proceed.
+2. Freshen the clone (`git pull` on the default branch in `cms.repo_root`).
+3. `snapshot()` each target file (the snapshot stores the file's full
+   text) -> `outcomes/<item-id>-rollback.json` in the brain repo.
+4. Apply via the adapter: `update_seo_meta` / `update_post` per the
+   proposal body - frontmatter and body edits in the working tree only.
+5. Deliver as a PR - run:
+   `git checkout -b organic-os/<item-id>`, `git add` the changed files,
+   `git commit`, `git push -u origin organic-os/<item-id>`, then
+   `gh pr create --title "<item title>" --body "<the proposal text>"`.
+6. Honest status: the adapter's `capabilities()` declares `needs_human:
+   ["merge-pr", "deploy"]`, so the item does NOT become applied here. Set
+   `PYTHONPATH="$CLAUDE_PLUGIN_ROOT/lib" python3 -m core status
+   <item-path> partially-applied --actor agent --note "PR <url> open - a
+   human must merge; the site then deploys itself"`. The queue shows it
+   as a PARTIAL row until the merge. No publish happens without a human.
+7. Merge detection, next run: `gh pr view <n> --json state,mergedBy`.
+   Merged -> `core status <item-path> applied --actor <merger>`; write
+   the outcome record (what changed, PR url, who merged and when,
+   measurement due dates +7d, +28d). On a pr-merge-channel site this
+   merge doubles as the human sign-off; the merge commit and the outcome
+   record carry it. Closed unmerged -> a human said no: `core status
+   <item-path> failed --actor agent --note "PR closed unmerged"` and
+   delete the branch; nothing reached the default branch, so the
+   rollback file needs no replay.
+8. Verify, honestly: `rendered_head_verify` is False for this adapter -
+   there is no rendered head to assert at apply time, and step 2d's
+   verify does not run. If the profile has `cms.deploy_url`, fetch the
+   live page after merge detection and record the result in the outcome
+   as a best-effort post-deploy check, labeled exactly that - it never
+   counts as the WordPress-grade verify. IndexNow (step 2g) also moves
+   to after merge detection: only a merged and deployed change has a
+   live URL to submit. Skip the drift-baseline refresh (step 2f); the
+   drift watch is WordPress-only.
+
+Dry-run with git-static: the same rules as below - the gate still runs
+first, the adapter logs every intended write in `dry_run_log`, and with
+nothing written to the clone there is nothing to commit: no branch, no
+PR. The outcome record, marked dry-run, lists the log.
 
 ## Dry-run mode
 

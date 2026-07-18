@@ -66,7 +66,29 @@ Four optional `site-profile.yaml` keys are additive the same way
   in `plugin/lib/onsite/cms.py`, per docs/adr/0009 in the repo). Absence
   defaults to `wordpress` when the profile has a wordpress endpoint
   configured; an unknown type refuses, naming the supported types.
-  WordPress is adapter one.
+  WordPress is adapter one. Git-static is adapter two, for static sites
+  built from a git repo (Astro, Next, Hugo, Jekyll class) where content
+  is markdown/MDX files with YAML frontmatter:
+
+  ```yaml
+  cms:
+    type: git-static
+    repo_root: /path/to/local/clone   # required; the runtime clones/pulls
+    content_dir: src/content          # optional; this is the default
+    deploy_url: https://site.example  # optional; best-effort post-merge check
+    fields:                           # optional; remap generic -> frontmatter
+      description: excerpt
+  ```
+
+  The adapter reads and writes files in the local clone and never runs
+  git itself; the skill layer runs the git/gh commands and delivers every
+  change as a pull request against the site repo - merging is the human's
+  final act (`needs_human: ["merge-pr", "deploy"]`). Default field names:
+  `title`, `description`, `canonical`, `jsonld` (for `schema_jsonld`),
+  `draft`, `slug`. The `jsonld` field holds a raw JSON-LD string the
+  site's layout must render into the head; rendered-head verification is
+  a declared capability gap (`rendered_head_verify: False` - static sites
+  verify post-deploy, best-effort, against `deploy_url` when set).
 
 ## Items: briefs and proposals
 
