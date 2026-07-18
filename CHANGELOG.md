@@ -2,6 +2,39 @@
 
 ## [Unreleased]
 
+## [0.1.4] - 2026-07-19
+
+- **fix(ci):** all five CI runs since the 0.1.3 publish failed at
+  collection, not on test results. Bare `pytest` on the runner lacks the
+  repo root on `sys.path`, so the e2e test's `from tests.test_wp import
+  FakeSession` import only ever resolved locally under `python -m
+  pytest`. Fix: added `tests/__init__.py` and switched the CI step to
+  `python -m pytest -q`.
+- **hoo:** striking-distance detector in the weekly routine. `hoo-weekly`
+  pulls 28 days of GSC queries, filters to positions 4.0-15.0 with
+  impressions above the site's median, groups by page, and writes P2
+  signals for the top 5 opportunities; a page with 2+ striking queries
+  gets a gated `onpage-fix` proposal. Degrades to a one-line REPORT.md
+  note with no GSC connector.
+- **hoo:** the Monday report - a new `hoo-monday-report` skill and
+  `/organic-os:monday-report` command that reads the brain's last 7 days
+  and writes a five-section, under-400-word stakeholder summary (what
+  moved, what shipped, what needs you, what we learned, next week). Every
+  number traces to a brain file; a sparse week produces a shorter honest
+  report, never a padded one.
+- **security:** `scripts/verify-gates.sh` red-teams the approval gates
+  against a throwaway brain repo - `require_approved`, `set_status`,
+  `require_approval_lineage`, and `check_schema`, six probes, PASS/FAIL
+  per probe. Referenced from `SECURITY.md` and README's Human gates
+  section, and now runs in CI right after pytest.
+- **docs:** ROADMAP gained three new items (site drift watch, gated
+  image/alt-text fix workflow, topic clustering for content
+  architecture) and moved the striking-distance detector, the Monday
+  report, and the gate self-verification script into v0.2's "Landed
+  early" note now that all three shipped here; the dry-run mode for
+  `onsite-apply` that used to share a bullet with the self-verification
+  script is now its own open item.
+
 ## [0.1.3] - 2026-07-18
 
 - **core:** brain schema versioning - every scaffolded `site-profile.yaml`
