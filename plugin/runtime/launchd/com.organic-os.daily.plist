@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  PLACEHOLDER TEMPLATE - launchd plists cannot expand $HOME or any other
+  shell variable, so every /Users/YOUR_USERNAME below must be replaced
+  with your real home directory (run `echo $HOME` to get it) before this
+  file is usable. Also copy (not symlink) plugin/runtime/run-routine.sh to
+  ~/.config/organic-os/run-routine.sh first and substitute its own
+  SITE_SLUG / BRAIN_PATH placeholders - see plugin/runtime/README.md.
+
+  Runs the daily organic-os routine every day at 08:00 local time.
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.organic-os.daily</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/zsh</string>
+    <string>/Users/YOUR_USERNAME/.config/organic-os/run-routine.sh</string>
+    <string>daily</string>
+  </array>
+
+  <key>StartCalendarInterval</key>
+  <dict>
+    <key>Hour</key>
+    <integer>8</integer>
+    <key>Minute</key>
+    <integer>0</integer>
+  </dict>
+
+  <key>StandardOutPath</key>
+  <string>/Users/YOUR_USERNAME/.config/organic-os/routine-daily.log</string>
+  <key>StandardErrorPath</key>
+  <string>/Users/YOUR_USERNAME/.config/organic-os/routine-daily.log</string>
+
+  <key>RunAtLoad</key>
+  <false/>
+</dict>
+</plist>
