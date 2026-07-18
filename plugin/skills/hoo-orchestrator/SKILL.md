@@ -16,7 +16,9 @@ description: Use for any broad organic-growth request - "audit my organic presen
    - on-page fixes -> `create_item(kind="onpage-fix", ...)`
    - run artifacts -> `runs/YYYYMMDD-orchestrator/` (numbered raw files + REPORT.md)
 5. Rebuild the queue (`rebuild_queue`) and notify per the profile's approval
-   channel (see skills/onsite-apply for the adapter pattern). Do NOT apply
+   channel (see skills/onsite-apply for the adapter pattern). Only send items
+   where `is_notified(item)` is false; call `mark_notified(path)` right after
+   a successful send, so re-runs never re-notify the same item. Do NOT apply
    anything: creating items is free, mutating the site is gated elsewhere.
 6. Tell the user: top 5 actions, what is queued for approval, what was skipped
    for missing credentials.

@@ -5,8 +5,9 @@ description: Use to execute APPROVED on-page proposals - "apply the approved fix
 
 # Apply approved changes (the gate lives here)
 
-1. Read profile + env file. Poll the channel first if telegram
-   (`poll_decisions` -> `record_decision` for each).
+1. Read profile + env file. Poll the channel first if telegram, via
+   `core.approval.process_telegram_decisions(root, token, chat_id)` - it
+   persists the poll offset and tolerates unknown/stale ids without raising.
 2. List approved onpage-fix items. For each:
    a. `require_approved(path)` - this raises on anything not approved. Never
       catch that error to proceed; report it and skip.

@@ -134,3 +134,11 @@ def test_approval_lineage_fresh_proposed_raises(root):
                       target="", source="s")
     with pytest.raises(C.ContractError):
         C.require_approval_lineage(p)
+
+
+def test_mark_notified_and_is_notified(root):
+    p = C.create_item(root, kind="onpage-fix", slug="notify-me", title="t", body="b",
+                      target="https://ex.com/n", source="s")
+    assert C.is_notified(C.load_item(p)) is False
+    C.mark_notified(p)
+    assert C.is_notified(C.load_item(p)) is True

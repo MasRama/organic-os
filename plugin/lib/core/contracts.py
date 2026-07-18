@@ -106,6 +106,16 @@ def require_approved(path) -> dict:
     return item
 
 
+def mark_notified(path) -> None:
+    item = load_item(path)
+    item["meta"]["notified_at"] = _now()
+    _dump(Path(path), item["meta"], item["body"])
+
+
+def is_notified(item) -> bool:
+    return bool(item["meta"].get("notified_at"))
+
+
 def require_approval_lineage(path) -> dict:
     """For post-approval lifecycle stages (e.g. drafted) where require_approved's status check no longer applies; safe because approved -> rejected is an illegal transition, so an approved lineage cannot be revoked."""
     item = load_item(path)

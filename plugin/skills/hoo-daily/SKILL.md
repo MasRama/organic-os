@@ -16,7 +16,8 @@ description: Use for the daily signal pull - "run the daily", scheduled daily ro
    Quiet days produce one line: "no notable movement (checked: <sources>)".
 4. If an observation crosses P1 (drop > 30% on a money page), also
    `create_item(kind="onpage-fix"...)` or `kind="strategy"` and notify per the
-   approval channel.
+   approval channel. Only send items where `is_notified(item)` is false; call
+   `mark_notified(path)` right after a successful send.
 5. Outcome follow-ups: for items in `outcomes/` with a due measurement date of
    today, run the measurement per skills/onsite-measure and record.
 6. If brain mode is git: commit and push with message "signals: YYYY-MM-DD".

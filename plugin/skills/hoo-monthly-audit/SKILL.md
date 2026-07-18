@@ -13,6 +13,7 @@ description: Use for the monthly deep audit - "run the monthly audit", /organic-
    (which applied changes moved metrics; feed wins/losses to the reflector).
 3. Compare with last month's runs/ artifacts; the report leads with deltas.
 4. File signals, briefs, and fixes through core contracts; rebuild queue;
-   notify per approval channel.
+   notify per approval channel. Only send items where `is_notified(item)` is
+   false; call `mark_notified(path)` right after a successful send.
 5. Output runs/YYYYMM-monthly/REPORT.md: executive summary in plain language,
    then per-specialist sections, then this month's queued work.

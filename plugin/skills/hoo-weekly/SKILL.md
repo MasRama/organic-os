@@ -12,5 +12,6 @@ description: Use for the weekly health check + reflection - "run the weekly", sc
 3. Append the week's headline observations as signals.
 4. Invoke the organic-os:hoo-reflector skill to propose skillbook deltas from
    this week's signals + outcomes.
-5. Queue any proposed work items; rebuild queue; notify per approval channel;
-   commit + push if git.
+5. Queue any proposed work items; rebuild queue; notify per approval channel.
+   Only send items where `is_notified(item)` is false; call `mark_notified(path)`
+   right after a successful send. Commit + push if git.

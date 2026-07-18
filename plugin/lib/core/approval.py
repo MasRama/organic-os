@@ -1,6 +1,8 @@
 """Channel-neutral approval operations over the brain repo."""
+import json
 from pathlib import Path
 from . import contracts as C
+from . import telegram as T
 
 
 def pending(root):
@@ -29,3 +31,58 @@ def record_decision(root, item_id: str, decision: str, actor: str, channel: str)
         return
     C.set_status(path, decision, actor=actor, channel=channel)
     C.rebuild_queue(root)
+
+
+# -- telegram polling -----------------------------------------------------
+
+def _offset_path(root) -> Path:
+    return Path(root) / "approvals" / "telegram-offset.json"
+
+
+def _load_offset(root) -> int:
+    p = _offset_path(root)
+    if not p.exists():
+        return 0
+    try:
+        return int(json.loads(p.read_text()).get("offset", 0))
+    except (json.JSONDecodeError, OSError, ValueError):
+        return 0
+
+
+def _save_offset(root, offset: int) -> None:
+    p = _offset_path(root)
+    p.parent.mkdir(parents=True, exist_ok=True)
+    C._atomic_write(p, json.dumps({"offset": offset}) + "\n")
+
+
+def process_telegram_decisions(root, token: str, chat_id, transport=None) -> list:
+    """Poll Telegram once and apply decisions tolerantly. Returns [(item_id, outcome)].
+
+    Outcomes: 'recorded', 'stale' (item already past proposed), 'unknown'
+    (id not in this brain). Persists the poll offset at
+    <root>/approvals/telegram-offset.json so replies are acknowledged across
+    runs (Telegram drops unacked updates after ~24h).
+    """
+    http = transport or T.UrllibHTTP()
+    offset = _load_offset(root)
+    decisions, last = T.poll_decisions(http, token, chat_id, offset=offset)
+
+    results = []
+    for item_id, decision, _reason in decisions:
+        try:
+            find(root, item_id)
+        except C.ContractError:
+            results.append((item_id, "unknown"))
+            continue
+        try:
+            record_decision(root, item_id, decision, actor="telegram", channel="telegram")
+            results.append((item_id, "recorded"))
+        except C.ContractError as e:
+            if "illegal transition" in str(e):
+                results.append((item_id, "stale"))
+            else:
+                raise
+
+    if last != offset:
+        _save_offset(root, last)
+    return results
