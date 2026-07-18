@@ -57,3 +57,31 @@ scheduled runs receive the brain path from the routine configuration.
 Missing sources are stated, never guessed. This skill NEVER writes
 skillbook.md. The no-data nudge in step 3.5 is a notification, never an
 approval item - it needs no decision, just a fix.
+
+## Drift watch
+
+Runs only when the profile's WordPress connector is verified - drift is
+WP-only, there is no page inventory to snapshot without it.
+
+1. Build the tracked-page set: the WordPress post id recorded in every
+   `outcomes/*-rollback.json` snapshot (already captured by onsite-apply's
+   verify step), any `proposals/` item's target page still in play, plus
+   the homepage - deduped, capped at 20.
+2. First run for this brain (`onsite.drift.baseline_path(root)` does not
+   exist yet): `onsite.drift.snapshot_pages(wp, page_ids)`, then
+   `save_baseline`. Append one signal noting the baseline was established
+   and how many pages it covers.
+3. Every later run: snapshot the same tracked-page set again and
+   `onsite.drift.compare(root, snap)`. Empty list: one quiet signal line,
+   nothing else to do. Any diff: one P1 signal per changed page, naming
+   the field, the old value, and the new value - "changed outside the
+   loop: field, was, now - if this change was yours, refresh the
+   baseline; if not, investigate theme or plugin updates."
+4. Refresh the baseline (`save_baseline`) only AFTER the signal for that
+   run's diff has been written, so a given drift is reported exactly once
+   and never silently re-baselined out from under a pending
+   investigation.
+
+No WordPress connection: skip silently, no note needed - unlike the GSC
+sections in the weekly routine, there is no page inventory to have
+skipped pulling.

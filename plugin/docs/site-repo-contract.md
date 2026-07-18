@@ -30,6 +30,7 @@ organic-hq-<site>/
   runs/YYYYMMDD-<skill>/    timestamped run outputs: numbered raw files + REPORT.md
   keywords/tracking.yaml    tracked keyword set + per-keyword history
   outcomes/                 post-change measurements linked back to the item that caused them
+  drift/baseline.json       on-page snapshot for drift detection, WP-only, lazy (see below)
 ```
 
 `init_site_repo` (run by `/organic-os:setup`) creates every directory above,
@@ -37,6 +38,12 @@ a starter `site-profile.yaml` with the site's URL and name filled in, an
 empty `skillbook.md` with its header, an empty `approvals/queue.md`, and an
 empty `keywords/tracking.yaml`. It never overwrites a file that already
 exists, so re-running setup on an existing brain repo is safe.
+
+`drift/` is additive and does not appear in that scaffold: `schema_version`
+stays `1`, and the directory only comes into existence the first time
+`hoo-daily`'s drift-watch section runs with a verified WordPress
+connector (`onsite.drift.save_baseline` creates it on demand). A brain
+repo with no WordPress connection never gets a `drift/` directory at all.
 
 ## Items: briefs and proposals
 
@@ -101,6 +108,23 @@ currently sitting at `proposed`, across both `briefs/` and `proposals/`,
 sorted by filename. A malformed item (bad frontmatter, missing fields)
 appears as a `MALFORMED` row instead of being silently dropped, so a broken
 file surfaces instead of disappearing from view.
+
+## drift/baseline.json
+
+The stored snapshot the daily drift watch (`hoo-daily`, `onsite.drift`)
+compares against: `{page_id: {title, rank_math_title,
+rank_math_description, canonical, slug, status, jsonld_present}}` for the
+tracked-page set (pages from `outcomes/*-rollback.json` plus the homepage,
+capped at 20). Written only through `onsite.drift.save_baseline`, which
+atomic-writes via `core.contracts._atomic_write` - the same
+read-through-core / write-through-core discipline as every other file in
+this repo, just routed through `lib/onsite` instead of `lib/core` directly
+since drift is an on-page (onsite) concern, not a mutation-gate concern.
+No baseline on disk means `onsite.drift.compare` returns `[]` rather than
+raising - a fresh brain or a brain that has never had a verified WordPress
+connector simply has nothing to compare against yet. `onsite-apply`
+refreshes the entry for a page it just changed as part of its own verify
+step, so an intentional, approved change is never reported back as drift.
 
 ## Skillbook
 

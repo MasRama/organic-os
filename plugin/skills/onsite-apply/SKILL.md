@@ -21,6 +21,11 @@ description: Use to execute APPROVED on-page proposals - "apply the approved fix
    e. `set_status(path, "applied", actor="agent")`; write an outcome record
       `outcomes/<item-id>.md`: what changed, when, rollback file, measurement
       due dates (+7d, +28d).
+   f. On a successful verify, refresh the drift baseline for this page
+      (`onsite.drift.snapshot_pages` on this post id, merged into the
+      stored `onsite.drift.baseline_path` entry, then `save_baseline`) so
+      the change we just made intentionally is never flagged as drift by
+      the next `hoo-daily` run.
 3. Commit + push the brain repo if git. Summarize: applied / skipped / failed.
 
 HARD RULES: no snapshot -> no write. Verify after every write. A failed verify
