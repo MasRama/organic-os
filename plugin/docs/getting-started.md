@@ -99,7 +99,10 @@ public pages alone. See `plugin/docs/credentials/gsc-ga4.md`.
 **Add WordPress.** Connect a dedicated Editor user with an Application
 Password and organic-os can write approved on-page fixes and publish
 approved drafts, always through the approval gate. See
-`plugin/docs/credentials/wordpress.md`.
+`plugin/docs/credentials/wordpress.md`. Want to try the loop risk-free
+first? Set `onsite: {dry_run: true}` in `site-profile.yaml` - apply and
+publish run the whole gated flow, write nothing, and the outcome record
+lists every write that would have happened.
 
 **Add Google Ads.** A developer token, even at the lowest access tier,
 opens up keyword research beyond what GSC alone can mine. See

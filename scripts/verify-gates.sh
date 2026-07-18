@@ -106,6 +106,40 @@ def p6():
     assert "update the plugin" in result["action"], f"expected update-plugin action, got {result}"
 
 
+def p7():
+    from onsite.wp import WPClient
+
+    class RecordingSession:
+        def __init__(self):
+            self.calls = []
+        def request(self, method, url, **kw):
+            self.calls.append((method, url))
+
+    sess = RecordingSession()
+    wp = WPClient("https://verify-gates.invalid/wp-json", "gate", "pw",
+                  session=sess, dry_run=True)
+
+    # Gate ordering holds in dry-run: a proposed item still refuses.
+    p = item("p7")
+    blocked = False
+    try:
+        C.require_approved(p)
+    except C.ContractError:
+        blocked = True
+    assert blocked, "require_approved passed a proposed item under a dry-run client"
+
+    # Once approved, a dry-run apply logs intent and makes zero session calls.
+    C.set_status(p, "approved", actor="verify-gates", channel="in-session")
+    C.require_approved(p)  # the gate opens on the real approval
+    out = wp.update_rankmath(7, title="dry")
+    wp.update_post(7, title="dry")
+    wp.create_post(title="t", content="c", slug="p7-dry")
+    assert out.get("dry_run") is True, f"dry-run response not marked: {out}"
+    assert sess.calls == [], f"dry-run apply reached the session: {sess.calls}"
+    assert len(wp.dry_run_log) == 3, \
+        f"expected 3 logged write intents, got {wp.dry_run_log}"
+
+
 probe(1, "require_approved on a fresh proposed item raises (gate closed by default)", p1)
 probe(2, "set_status proposed -> applied directly raises (no skipping the approval step)", p2)
 probe(3, "require_approval_lineage on a rejected item raises", p3)
@@ -114,13 +148,15 @@ probe(4, "hand-edited status: approved with no approvals record still raises "
 probe(5, "a drafted item with a real approved lineage passes require_approval_lineage "
          "(the gate opens only the front door)", p5)
 probe(6, "check_schema on a schema_version: 99 brain refuses with the update-plugin action", p6)
+probe(7, "dry-run does not relax the gate: a proposed item still refuses, and an "
+         "approved dry-run apply makes zero session calls", p7)
 
 sys.exit(fail_at)
 PYEOF
 status=$?
 
 if [ "$status" -eq 0 ]; then
-  printf '\nverify-gates: all 6 probes behaved as designed\n'
+  printf '\nverify-gates: all 7 probes behaved as designed\n'
 else
   printf '\nverify-gates: probe %d did not behave as designed\n' "$status"
 fi

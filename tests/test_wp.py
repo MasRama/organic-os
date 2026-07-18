@@ -84,3 +84,51 @@ def test_get_head_percent_encodes_url():
     method, url, payload = s.calls[-1]
     assert "url=" in url
     assert "&" not in url.split("url=", 1)[1]   # the page URL is fully encoded
+
+
+# -- dry-run mode -------------------------------------------------------------
+
+def make_dry_client(sess):
+    return WPClient("https://play.example/wp-json", "organic-agent", "secret",
+                    session=sess, dry_run=True)
+
+
+def test_dry_run_update_rankmath_zero_session_calls_logs_intent():
+    s = FakeSession(); c = make_dry_client(s)
+    out = c.update_rankmath(42, title="New T", description="New D")
+    assert s.calls == []                        # the session was never touched
+    assert out["dry_run"] is True
+    entry = c.dry_run_log[-1]
+    assert entry["method"] == "update_rankmath"
+    assert entry["post_id"] == 42
+    assert entry["fields"]["meta"]["rank_math_title"] == "New T"
+    assert entry["fields"]["meta"]["rank_math_description"] == "New D"
+
+
+def test_dry_run_create_post_zero_session_calls_logs_intent():
+    s = FakeSession(); c = make_dry_client(s)
+    out = c.create_post(title="T", content="C", slug="t")
+    assert s.calls == []
+    assert out["dry_run"] is True
+    assert out["status"] == "draft"             # realistic shape, draft default
+    entry = c.dry_run_log[-1]
+    assert entry["method"] == "create_post"
+    assert entry["fields"]["slug"] == "t"
+
+
+def test_dry_run_update_post_and_rollback_log_never_write():
+    s = FakeSession(); c = make_dry_client(s)
+    c.update_post(42, title="New")
+    c.rollback({"post_id": 42, "title": "Old", "slug": "old-slug"})
+    assert s.calls == []
+    assert [e["method"] for e in c.dry_run_log] == ["update_post", "rollback"]
+    assert all(e["post_id"] == 42 for e in c.dry_run_log)
+
+
+def test_dry_run_snapshot_still_calls_session():
+    s = FakeSession(); c = make_dry_client(s)
+    snap = c.snapshot(42, fields=["title", "slug"])
+    assert len(s.calls) == 1                    # reads behave normally
+    assert snap["title"] == "Old"
+    assert snap["slug"] == "old-slug"
+    assert c.dry_run_log == []                  # a read is not a logged intent

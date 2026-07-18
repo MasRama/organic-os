@@ -20,3 +20,8 @@ description: Use to publish an APPROVED, drafted content item to WordPress - "pu
    in draft and record the post id + failure reason in the outcome record.
 5. If a Canva image brief exists next to the draft (from ce-image), record its
    path in the outcome record for manual upload (media upload is not in v1).
+
+Dry-run: with `onsite: {dry_run: true}` in site-profile.yaml, run the same
+gated flow with `WPClient(..., dry_run=True)` - nothing is created, the
+brief stays `drafted`, and the outcome record is marked dry-run listing
+every write from `wp.dry_run_log` (see skills/onsite-apply).

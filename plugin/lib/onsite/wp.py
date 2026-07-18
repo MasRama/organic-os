@@ -44,13 +44,28 @@ class StdlibSession:
 
 
 class WPClient:
-    def __init__(self, endpoint: str, username: str, app_password: str, session=None):
+    def __init__(self, endpoint: str, username: str, app_password: str, session=None,
+                 dry_run: bool = False):
         self.endpoint = endpoint.rstrip("/")
         self._auth = base64.b64encode(f"{username}:{app_password}".encode()).decode()
         self.session = session or StdlibSession()
+        # dry_run=True: reads behave normally; every mutating method records
+        # its intent in dry_run_log instead of calling the session.
+        self.dry_run = dry_run
+        self.dry_run_log: list[dict] = []
 
     def auth_header(self) -> str:
         return f"Basic {self._auth}"
+
+    def _dry(self, method: str, fields: dict, post_id: int | None = None) -> dict:
+        """Log the write that would have happened and return a realistic-shaped
+        response marked dry_run: True, so callers can carry on without any
+        session call being made."""
+        entry = {"method": method, "fields": fields}
+        if post_id is not None:
+            entry["post_id"] = post_id
+        self.dry_run_log.append(entry)
+        return {"dry_run": True, "id": post_id, **fields}
 
     def _call(self, method: str, path: str, payload=None):
         url = f"{self.endpoint}{path}"
@@ -73,17 +88,23 @@ class WPClient:
 
     # -- writes (callers MUST hold an approved item; enforced in skills) --
     def update_post(self, post_id: int, **fields) -> dict:
+        if self.dry_run:
+            return self._dry("update_post", fields, post_id)
         return self._call("POST", f"/wp/v2/posts/{post_id}", fields)
 
     def update_rankmath(self, post_id: int, **seo) -> dict:
         meta = {RANKMATH_KEYS[k]: v for k, v in seo.items() if k in RANKMATH_KEYS}
+        if self.dry_run:
+            return self._dry("update_rankmath", {"meta": meta}, post_id)
         return self._call("POST", f"/wp/v2/posts/{post_id}", {"meta": meta})
 
     def create_post(self, title: str, content: str, slug: str,
                     status: str = "draft", excerpt: str = "") -> dict:
-        return self._call("POST", "/wp/v2/posts",
-                          {"title": title, "content": content, "slug": slug,
-                           "status": status, "excerpt": excerpt})
+        payload = {"title": title, "content": content, "slug": slug,
+                   "status": status, "excerpt": excerpt}
+        if self.dry_run:
+            return self._dry("create_post", payload)
+        return self._call("POST", "/wp/v2/posts", payload)
 
     # -- rollback --
     def snapshot(self, post_id: int, fields) -> dict:
@@ -107,4 +128,6 @@ class WPClient:
 
     def rollback(self, snap: dict) -> dict:
         payload = {k: v for k, v in snap.items() if k != "post_id"}
+        if self.dry_run:
+            return self._dry("rollback", payload, snap["post_id"])
         return self._call("POST", f"/wp/v2/posts/{snap['post_id']}", payload)

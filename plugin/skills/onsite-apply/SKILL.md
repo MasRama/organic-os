@@ -28,5 +28,21 @@ description: Use to execute APPROVED on-page proposals - "apply the approved fix
       the next `hoo-daily` run.
 3. Commit + push the brain repo if git. Summarize: applied / skipped / failed.
 
+## Dry-run mode
+
+When site-profile.yaml has `onsite: {dry_run: true}` (additive key, schema
+stays 1), construct the client with `WPClient(..., dry_run=True)` and run
+the full flow above unchanged - `require_approved` is still enforced
+BEFORE the dry-run write, so a dry run rehearses the real path, gate
+included, not a shortcut around it. Nothing reaches the site: every
+mutating call lands in `wp.dry_run_log` instead of the session, and reads
+(snapshot, get_head) behave normally. Skip step 2d's verify assertion (a
+write that never happened cannot appear in the rendered head) and do NOT
+set the item to `applied` - it stays `approved` so a real apply can follow.
+Write the outcome record marked `dry-run: true`, listing every entry from
+`wp.dry_run_log` - each write that would have happened, with method,
+post id, and fields. Skip the drift-baseline refresh (2f); the page did
+not change.
+
 HARD RULES: no snapshot -> no write. Verify after every write. A failed verify
 means rollback, never retry-and-hope.
