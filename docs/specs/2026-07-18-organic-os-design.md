@@ -137,7 +137,7 @@ The setup skill asks "where should routines run?" and emits the exact configurat
 
 ## 7. Module: head-of-organic
 
-- **`/organic-os:setup`** (shared onboarding, owned by core, populates all modules): interviews the user - site URL, sitemap, brand voice (defaults offered, all editable), competitors, target geos/languages, which connectors exist (probes GA4/GSC/Notion/Slack/Canva), Google Ads credential status, WordPress endpoint + app password, approval channel, runtime, brain mode (git repo vs local folder). Writes `site-profile.yaml`, scaffolds the site repo, registers routines.
+- **`/organic-os:setup`** (shared onboarding, owned by core, populates all modules): interviews the user - site URL, sitemap, brand name + voice rulebook (defaults offered, all editable), competitors, target geos/languages, **target keywords/segments/ICP**, **operator knowledge** ("what do you already know works in your niche" - seeded into the skillbook as `evidence: anecdotal` entries so the loop starts warm), which connectors exist (probes GA4/GSC/Notion/Slack/Canva), Google Ads credential status, WordPress endpoint + app password (optional, connect-time only), approval channel, runtime, brain mode (git repo vs local folder). Writes `site-profile.yaml`, scaffolds the site repo, registers routines. The plugin has no WordPress dependency until the user connects one.
 - **Skills:** `hoo-orchestrator` (fan-out to specialists, synthesize, emit signals/briefs), `hoo-daily` (signal pull: GSC + GA4 + tracked keywords + citation spot-checks), `hoo-weekly` (health check + reflector), `hoo-monthly-audit` (deep technical + content + authority audit), `hoo-citation-tracker` (AI answer-engine visibility: mention rate, share of voice vs competitors, citation rate - query set from site-profile), `hoo-competitor-intel` (content gaps, new pages, keyword overlap), `hoo-keyword-intel` (below), `hoo-reflector` (weekly deltas), plus `hoo-task-board` (Notion mirror when connector present, local markdown otherwise).
 - **Agents (8, generalized):** technical-seo-auditor, content-strategy-architect, aeo-geo-optimizer, entity-schema-engineer, serp-ai-monitor, competitive-intel-analyst, link-authority-strategist, analytics-reporting-chief. All read site-profile; none contain a brand name.
 - **Signal quality bar** (borrowed from claude-seo, credited): every signal carries observation, dependencies, a falsifiability check ("how would we know this was wrong"), and a leading indicator.
@@ -167,7 +167,9 @@ Implementation: `lib/hoo/google_ads/*.py` using google-ads-python, config via en
 - Input: an approved brief from `briefs/`; output: a publish-ready draft (markdown + meta + schema suggestion) written back to the brief's folder, then handed to `onsite-publish` (gated).
 - **`ce-image` skill:** featured image / social card via the user's Canva connector when authorized; degrades to writing an image brief file (prompt + dimensions + alt text) the user can execute anywhere.
 
-## 10. Playground (the living demo) - built today
+## 10. Playground (the living demo) - built in a parallel session
+
+The playground exists only to demonstrate the plugin on a real WordPress site. It is built by a **separate WordPress session** working from this section; the organic-os build does not block on it and only needs its endpoint + application password at demo time (step 8 of §14). Reference copies of the compose file, mu-plugin, and runbook land in `playground/` in this repo; the live deployment and its infra commits belong to the hq repo per personal-infra conventions.
 
 - On `hq-fsn1-01` per the locked personal-infra stack; first Docker workload on the box.
 - `docker-compose.yml` (in `playground/`): `mariadb:11.4` (innodb_buffer_pool 256M, performance_schema off, mem_limit 512m) + `wordpress:php8.3-apache` (mem_limit 768m, loopback port 8081, `WP_HOME`/`WP_SITEURL` pinned to `https://playground.shivaatripathi.com`, `DISABLE_WP_CRON`), `wp-cli` service under `profiles: [cli]`, uploads.ini 64M. Host crontab runs `wp cron event run --due-now` every 15 min. Total budget ~1.2 GB, leaving 2.5 GB+ headroom.
@@ -197,7 +199,7 @@ Implementation: `lib/hoo/google_ads/*.py` using google-ads-python, config via en
 ## 14. Build order (today)
 
 1. Scaffold repo + marketplace/plugin manifests + core contracts (`lib/core`, site-repo scaffolder) + ADRs 0001-0006.
-2. Playground live: DNS + compose on hq + Caddy + WordPress + RankMath + bridge/mu-plugin + agent user + seed posts; GSC + GA4 wired.
+2. *(parallel WordPress session, not this build)* Playground live per §10: DNS + compose on hq + Caddy + WordPress + RankMath + bridge/mu-plugin + agent user + seed posts; GSC + GA4 wired. This build consumes only the resulting endpoint + credentials.
 3. head-of-organic module: setup interview, orchestrator, daily/weekly skills, keyword-intel (all tiers incl. Google Ads scripts), citation tracker, reflector; 8 agents.
 4. onsite-optimizer module: audit, propose, apply (with verify + rollback), publish, measure; approval adapters (in-session, telegram, pr-merge; slack/email as thin adapters).
 5. content-engine module: generalized pipeline + ce-image.
