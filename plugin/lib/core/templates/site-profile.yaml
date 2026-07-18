@@ -1,0 +1,41 @@
+# organic-os site profile. One file per site. Edit freely; setup fills it.
+site:
+  url: ""                # https://example.com
+  name: ""               # brand name
+  sitemap: ""            # https://example.com/sitemap.xml
+brand:
+  voice: []              # e.g. ["first person", "short sentences", "facts before adjectives"]
+  banned_phrases: []     # phrases the drafts must never use
+  rulebook: ""           # free text: brand and editorial rules
+audience:
+  segments: []           # ICP segments
+  geos: []               # e.g. ["IN", "US"]
+  languages: ["en"]
+keywords:
+  targets: []            # seed target keywords/topics
+competitors: []          # domains
+operator_notes: []       # "what already works in this niche" - seeded to skillbook at setup
+connectors:              # detected at setup: available | absent | unknown
+  ga4: unknown
+  gsc: unknown
+  notion: unknown
+  slack: unknown
+  canva: unknown
+google_ads:
+  status: none           # none | explorer | basic | standard
+  login_customer_id: ""
+wordpress:
+  endpoint: ""           # https://site.example/wp-json (empty = not connected)
+  username: ""           # app-password user; the password itself lives OUTSIDE this repo
+approval:
+  channel: in-session    # in-session | telegram | slack | email | pr-merge
+  telegram_chat_id: ""
+runtime:
+  mode: manual           # claude-scheduled | local | ci | manual
+routines:
+  daily: true
+  weekly: true
+  monthly: true
+brain:
+  mode: local            # git | local
+  repo: ""               # git remote when mode: git
