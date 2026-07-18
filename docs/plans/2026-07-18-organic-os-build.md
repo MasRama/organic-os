@@ -1440,7 +1440,7 @@ description: Use for keyword research, competitor keyword gaps, "what should we 
 ## Tier detection (once per session)
 Run: `python3 -c` snippet importing `hoo.google_ads.tier`: if env vars missing
 -> tier "none". Else build real_client() and `tier.detect()` -> basic|explorer.
-Tell the user which tier is active and what that unlocks.
+Tell the user which tier is active and what that enables.
 
 ## basic (or standard)
 1. Ideas: `keyword_ideas.run` with profile target keywords as seeds AND, per
@@ -2066,7 +2066,7 @@ git add -A && git commit -m "feat(ce): six-stage content pipeline agents + produ
 7. Store credentials: `~/.config/organic-os/<site>.env` with the five `GOOGLE_ADS_*` vars, chmod 600
 8. Verify at any tier: ListAccessibleCustomers + one GAQL query
 9. Apply for Basic access (required for keyword planning; Explorer blocks planner services). Nominal ~5 business days; 2026 backlog acknowledged by Google, expect longer. Strengthen the application: advertiser verification, specific use-case text ("keyword research and reporting for my own accounts")
-10. What each tier unlocks (table: Test/Explorer/Basic/Standard vs planner, reporting, quotas)
+10. What each tier enables (table: Test/Explorer/Basic/Standard vs planner, reporting, quotas)
 Close with the fallback note: no token still gets GSC mining + CSV import.
 
 - [ ] **Step 3: Write `docs/credentials/gsc-ga4.md`**: the two supported paths - (a) claude.ai connectors for Search Console and Analytics (authorize in connector settings; available in Cowork, claude.ai, and scheduled runs), (b) any GSC/GA4 MCP server the user already runs in Claude Code. organic-os calls whichever tools exist and states which it found.
