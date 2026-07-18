@@ -15,6 +15,31 @@ regardless of which runtime called them.
 | CI (GitHub Actions) | A headless `claude -p` job on a cron schedule | An API key, billed per token - separate from your Claude subscription | Teams, fully cloud-native setups |
 | Manual | You run `/organic-os:daily` etc. yourself | Subscription usage, whenever you run it | Trying the plugin out before committing to a schedule |
 
+## The cost ledger
+
+The wrapper (`plugin/runtime/run-routine.sh`) records what each run
+actually cost: one row per run appended to
+`~/.config/organic-os/cost-ledger-YYYYMM.tsv` (one file per month), with
+four tab-separated columns - date, routine, duration in seconds, and the
+run's token count when the CLI's JSON output reports one. When the CLI
+version does not expose usage fields, the row says "usage unavailable in
+this CLI version" instead of a guessed number.
+
+Read the token column against the cost-model column above. On
+subscription runtimes (claude.ai scheduled tasks, local, manual), tokens
+are counted but not billed per token - the ledger shows how much of your
+plan's usage a routine consumes, not a bill. On the CI runtime, tokens are
+money: the same rows are per-run spend to reconcile against your API
+invoice.
+
+What the ledger cannot capture: runs that never pass through the wrapper.
+claude.ai scheduled tasks execute in Anthropic's cloud without it, and the
+sample CI workflow below calls `claude -p` directly - neither produces a
+ledger row unless you route the run through the wrapper. The Monday report
+(`hoo-monday-report`) reads the ledger when it exists and adds a one-line
+cost summary to its "What moved" section; when the ledger is absent, the
+report simply carries no cost line.
+
 This page was rewritten after a first real local-runtime install surfaced
 five failure modes that the original version did not warn about (headless
 auth, model aliases, slash-command expansion, TCC file permissions, and the

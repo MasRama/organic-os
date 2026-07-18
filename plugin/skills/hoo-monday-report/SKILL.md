@@ -21,7 +21,10 @@ scheduled runs receive the brain path from the routine configuration.
    sections, in this order, and no others:
    - **What moved** - the top 3 metric changes this week. Each line names
      the number and the file it came from (a signal line or an outcome
-     record).
+     record). When `~/.config/organic-os/cost-ledger-YYYYMM.tsv` exists,
+     close the section with one cost line - runs this week, total
+     duration, tokens where the ledger has them; no ledger means no cost
+     line, never an invented number.
    - **What shipped** - proposals that reached `applied` and briefs that
      reached `published` this week, each with the item id and a link to
      its file in the brain.

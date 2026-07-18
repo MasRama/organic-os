@@ -58,6 +58,10 @@ Missing sources are stated, never guessed. This skill NEVER writes
 skillbook.md. The no-data nudge in step 3.5 is a notification, never an
 approval item - it needs no decision, just a fix.
 
+Run cost: wrapper-invoked runs land one row (date, duration, tokens where
+the CLI reports them) in `~/.config/organic-os/cost-ledger-YYYYMM.tsv`;
+the wrapper writes it, this skill never does - the Monday report reads it.
+
 ## Drift watch
 
 Runs only when the profile's WordPress connector is verified - drift is
