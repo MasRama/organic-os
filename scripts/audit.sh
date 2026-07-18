@@ -56,5 +56,83 @@ for d in $BRAIN_DIRS; do
   [ -n "$hits" ] && { say "FAIL brain-data directory found outside plugin/lib/core/templates/: $d"; say "$hits"; fail=1; }
 done
 
+# 8. Information integrity: relative markdown links resolve, and the facts
+# quoted across files match their canonical sources (docs/INFORMATION-MAP.md).
+hits=$(python3 - <<'PYEOF'
+import json
+import re
+import subprocess
+import sys
+from pathlib import Path
+
+problems = []
+
+# (a) Every relative link in every tracked .md file resolves.
+md_files = subprocess.run(["git", "ls-files", "*.md"], capture_output=True,
+                          text=True).stdout.split()
+LINK = re.compile(r"\[[^\]]*\]\(([^)\s]+)\)")
+for name in md_files:
+    path = Path(name)
+    for target in LINK.findall(path.read_text(encoding="utf-8")):
+        if "://" in target or target.startswith(("mailto:", "#")):
+            continue
+        rel = target.split("#", 1)[0]
+        if rel and not (path.parent / rel).exists():
+            problems.append(f"broken relative link in {name}: {target}")
+
+# (b) Version sync: plugin.json is canonical.
+version = json.load(open("plugin/.claude-plugin/plugin.json"))["version"]
+readme = Path("README.md").read_text(encoding="utf-8")
+badge = next((l for l in readme.splitlines()
+              if "img.shields.io/badge/version-" in l), "")
+if f"version-{version}-" not in badge:
+    problems.append(f"README version badge out of sync with plugin.json "
+                    f"{version}: {badge.strip() or '(badge line missing)'}")
+marketplace = json.load(open(".claude-plugin/marketplace.json"))
+mp_version = next(p["version"] for p in marketplace["plugins"]
+                  if p["name"] == "organic-os")
+if mp_version != version:
+    problems.append(f"marketplace.json version {mp_version} != "
+                    f"plugin.json version {version}")
+
+# (c) Count sync: filesystem and pytest are canonical; the README tests
+# badge and inventory line quote them.
+skills = len(list(Path("plugin/skills").rglob("SKILL.md")))
+commands = len(list(Path("plugin/commands").glob("*.md")))
+agents = len(list(Path("plugin/agents").glob("*.md")))
+collect = subprocess.run(
+    [sys.executable, "-m", "pytest", "--collect-only", "-q", "tests"],
+    capture_output=True, text=True)
+m = re.search(r"(\d+) tests? collected", collect.stdout)
+if m is None:
+    problems.append("could not count tests: pytest --collect-only gave no "
+                    "'N tests collected' line")
+    tests = None
+else:
+    tests = int(m.group(1))
+inv = re.search(r"(\d+)\s+skills,\s+(\d+)\s+slash\s+commands,\s+"
+                r"(\d+)\s+specialist\s+agents,\s+(\d+)\s+passing\s+tests",
+                readme)
+if inv is None:
+    problems.append("README inventory line not found "
+                    "(N skills, N slash commands, N specialist agents, "
+                    "N passing tests)")
+else:
+    for label, actual, quoted in (("skills", skills, inv.group(1)),
+                                  ("slash commands", commands, inv.group(2)),
+                                  ("specialist agents", agents, inv.group(3)),
+                                  ("passing tests", tests, inv.group(4))):
+        if actual is not None and actual != int(quoted):
+            problems.append(f"README inventory says {quoted} {label}, "
+                            f"canonical source says {actual}")
+if tests is not None and f"tests-{tests}%20passing" not in readme:
+    problems.append(f"README tests badge out of sync: canonical count "
+                    f"is {tests}")
+
+print("\n".join(problems))
+PYEOF
+)
+[ -n "$hits" ] && { say "FAIL information integrity:"; say "$hits"; fail=1; }
+
 [ "$fail" -eq 0 ] && say "audit: clean"
 exit "$fail"

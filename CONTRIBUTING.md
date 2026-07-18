@@ -69,7 +69,7 @@ python3 -m pytest tests/ -q
 ./scripts/audit.sh
 ```
 
-Both commands should be clean before you start (52 tests passing,
+Both commands should be clean before you start (every test passing,
 `audit: clean`) and clean again before you open a PR.
 
 ## Standards
@@ -85,6 +85,10 @@ Both commands should be clean before you start (52 tests passing,
 - **Every claim sourced.** Numbers, study results, and comparisons need a
   link to where they came from, the same standard `plugin/docs/evidence.md` holds
   itself to.
+- **Cross-file consistency.** `docs/INFORMATION-MAP.md` plus audit check 8
+  guard the facts quoted in more than one file (version, counts, TTLs,
+  layout); when you add a load-bearing fact, add its row to the map in the
+  same commit.
 
 ## PR checklist
 
