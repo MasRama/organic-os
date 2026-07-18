@@ -1,15 +1,50 @@
 # organic-os
 
-An agentic organic-growth operating system for any website, built as a
-single Claude plugin. The loop is the product: **observe -> decide ->
-approve -> apply -> verify -> learn.** It watches a site's search and
-AI-answer-engine performance, proposes work, waits for a human decision
-through whichever channel you chose, applies approved changes to
-WordPress, verifies the change actually took effect, measures the outcome,
-and writes what it learned back into a per-site playbook that compounds
-over time.
+An agentic organic-growth operating system for any website, as a single
+Claude plugin. The loop is the product.
 
-## Why another SEO thing
+![License](https://img.shields.io/badge/license-MIT-blue.svg)
+![Tests](https://img.shields.io/badge/tests-52%20passing-brightgreen.svg)
+![Version](https://img.shields.io/badge/version-0.1.1-blue.svg)
+![Works with](https://img.shields.io/badge/works%20with-Claude%20Code%20%2B%20Cowork-6f42c1.svg)
+
+## The loop
+
+```mermaid
+flowchart LR
+    Observe["Observe<br/>GA4, GSC, Ads,<br/>citations, competitors"] --> Decide["Decide<br/>signals + proposals"]
+    Decide --> Approve{"Approve<br/>human gate"}
+    Approve -->|approved| Apply["Apply<br/>WordPress writes"]
+    Approve -->|rejected| Learn["Learn<br/>skillbook entry"]
+    Apply --> Verify["Verify<br/>change took effect"]
+    Verify --> Measure["Measure<br/>outcome vs shipped"]
+    Measure --> Learn
+    Learn -.-> Observe
+```
+
+Observe a site's search and AI-answer-engine performance, decide what is
+worth proposing, wait for a human decision at the approve gate, apply
+approved changes to WordPress, verify the write actually took effect,
+measure the outcome against what shipped, and write what was learned back
+into the site's skillbook - which feeds the next observe pass.
+
+## Table of contents
+
+- [Why this exists](#why-this-exists)
+- [What you get](#what-you-get)
+- [Install](#install)
+- [Quickstart by persona](#quickstart-by-persona)
+- [Human gates and your data](#human-gates-and-your-data)
+- [How it compares](#how-it-compares)
+- [Routines](#routines)
+- [Evidence honesty](#evidence-honesty)
+- [FAQ](#faq)
+- [Roadmap](#roadmap)
+- [Contributing](#contributing)
+- [Credits and prior art](#credits-and-prior-art)
+- [License](#license)
+
+## Why this exists
 
 Point-in-time audit tools already exist and are good - [claude-seo](https://github.com/AgriciDaniel/claude-seo)
 (11.6k+ stars) runs a thorough technical/content/schema/GEO audit against a
@@ -19,7 +54,8 @@ tools do is run every day and remember what happened last time. organic-os
 is the layer underneath that: daily signals, gated execution on your own
 WordPress site, outcome measurement against what you actually shipped, and
 a skillbook your site earns entry by entry as changes get confirmed to work
-or not.
+or not. Point-in-time auditors tell you what is wrong today; organic-os
+runs the loop that fixes, verifies, and remembers.
 
 ## What you get
 
@@ -31,20 +67,23 @@ Three bounded modules, one install:
 | **onsite-optimizer** | Audits any public page with no credentials; with a WordPress connection, applies approved on-page fixes and publishes approved drafts, always verified and rollback-capable |
 | **content-engine** | Turns an approved brief into a publish-ready draft - research, brand-voice compliance, SEO/authority pass, editorial QA - with an optional featured-image step |
 
-```
-                       +-----------------------------+
-                       |   site repo (the brain)      |
-                       |  profile, signals, skillbook,|
-                       |  briefs, approvals, ADRs     |
-                       +------^----------+------------+
-              reads/writes via lib/core contracts only
-        +-----------------+--------------+------------------+
-        |                 |              |                  |
-  head-of-organic   onsite-optimizer   content-engine   routines (any runtime)
-  observe + decide  audit + mutate WP  draft + assets   scheduled invocations
-  (GA4, GSC, Ads,   (REST + app pwd,   (brief in,       of the same skills
-  citations,        RankMath bridge,    draft + assets
-  competitors)       verify, measure)   out)
+Verified inventory (2026-07-18): **18 skills, 18 slash commands, 14
+specialist agents, 52 passing tests.**
+
+```mermaid
+flowchart TB
+    Brain["site repo (the brain)<br/>profile, signals, skillbook,<br/>briefs, approvals, ADRs"]
+    Core["lib/core<br/>the only reader/writer"]
+    HOO["head-of-organic<br/>observe + decide"]
+    Onsite["onsite-optimizer<br/>audit + gated WP writes"]
+    CE["content-engine<br/>brief in, draft out"]
+    Routines["routines<br/>any runtime"]
+
+    Core --> Brain
+    HOO --> Core
+    Onsite --> Core
+    CE --> Core
+    Routines --> Core
 ```
 
 Modules talk only through the site repo's file contracts, enforced by a
@@ -65,59 +104,72 @@ Works identically on Claude Code CLI and Claude Cowork - there is nothing
 to host. The plugin is skills, agents, slash commands, and plain scripts
 invoked over Bash; no server process, no stdio MCP server, no database.
 
-## Quickstart in 10 minutes
+Prerequisite: Python 3.9+ with PyYAML (`python3 -m pip install --user
+pyyaml`). Nothing to host.
 
-Zero credentials required to see it work:
+## Quickstart by persona
 
-1. `/organic-os:setup` - run the interview in analysis mode (skip
-   WordPress, skip Google Ads, leave connectors unconfigured).
-2. `/organic-os:onsite-audit https://yoursite.com` - a read-only on-page
-   audit against a live URL, no login needed.
-3. `/organic-os:weekly` - runs the weekly health check and reflection,
-   emitting signals and candidate work items from whatever public data it
-   can reach.
-4. Open `approvals/queue.md` in the brain repo it scaffolded. That is your
-   first queue of proposed work - briefs and fix proposals sitting in
-   `status: proposed`, waiting on a human decision. Nothing has touched
-   your site yet.
+**Zero credentials: audit any site in 10 minutes.** Run `/organic-os:setup`
+and answer the interview with minimal/analysis-only answers (skip WordPress,
+skip Google Ads, leave connectors unconfigured). Run
+`/organic-os:onsite-audit https://yoursite.com` - a read-only on-page audit
+against a live URL, no login required. Read the report it writes under
+`runs/` in the brain repo it scaffolded. Full walkthrough:
+`docs/getting-started.md`.
 
-Full walkthrough: `docs/getting-started.md`.
+**WordPress owner: gated writes to your own site.** Work through
+`docs/credentials/wordpress.md` to create a dedicated Editor user and an
+Application Password, then run `/organic-os:setup` with that connection
+filled in. Run `/organic-os:onsite-audit`, then `/organic-os:propose` to
+turn findings into fix proposals, approve the ones you want in
+`approvals/queue.md`, and run `/organic-os:apply` - every write is verified
+against the live page after it lands. Full walkthrough:
+`docs/getting-started.md`.
 
-## Credentials (all optional, all yours)
+**Analytics operator, no WordPress.** Connect the GSC and GA4 connectors (or
+any GSC/GA4 MCP server already in your session) at setup, skip WordPress
+entirely. Run `/organic-os:daily` and `/organic-os:weekly` - manually at
+first, on a schedule once you trust what they surface (see Routines below).
+Watch `signals/` for the raw observations and `approvals/queue.md` for
+anything that crossed a threshold worth a human decision. Full walkthrough:
+`docs/getting-started.md`.
 
-Every capability degrades gracefully when its credential is absent, and
-nothing is required to start. The upgrade ladder, one rung at a time:
+## Human gates and your data
 
-- Add GSC/GA4 -> real ranking and traffic signals instead of public-page
-  guesses. `docs/credentials/gsc-ga4.md`
-- Add WordPress -> gated writes and publishing. `docs/credentials/wordpress.md`
-- Add Google Ads -> full keyword planner data at Basic tier, honest
-  degraded modes below it. `docs/credentials/google-ads-token.md`
-- Add a channel -> approvals that reach you outside a live session.
-  `docs/approval-channels.md`
-- Schedule routines -> move from manual to daily/weekly/monthly.
-  `docs/routines.md`
+Mutation is gated in code, not by convention. `core.contracts.require_approved`
+checks a proposal's current status before every WordPress write;
+`core.contracts.require_approval_lineage` checks that an `approved` decision
+exists in an item's history before a later stage (like publishing a drafted
+brief) is allowed to run. A hand-edited `status: approved` with no matching
+`approvals:` entry still fails the gate - every approval is recorded with
+who decided, when, and through which channel. There is no telemetry, no
+SERP or autocomplete scraping (see ADR-0006), and credentials never live in
+any repo - only env-file references do. Your brain repo is yours: it lives
+wherever you put it, private by default, and organic-os never pushes it
+anywhere you did not configure. Full detail: `SECURITY.md` and
+[CONTRIBUTING.md's data boundary](CONTRIBUTING.md#the-data-boundary).
 
-The promise underneath all of it: no secrets in any repo (env files only,
-chmod 600), no telemetry, no third-party call organic-os did not make
-because you configured it to.
+## How it compares
 
-## Human gates
+These are complements, not rivals - organic-os credits and interoperates
+with the tools below rather than replacing them.
 
-Analysis is free. Mutation - writing to WordPress, changing tracked-keyword
-strategy, curating the skillbook - is gated, in code, not by convention:
-the executor checks a proposal's recorded approval status before every
-write and refuses anything that is not `approved`. You choose the approval
-channel at setup; none is privileged over the others. Full protocol:
-`docs/approval-channels.md`.
+| | Runs on a schedule | Remembers outcomes | Writes to your site (gated) | Self-hosted / no accounts |
+|---|---|---|---|---|
+| [claude-seo](https://github.com/AgriciDaniel/claude-seo) - the strongest audit suite in this space | No, point-in-time | No | No, audit only | Yes |
+| [seranking/seo-skills](https://github.com/seranking/seo-skills) | No, manual invocation | No | No, deliverables only | No, vendor MCP + account |
+| [open-seo](https://github.com/every-app/open-seo) | Partially, hosted dashboard refresh | Partially, historical dashboard data | No | No, hosted dashboard |
+| **organic-os** | Yes, daily/weekly/monthly | Yes, skillbook | Yes, gated and verified | Yes |
 
 ## Routines
 
 Cadences (daily signal pull, weekly reflection, monthly deep audit) are
 declared in the site profile; the runtime that executes them is a separate
 choice. Four options: claude.ai scheduled tasks (zero setup, runs on your
-subscription), a local OS schedule, GitHub Actions CI (an API key, billed
-per token), or fully manual. Full comparison and setup steps for each:
+subscription usage), a local OS schedule (your own machine, has to be
+on at the scheduled time), GitHub Actions CI (an API key, billed per token,
+separate from subscription usage), or fully manual (run the commands
+yourself whenever you want). Full comparison and setup steps for each:
 `docs/routines.md`.
 
 ## Evidence honesty
@@ -129,6 +181,58 @@ controlled testing (still shipped, because it holds up independently for
 Google rich results), and `llms.txt` sees close to zero AI-bot traffic in
 the largest study run on it to date (shipped only as an optional, low-cost
 hedge). Full ranked table with sources: `docs/evidence.md`.
+
+## FAQ
+
+**Will it change my site without asking?**
+No. Every write is gated on a recorded approval, checked in code by
+`core.contracts.require_approved` / `require_approval_lineage`, not by
+convention - see [Human gates and your data](#human-gates-and-your-data).
+
+**Do I need WordPress?**
+No. `onsite-audit` runs credential-free against any public URL,
+head-of-organic's observe-and-decide loop runs on GA4/GSC connectors alone,
+and content-engine drafts briefs without ever publishing them. WordPress
+only turns on the gated apply/publish steps.
+
+**What does a routine run cost?**
+Depends on the runtime: claude.ai scheduled tasks and a local schedule run
+on your existing Claude subscription usage, no separate bill. CI (GitHub
+Actions) is billed per token via your own Anthropic API key, separate from
+subscription usage. Full comparison: `docs/routines.md`.
+
+**Can I bring my own SERP/backlink data?**
+Yes. organic-os ships no scraper by design (ADR-0006, `docs/adr/0006-no-scraping.md`).
+DataForSEO and similar BYO adapters are documented paths for keyword, SERP,
+and backlink data beyond Google Ads and GSC, connected with your own
+credentials. organic-os never scrapes on its own.
+
+**What happens if I run setup again?**
+`/organic-os:setup` detects your registered sites and asks update, add,
+switch, or status. Update mode only rewrites the `site-profile.yaml`
+sections you pick and never touches `signals/`, `decisions/`,
+`reflections/`, or existing skillbook entries - config is editable, memory
+is not. Add mode onboards a second site into the sites registry
+(`~/.config/organic-os/sites.yaml`) with its own brain path, without
+touching the first site.
+
+**How do I remove it?**
+`/organic-os:reset` walks through every piece - scheduled routines, the
+registry entry, the brain repo, the WordPress Application Password, a
+Telegram bot token, the env file - and only touches the local registry or
+env file with explicit confirmation. Uninstalling the plugin itself never
+deletes your brain: it is an ordinary git repo or folder that lives outside
+the plugin's install location.
+
+## Roadmap
+
+Themes, not promises - see `ROADMAP.md` for what is planned across v0.2,
+v0.3, and v1.0.
+
+## Contributing
+
+Code, tests, and CMS/channel adapters are welcome; business data is not -
+see `CONTRIBUTING.md` for the full guide and the data boundary CI enforces.
 
 ## Credits and prior art
 
