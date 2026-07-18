@@ -2,6 +2,26 @@
 
 ## [Unreleased]
 
+## [0.1.2] - 2026-07-18
+
+- **onboarding:** `/organic-os:start` - the branded front door. Health-checks
+  python3/PyYAML/the registry, then routes a new user into quick-start or
+  full setup and a returning user into a compact status view (active site,
+  pending approvals, last signal date) plus a menu; always closes by naming
+  the three commands used most (daily, onsite-audit, weekly).
+- **onboarding:** quick-start setup path - 3 questions (site URL, brand name
+  + voice note, approval channel), everything else defaulted and stated in a
+  closing summary table; a one-question-at-a-time interview style (default
+  with every question, progress indicator, closing summary) now applies
+  explicitly to every setup mode.
+- **docs:** visual install walkthrough - three SVG terminal frames in
+  `docs/images/` for marketplace add, plugin install, and the first
+  `/organic-os:start` run, embedded in a new README "Install, step by step"
+  section.
+- **docs:** fully-namespaced command references confirmed across README and
+  `docs/getting-started.md`, plus an explanatory line on why namespacing
+  prevents collisions with other plugins' commands.
+
 ## [0.1.1] - 2026-07-18
 
 - **core:** telegram offset persistence (`approvals/telegram-offset.json`)
