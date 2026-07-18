@@ -42,13 +42,16 @@ Use the Step 2 registry read to decide which branch applies.
 
 Offer two paths, AskUserQuestion with options:
 
-- **Quick start** - 3 questions, sensible defaults, about 2 minutes.
-- **Full setup** - the complete interview (site, brand, audience, keywords,
-  competitors, operator knowledge, connectors, Google Ads, WordPress,
-  approval channel, runtime, brain location and mode).
+- **Quick start** - URL, then 2 more questions, sensible defaults, about 2
+  minutes.
+- **Full setup** - audits the URL first (brand voice, audience, keywords,
+  competitors, geos proposed from the actual site, not asked blind), then
+  covers whatever the audit cannot infer: operator knowledge, connectors,
+  Google Ads, WordPress, approval channel, runtime, brain location and
+  mode.
 
 Then invoke the `setup` skill in the chosen mode - quick-start mode or the
-full first-run interview - and let it run to completion (scaffold, register,
+full setup interview - and let it run to completion (scaffold, register,
 summary). Do not duplicate its questions here.
 
 ### Registry has sites

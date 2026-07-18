@@ -1,13 +1,15 @@
 ---
 name: setup
-description: Use when the user installs organic-os, says "set up organic-os", "onboard my site", "connect my website", "add another website", "switch site", "organic-os status", or runs /organic-os:setup or /organic-os:sites. Interviews the user, scaffolds the per-site brain repo, runs the connector wizard with live verification, records credentials one at a time, registers routines for the chosen runtime, ends with a tested postflight scorecard, and manages the multi-site registry (add / update / switch / status).
+description: Use when the user installs organic-os, says "set up organic-os", "onboard my site", "connect my website", "add another website", "switch site", "organic-os status", or runs /organic-os:setup or /organic-os:sites. Audits the site URL and proposes a pre-filled profile before asking, scaffolds the per-site brain repo, runs the connector wizard with live verification, records credentials one at a time, registers routines for the chosen runtime, ends with a tested postflight scorecard, and manages the multi-site registry (add / update / switch / status).
 ---
 
 # organic-os setup
 
 You are onboarding or managing sites in organic-os. Everything site-specific
-comes from this interview. Never assume; ask. One question at a time,
-AskUserQuestion with options where possible.
+comes from this interview or the audit that opens it - never invent a value
+without surfacing it for the user to approve or edit, and never ask a
+question the audit already answered. One question at a time, AskUserQuestion
+with options where possible.
 
 Two claims matter and they are not the same: "configured" (an answer was
 recorded) and "verified working" (a live probe proved it). Setup collects
@@ -19,8 +21,12 @@ both, but only ends on the second - see Postflight scorecard.
   for the answer, then ask the next one.
 - **Offer a default with every question.** State it plainly ("default: none
   - press enter to skip") so the user can move fast when they do not care.
-- **Show progress.** Prefix each question with where the user is - "question
-  4 of 12" for the full first-run interview, "question 2 of 3" for
+- **Show progress.** Prefix each question with where the user is - e.g.
+  "question 3 of roughly 9" for the full setup interview (count whatever
+  this run will actually ask: reviewing/editing the proposed profile,
+  operator knowledge, Google Ads, WordPress, approval channel, runtime,
+  brain path, brain mode - the connector wizard runs as its own probe-and-
+  verify flow and is not counted in this total), "question 2 of 3" for
   quick-start, "question 1 of 2" for a targeted update-mode re-ask.
 - **End with a summary table.** After the last question and the scaffold/
   write actions, print a table of what was written and where (file path,
@@ -57,8 +63,8 @@ file, because it changes where almost everything below gets written.
      cloud / Cowork session?"
 2. **Ask which runtime will execute routines** (unless the caller already
    established this): claude-scheduled | local | ci | manual - same
-   options as interview question 11 below. If answered here, do not
-   re-ask it later; carry it forward.
+   options as the full setup interview's runtime question below. If
+   answered here, do not re-ask it later; carry it forward.
 3. **If setup environment and runtime location match** (e.g. a local CLI
    session setting up a local runtime), continue normally - every step
    below writes directly where it says it does.
@@ -100,13 +106,14 @@ setup session).
 - **Registry empty** (no sites): if the caller (e.g. `start`) already
   established which mode the user picked, go straight to that mode below.
   Otherwise ask first, AskUserQuestion with options:
-  - `Quick start (3 questions, sensible defaults, ~2 minutes)` - go to the
+  - `Quick start (URL, then 2 more questions, ~2 minutes)` - go to the
     quick-start interview below.
-  - `Full setup (the complete interview)` - go to the first-run interview
-    below.
+  - `Full setup (audit the site, then review the proposal)` - go to the
+    full setup interview below.
 - **Sites exist**: ask the user what they want, AskUserQuestion with options:
   - `update <active site name>` - refresh the currently active site's profile
-  - `add another website` - onboard a new site (full interview, own brain path)
+  - `add another website` - onboard a new site (full setup interview, own
+    brain path)
   - `switch active site` - change which site routines/commands act on
   - `show status` - print the registry (all sites, which is active) plus the
     active site's site-profile.yaml summary, and the latest postflight
@@ -126,10 +133,13 @@ setup session).
    string and stop before re-asking anything.
 3. Re-ask **only** the sections the user picks (site, brand, audience,
    keywords, competitors, connectors, Google Ads, WordPress, approval
-   channel, runtime). Do not re-run the full interview. If the user picks
-   "connectors," run the Connector wizard below rather than a plain
+   channel, runtime). Do not re-run the full setup interview. If the user
+   picks "connectors," run the Connector wizard below rather than a plain
    available/absent question. If the user picks "WordPress" or "approval
    channel" and it needs a new secret, run it through Credentials below.
+   Update mode re-asks these sections directly - it does not re-run the
+   audit-and-propose flow, since a returning user already has a profile to
+   edit from.
 4. Rewrite `site-profile.yaml` with just those changes.
 5. Skillbook: NEVER re-append an operator note unless its text is new - read
    `skillbook.md` first, skip anything that already matches an existing
@@ -150,9 +160,10 @@ setup session).
 
 ### Add mode
 
-Run the full interview below with a fresh brain path (never reuse another
-site's brain). After scaffolding, call `core.registry.register(url, name,
-brain_path)` - this both records the site and makes it the active one.
+Run the full setup interview below with a fresh brain path (never reuse
+another site's brain). After scaffolding, call `core.registry.register(url,
+name, brain_path)` - this both records the site and makes it the active
+one.
 
 ### Switch mode
 
@@ -167,28 +178,91 @@ site-profile.yaml, skillbook.md, and approvals/queue.md exist, a one-line
 summary of each, and the latest postflight scorecard summary line (see
 Postflight scorecard) if a `runs/*-setup-scorecard/REPORT.md` exists.
 
-## Quick-start interview (3 questions, ~2 minutes)
+## URL first, audit before asking (shared by quick-start and full setup)
 
-Everything not asked here gets a stated default, not a silent one - tell the
-user what was defaulted in the closing summary table so nothing is a
-surprise later.
+Both modes below start the same way: get the URL, then let organic-os do
+the looking instead of the asking. Ask only what an audit genuinely cannot
+answer - this is the "audit-and-propose" model: enter a URL, get a
+pre-filled profile to approve, instead of a wall of questions the plugin
+could have answered itself.
 
-1. Site URL. (No default - this is the one thing quick-start cannot guess.)
-2. Brand name + a one-line voice note ("how should this sound - direct,
-   playful, formal?"). Default: brand name guessed from the URL's domain
-   label, voice note left blank.
-3. Approval channel: in-session | telegram | slack | email | pr-merge.
+1. **Ask for the site URL.** No default - this is the one thing neither
+   mode can guess. If the brand name is not obviously derivable from the
+   domain label (a generic domain, or one that plainly does not match the
+   brand), ask for it in the same turn; otherwise guess it from the domain
+   label and let the user correct it during proposal review.
+2. **Audit before asking anything else.** Fetch the homepage and
+   `<url>/sitemap.xml` (or whatever sitemap the homepage's `<link
+   rel="sitemap">` tag or `robots.txt` points at instead).
+   - **Detect the CMS**: look for `wp-content`/`wp-includes` paths, a
+     `generator` meta tag, and Yoast/RankMath fingerprints - a
+     `post-sitemap.xml`/`page-sitemap.xml` sitemap-index shape usually
+     means Yoast, a `sitemap-pt-*` shape usually means RankMath, plus
+     either plugin's characteristic HTML comments. Record what was
+     detected; this seeds the WordPress question later instead of asking
+     blind.
+   - **Read 3-5 representative pages**: the homepage plus whatever the
+     sitemap or homepage nav suggests matters most - an about/product
+     page, a couple of the most prominent content pages.
+   - **Propose, from what was actually read** (never invent a value - if
+     the audit could not reach enough pages to support a field, leave it
+     blank and say so in the proposal rather than guessing):
+     - Brand voice descriptors, grounded in the actual copy (e.g. "short
+       sentences," "second person," "numbers up front" - whatever the
+       fetched pages actually show, not a generic default list).
+     - Audience segments, from who the copy is visibly written for.
+     - 5-9 seed keywords, pulled from titles, headings, and repeated
+       topics across the fetched pages.
+     - 3-5 content-SERP competitors: run WebSearch on the top 2-3 proposed
+       keywords and take the sites that actually rank for them. State the
+       distinction to the user plainly - these are sites competing for
+       the same search queries, which is not the same list as business
+       rivals; the user can swap in rival domains during review if that
+       is what they actually want tracked.
+     - Target geos: from the TLD (`.in` -> `IN`, `.co.uk` -> `GB`, a
+       generic `.com`/`.io`/etc. left to the next two signals), the
+       homepage's `lang` attribute, and any address/currency/phone-format
+       signals visible on the fetched pages.
+3. **Degradation - the site cannot be fetched** (no web access this
+   session, the site blocks fetches, a timeout): say so plainly, do not
+   fabricate a proposal, and fall back to asking directly for whatever the
+   audit would have proposed - brand name from the domain label (step 1),
+   empty keywords/competitors, TLD-only geo guess. Note in the closing
+   summary that the audit did not run, and why.
+
+## Quick-start interview (propose + accept-all + defaults, ~2 minutes)
+
+Runs the shared audit above, then asks exactly 3 questions: URL, approval
+channel, confirm. Everything else gets a stated default, not a silent one -
+tell the user what was defaulted (or proposed-and-accepted) in the closing
+summary table so nothing is a surprise later.
+
+1. Site URL (+ brand name only if not derivable - see above).
+2. Approval channel: in-session | telegram | slack | email | pr-merge.
    Default: in-session - no setup required, works immediately.
+3. Confirm: show the proposed profile table (brand voice, audience, geos,
+   keywords, competitors - whatever the audit produced, or its degraded
+   fallback) and ask "does this look right?" - **Accept and continue** or
+   **Switch to full setup to review row by row**. Quick-start does not
+   support per-row editing; a user who wants that is, by definition,
+   choosing full setup.
 
-Defaulted silently (state each one in the summary table, do not ask):
+Defaulted or proposed-and-accepted silently (state each one in the summary
+table, do not ask):
 
-- **Geos**: inferred from the URL's TLD (`.in` -> `IN`, `.co.uk` -> `GB`,
-  a generic `.com`/`.io`/etc. -> left empty). Never asked in quick-start.
-- **Keywords, competitors, operator notes**: left empty. Note in the summary
-  that they can be filled in later via `/organic-os:setup` update mode.
+- **Brand voice, audience, geos, keywords, competitors**: whatever the
+  audit proposed, accepted as-is on confirmation in question 3. This is
+  new since the audit-and-propose rework - quick-start used to leave
+  keywords, competitors, and voice notes empty; now it seeds them from the
+  site itself. If the audit degraded (no web access, fetch blocked), the
+  old empty/TLD-only defaults apply instead, and the summary says so.
+- **Operator notes**: left empty - the audit cannot infer what the
+  operator knows, and quick-start does not ask it. Fill in later via
+  `/organic-os:setup` update mode.
 - **Connectors, Google Ads, WordPress**: left `unknown`/`none`/unconnected.
   Quick-start never runs the Connector wizard and never probes connectors -
-  analysis-only is the correct default outcome for a 2-minute setup.
+  analysis-only is the correct default outcome for a 2-minute setup, even
+  when the audit detected WordPress on the site itself.
 - **Runtime**: `manual`. The user runs commands themselves until they choose
   to schedule routines (`$CLAUDE_PLUGIN_ROOT/docs/routines.md`).
 - **Brain path**: `~/organic-hq/<slug>`, same derivation as full setup.
@@ -200,72 +274,100 @@ Defaulted silently (state each one in the summary table, do not ask):
 ### Actions after the quick-start interview
 
 1. Run: `PYTHONPATH="$CLAUDE_PLUGIN_ROOT/lib" python3 "$CLAUDE_PLUGIN_ROOT/lib/core/init_site_repo.py" <brain-path> --url <url> --name <name>`
-2. Fill `site-profile.yaml`: the three answered fields, plus every defaulted
-   field from the list above (geos, approval channel, runtime: manual, brain
+2. Fill `site-profile.yaml`: the audited/confirmed profile fields (brand
+   voice, audience, geos, keywords, competitors, or their degraded-audit
+   fallback), the answered fields (approval channel, confirm), plus every
+   silently defaulted field from the list above (runtime: manual, brain
    mode: local, brain repo path).
 3. Call `core.registry.register(<url>, <name>, <brain-path>)`.
-4. Print the summary table (interview style, above): what was asked and
-   answered, what was defaulted, and where each value landed in
-   `site-profile.yaml`. Point at `/organic-os:setup` update mode for filling
-   in keywords, competitors, connectors, or WordPress later, and at
-   `/organic-os:onsite-audit` as the first thing to try right now.
+4. Print the summary table (interview style, above): what the audit
+   proposed, what was asked and answered, what was defaulted, and where
+   each value landed in `site-profile.yaml`. Point at `/organic-os:setup`
+   update mode for editing anything, and at `/organic-os:onsite-audit` as
+   the first thing to try right now.
 5. Run a lightweight postflight scorecard: just "brain scaffold" (the four
    files from step 1 exist) and "registry readable" (`core.registry.
    get_active()` returns this site). Every connector/WordPress/approval/
    runtime row is skipped, not shown as failing, because quick-start never
    configured them - the scorecard only tests what was actually attempted.
 
-## First-run interview (also used for "add another website")
+## Full setup interview (propose + row-by-row review, also used for "add another website")
 
-1. Site: URL, brand name, sitemap URL (offer to guess `<url>/sitemap.xml` and verify with a fetch).
-2. Brand rulebook: voice rules, banned phrases (offer sensible defaults: first person, short sentences, facts before adjectives, no exclamation marks; user edits).
-3. Audience: segments/ICP, geographies, languages.
-4. Keywords: target keywords/topics (free list; can be empty - keyword-intel will propose).
-5. Competitors: domains (up to 5 to start).
-6. Operator knowledge: "What do you already know works in this niche - tips, channels, formats?" Each answer becomes a skillbook entry tagged `evidence: anecdotal`.
-7. Connectors: run the **Connector wizard** below for GA4 and GSC (the
+Runs the shared audit above, then works through the proposal and whatever
+it could not answer.
+
+1. **Review the proposed profile.** Present the full table from the audit
+   (site, brand voice, audience, keywords, competitors, geos, WordPress
+   detection). Ask, AskUserQuestion: **Accept all** / **Edit specific
+   rows** / **Answer manually instead**.
+   - *Edit specific rows*: one row at a time, same interview-style rules
+     as everything else here - one question, a stated default (the
+     audit's proposed value), progress shown.
+   - *Answer manually instead*: skip the audit's proposal entirely and
+     ask each field the old way - for a site the audit could not usefully
+     read, or a user who wants zero inference. Site: URL, brand name,
+     sitemap URL (offer to guess `<url>/sitemap.xml` and verify with a
+     fetch). Brand rulebook: voice rules, banned phrases (offer sensible
+     defaults - first person, short sentences, facts before adjectives, no
+     exclamation marks; user edits). Audience: segments/ICP, geographies,
+     languages. Keywords: target keywords/topics (free list; can be empty
+     - keyword-intel will propose). Competitors: domains (up to 5 to
+     start).
+2. **Operator knowledge**: "What do you already know works in this niche -
+   tips, channels, formats?" Each answer becomes a skillbook entry tagged
+   `evidence: anecdotal`. The audit cannot infer this - always ask it,
+   regardless of how the profile above was filled in.
+3. **Connectors**: run the **Connector wizard** below for GA4 and GSC (the
    heartbeat pair) first, then Notion, Slack, Canva as optional extras.
    This replaces a plain available/absent question - every connector this
    interview records has been probed, and every `verified` status has
    passed one live query, not just "the tool appeared to be there."
-8. Google Ads: ask whether they have a developer token and which access
+4. **Google Ads**: ask whether they have a developer token and which access
    level. Point to https://github.com/shalintripathi/organic-os/blob/main/plugin/docs/credentials/google-ads-token.md
    (also at $CLAUDE_PLUGIN_ROOT/docs/credentials/google-ads-token.md in a
    local checkout). If they have a developer token or client secret to
    hand, route it through **Credentials** below. Record status only.
-9. WordPress: connected site? If yes: endpoint URL + username; the
-   Application Password itself goes through **Credentials** below - it
-   mirrors the exact wording of `plugin/docs/credentials/wordpress.md`
-   step 2.
-10. Approval channel: in-session | telegram | slack | email | pr-merge. For
-    telegram: chat id here, bot token through **Credentials** below (same
-    env file, key `TELEGRAM_BOT_TOKEN`). No channel is privileged; default
-    in-session.
-11. Runtime for routines: claude-scheduled | local | ci | manual - skip
-    this question if Step 0.5 already answered it; otherwise ask now and
-    carry the answer into Step 0.5's rules for the rest of setup. Explain
-    costs honestly: claude-scheduled and local run on the user's Claude
-    subscription; ci uses an API key billed per token.
-12. Where should the brain live? Default `~/organic-hq/<slug>` **on the
-    runtime machine** (per Step 0.5 - if setup and runtime differ, this
-    path is not on the machine setup is currently running in), where
-    `<slug>` is derived the same way the registry derives it (host minus
-    `www.`, dots to hyphens - e.g. `example.com` -> `example-com`). Offer
-    to change the path. After the answer, run `PYTHONPATH="$CLAUDE_PLUGIN_
-    ROOT/lib" python3 -c "..."` calling `core.registry.path_warnings(<brain-
-    path>, <runtime from question 11>)` - on the runtime machine if setup
-    can reach it directly, or as a line inside the ready-to-run snippet
-    (Step 0.5) with instructions to run it before scaffolding if setup
-    cannot. If it returns any warnings, show them to the user verbatim and
-    re-ask the question, with the default now switched to
-    `~/organic-hq/<slug>`. Do not scaffold anything at a path that still has
-    open warnings without the user explicitly confirming they want to
-    proceed anyway.
-13. Brain mode: git repo (recommended; needed for claude-scheduled and ci
-    runtimes and for versioned memory) or local folder. If git and Step 0.5
-    flagged a setup/runtime mismatch, `git init` and the first commit
-    happen natively on the runtime machine (see Step 0.5's git rule) - do
-    not run them through a bridge.
+5. **WordPress**: infra is never guessed, so this stays an explicit
+   question even though the audit already looked - if the audit detected
+   WordPress, say so and ask to confirm the endpoint URL + username rather
+   than asking blind; otherwise ask whether they have a connected site
+   another CMS runs on. Either way, the Application Password itself goes
+   through **Credentials** below - it mirrors the exact wording of
+   `plugin/docs/credentials/wordpress.md` step 2.
+6. **Approval channel**: in-session | telegram | slack | email | pr-merge.
+   For telegram: chat id here, bot token through **Credentials** below
+   (same env file, key `TELEGRAM_BOT_TOKEN`). No channel is privileged;
+   default in-session.
+7. **Runtime for routines**: claude-scheduled | local | ci | manual - skip
+   this question if Step 0.5 already answered it; otherwise ask now and
+   carry the answer into Step 0.5's rules for the rest of setup. Explain
+   costs honestly: claude-scheduled and local run on the user's Claude
+   subscription; ci uses an API key billed per token.
+8. **Where should the brain live?** Default `~/organic-hq/<slug>` **on the
+   runtime machine** (per Step 0.5 - if setup and runtime differ, this
+   path is not on the machine setup is currently running in), where
+   `<slug>` is derived the same way the registry derives it (host minus
+   `www.`, dots to hyphens - e.g. `example.com` -> `example-com`). Offer
+   to change the path. After the answer, run `PYTHONPATH="$CLAUDE_PLUGIN_
+   ROOT/lib" python3 -c "..."` calling `core.registry.path_warnings(<brain-
+   path>, <runtime from question 7>)` - on the runtime machine if setup
+   can reach it directly, or as a line inside the ready-to-run snippet
+   (Step 0.5) with instructions to run it before scaffolding if setup
+   cannot. If it returns any warnings, show them to the user verbatim and
+   re-ask the question, with the default now switched to
+   `~/organic-hq/<slug>`. Do not scaffold anything at a path that still has
+   open warnings without the user explicitly confirming they want to
+   proceed anyway.
+9. **Brain mode**: git repo (recommended; needed for claude-scheduled and
+   ci runtimes and for versioned memory) or local folder. If git and Step
+   0.5 flagged a setup/runtime mismatch, `git init` and the first commit
+   happen natively on the runtime machine (see Step 0.5's git rule) - do
+   not run them through a bridge.
+
+The AI-visibility baseline offer (below) and the Postflight scorecard
+(below) close out full setup - existing v3 machinery, unchanged by this
+rework beyond running after a proposal instead of after a plain question
+list.
 
 ## Connector wizard (GA4, GSC, then Notion/Slack/Canva)
 

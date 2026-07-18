@@ -133,8 +133,11 @@ CLI needed.
 ## Quickstart by persona
 
 **Zero credentials: audit any site in 10 minutes.** Run `/organic-os:setup`
-and answer the interview with minimal/analysis-only answers (skip WordPress,
-skip Google Ads, leave connectors unconfigured). Run
+- it asks for your URL first, audits the site itself (brand voice, audience,
+keywords, competitors, geos proposed from the actual copy), and presents
+the result as a table to approve; answer the rest with minimal/analysis-only
+answers (skip WordPress, skip Google Ads, leave connectors unconfigured).
+Run
 `/organic-os:onsite-audit https://yoursite.com` - a read-only on-page audit
 against a live URL, no login required. Read the report it writes under
 `runs/` in the brain repo it scaffolded. Full walkthrough:

@@ -36,12 +36,22 @@ itself, walked through below, is what it hands off to either way.
 /organic-os:setup
 ```
 
-This is an interview, not a form. It asks for the site URL, brand voice
-rules, audience segments, target keywords, competitors, what connectors are
-available (GA4, GSC, Notion, Slack, Canva), Google Ads token status, an
-optional WordPress connection, which approval channel to use, and which
-runtime should execute routines. Every question has a sensible default and
-every answer is editable later by hand in `site-profile.yaml`.
+URL first, questions second. Setup asks for the site URL, then audits the
+site itself - fetches the homepage and sitemap, detects WordPress/Yoast/
+RankMath, reads a handful of representative pages - and proposes a full
+profile: brand voice descriptors grounded in the actual copy, audience
+segments, 5-9 seed keywords, 3-5 content-SERP competitors (sites competing
+for the same queries, not necessarily business rivals), and target geos.
+That proposal is presented as a table: accept all, edit specific rows, or
+answer manually instead if you'd rather skip the inference entirely.
+
+Only what the audit genuinely cannot answer gets asked directly: operator
+knowledge (what already works in this niche - the audit cannot read your
+experience), which connectors are available (GA4, GSC, Notion, Slack,
+Canva), Google Ads token status, an optional WordPress connection, which
+approval channel to use, and which runtime should execute routines. Every
+question has a sensible default and every answer is editable later by hand
+in `site-profile.yaml`.
 
 Setup never prompts you to authorize a connector - it probes what you have
 already connected and tells you exactly how to connect anything missing.
