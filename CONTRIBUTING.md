@@ -78,12 +78,10 @@ Both commands should be clean before you start (52 tests passing,
   test first. See `tests/` for the existing pattern per module.
 - **No em-dashes.** Use a hyphen with spaces (` - `), a comma, or split the
   sentence.
-- **No hype words.** `scripts/audit.sh` blocks *seamless, robust(ly), delve,
-  dive into, in today's fast-paced, transform(ative/ing), unlock, unleash,
-  supercharge, game-chang(er/ing), cutting-edge, world-class, best-in-class,
-  synergy, holistic, revolutionary* in `plugin/`, `docs/`, `README.md`,
-  `SECURITY.md`, and `playground/`. If the audit flags a word, rephrase
-  rather than add it to an exclude list.
+- **No hype words.** `scripts/audit.sh` (check 4, the `BANNED` pattern)
+  blocks a list of marketing cliches across `plugin/`, `docs/`, and the
+  root-level docs. Open the script to see the exact pattern. If the audit
+  flags a word, rephrase rather than add it to an exclude list.
 - **Every claim sourced.** Numbers, study results, and comparisons need a
   link to where they came from, the same standard `docs/evidence.md` holds
   itself to.
