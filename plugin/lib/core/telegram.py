@@ -5,10 +5,14 @@ Real transport (used by skills):
     http = UrllibHTTP()
 Approval grammar in chat: 'approve <item-id>' or 'reject <item-id> [reason]'.
 Reply-context grammar: replying to a message that contains an item id, a bare
-decision word resolves against that id - approve/approved/yes/ok/thumbs-up
-approve it, reject/rejected/no/thumbs-down reject it; trailing text after the
-word is kept as the note. The strict grammar takes precedence when both could
-apply.
+decision word resolves against that id - approve/approved/yes/ok/go ahead/
+ship it/lgtm/thumbs-up approve it, reject/rejected/no/thumbs-down reject it;
+the phrase must start the reply, and trailing text after it is kept as the
+note. The strict grammar takes precedence when both could apply.
+
+The negative set is deliberately narrow: deferrals ("wait", "hold",
+"later") are NOT decisions and must resolve nothing - deferring is not
+rejecting, so the item stays pending for a real answer.
 """
 import json
 import re
@@ -21,12 +25,13 @@ _DECISION = re.compile(r"^(approve|reject)\s+([bp]-[\w-]+)\s*(.*)$", re.I)
 # Item ids as create_item mints them: [bp]-YYYYMMDD-slug (lowercase slug).
 _ITEM_ID = re.compile(r"\b[bp]-\d{8}-[a-z0-9][a-z0-9-]*")
 _REPLY_VERBS = {"approved": "approved", "approve": "approved", "yes": "approved",
-                "ok": "approved", "\U0001F44D": "approved",
+                "ok": "approved", "go ahead": "approved", "ship it": "approved",
+                "lgtm": "approved", "\U0001F44D": "approved",
                 "rejected": "rejected", "reject": "rejected", "no": "rejected",
                 "\U0001F44E": "rejected"}
 # Longest alternatives first so 'approved' is not split as 'approve' + 'd'.
 _REPLY_DECISION = re.compile(
-    "^(" + "|".join(sorted(_REPLY_VERBS, key=len, reverse=True))
+    "^(" + "|".join(re.escape(v) for v in sorted(_REPLY_VERBS, key=len, reverse=True))
     + r")(?:[\s,.:;-]+(.*))?$", re.I | re.S)
 
 

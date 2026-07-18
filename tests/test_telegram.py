@@ -119,6 +119,51 @@ def test_reply_with_non_decision_text_resolves_nothing():
     assert decisions == []
 
 
+def test_reply_go_ahead_approves():
+    http = ReplyHTTP([_upd(16, "Go ahead", reply_to_text=PROPOSAL_TEXT)])
+    decisions, _ = T.poll_decisions(http, token="t", chat_id=42, offset=0)
+    assert decisions == [("p-20260718-fix1", "approved", "")]
+
+
+def test_reply_go_ahead_with_trailing_text_approves_with_note():
+    http = ReplyHTTP([_upd(17, "go ahead and fix the title too",
+                           reply_to_text=PROPOSAL_TEXT)])
+    decisions, _ = T.poll_decisions(http, token="t", chat_id=42, offset=0)
+    assert decisions == [("p-20260718-fix1", "approved", "and fix the title too")]
+
+
+def test_reply_ship_it_approves():
+    http = ReplyHTTP([_upd(18, "ship it", reply_to_text=PROPOSAL_TEXT)])
+    decisions, _ = T.poll_decisions(http, token="t", chat_id=42, offset=0)
+    assert decisions == [("p-20260718-fix1", "approved", "")]
+
+
+def test_reply_lgtm_approves():
+    http = ReplyHTTP([_upd(19, "LGTM", reply_to_text=PROPOSAL_TEXT)])
+    decisions, _ = T.poll_decisions(http, token="t", chat_id=42, offset=0)
+    assert decisions == [("p-20260718-fix1", "approved", "")]
+
+
+def test_reply_wait_for_now_resolves_nothing():
+    # Deferring is not rejecting: "wait" must stay a non-decision so the
+    # item stays pending for a real answer later.
+    http = ReplyHTTP([_upd(20, "Wait for now", reply_to_text=PROPOSAL_TEXT)])
+    decisions, _ = T.poll_decisions(http, token="t", chat_id=42, offset=0)
+    assert decisions == []
+
+
+def test_reply_hold_resolves_nothing():
+    http = ReplyHTTP([_upd(21, "hold", reply_to_text=PROPOSAL_TEXT)])
+    decisions, _ = T.poll_decisions(http, token="t", chat_id=42, offset=0)
+    assert decisions == []
+
+
+def test_reply_bare_no_rejects():
+    http = ReplyHTTP([_upd(22, "no", reply_to_text=PROPOSAL_TEXT)])
+    decisions, _ = T.poll_decisions(http, token="t", chat_id=42, offset=0)
+    assert decisions == [("p-20260718-fix1", "rejected", "")]
+
+
 def test_send_item_states_reply_format():
     http = FakeHTTP()
     T.send_item(http, token="t", chat_id=42,

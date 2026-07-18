@@ -169,13 +169,24 @@ common effect of `getUpdates` retried across runs) is applied once.
 **Reply-context decisions.** Typing an item id on a phone is friction, so
 there is a second path: use Telegram's reply feature on the proposal
 message itself, and a bare decision word is enough - the item id is read
-from the message you replied to. Accepted words, case-insensitive:
+from the message you replied to. The grammar, case-insensitive; the
+phrase must START the reply:
 
-- approve: `approve`, `approved`, `yes`, `ok`, or a thumbs-up emoji
-- reject: `reject`, `rejected`, `no`, or a thumbs-down emoji
+| Decision | Accepted replies |
+|---|---|
+| approve | `approve`, `approved`, `yes`, `ok`, `go ahead`, `ship it`, `lgtm`, a thumbs-up emoji |
+| reject | `reject`, `rejected`, `no`, a thumbs-down emoji |
+| none (stays pending) | anything else - including `wait`, `hold`, `later` |
 
-Any text after the word becomes the note (so a reply of `ok ship it`
-approves with note "ship it"). The rules around it:
+The negative set is deliberately narrow by design: deferrals like "wait
+for now", "hold", or "later" are NOT decisions, because deferring is not
+rejecting. Such a reply resolves nothing and the item stays pending for a
+real answer - a "wait" that quietly rejected would destroy trust in the
+channel.
+
+Any text after the phrase becomes the note (so a reply of `go ahead and
+fix the title too` approves with note "and fix the title too"). The rules
+around it:
 
 - The strict `approve <item-id>` grammar still works everywhere and takes
   precedence when both could apply - a typed id always wins over the
