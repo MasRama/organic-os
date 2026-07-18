@@ -73,7 +73,7 @@ docs/INFORMATION-MAP.md in the repo):
 |---|---|
 | A proposal needs you | The item (id, kind, title, target, body excerpt) plus how to approve or reject it |
 | An apply or publish run finishes | ONE outcome summary for the run: applied-and-verified items, partially-applied items with the named human step, failed or rolled-back items with the reason, published posts with their URL |
-| A daily run finds something actionable | ONE alert: P1 signals (drift, money-page drops) or the no-data nudge |
+| A daily run finds something actionable | ONE alert: P1 signals (drift, money-page drops, a failed re-verification of an applied change) or the no-data nudge |
 | Anything else | Nothing. Quiet days are silent - silence means no action needed, never that something was hidden |
 
 The outcome summary exists because approval without feedback breaks the

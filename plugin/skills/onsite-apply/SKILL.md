@@ -28,7 +28,19 @@ description: Use to execute APPROVED on-page proposals - "apply the approved fix
    e. `PYTHONPATH="$CLAUDE_PLUGIN_ROOT/lib" python3 -m core status
       <item-path> applied --actor agent`; write an outcome record
       `outcomes/<item-id>.md`: what changed, when, rollback file, measurement
-      due dates (+7d, +28d).
+      due dates (+7d, +28d). Because the verify just succeeded, also write
+      the re-verification window into the record, exactly these keys
+      (see site-repo-contract.md):
+
+      ```yaml
+      reverify:
+        due: <UTC now+1h>     # first scheduled re-check
+        until: <UTC now+48h>  # window end; drift watch owns the horizon after
+      ```
+
+      hoo-daily re-checks the live values between `due` and `until` so an
+      external revert (a bulk plugin restore, a theme update) surfaces
+      within hours, not at the next audit.
    f. On a successful verify, refresh the drift baseline for this page
       (`onsite.drift.snapshot_pages` on this post id, merged into the
       stored `onsite.drift.baseline_path` entry, then `save_baseline`) so
@@ -109,7 +121,9 @@ every git/gh command below.
    counts as the WordPress-grade verify. IndexNow (step 2g) also moves
    to after merge detection: only a merged and deployed change has a
    live URL to submit. Skip the drift-baseline refresh (step 2f); the
-   drift watch is WordPress-only.
+   drift watch is WordPress-only. No `reverify` keys on this path either:
+   they attach only to a rendered-head-verified apply (step 2e), and the
+   best-effort post-deploy check is not that verify.
 
 Dry-run with git-static: the same rules as below - the gate still runs
 first, the adapter logs every intended write in `dry_run_log`, and with
@@ -131,8 +145,9 @@ write that never happened cannot appear in the rendered head) and do NOT
 set the item to `applied` - it stays `approved` so a real apply can follow.
 Write the outcome record marked `dry-run: true`, listing every entry from
 the adapter's `dry_run_log` - each write that would have happened, with method,
-post id, and fields. Skip the drift-baseline refresh (2f); the page did
-not change.
+post id, and fields. Skip the drift-baseline refresh (2f) and the
+`reverify` keys; the page did not change, so there is nothing to
+re-check.
 
 ## Partial application
 

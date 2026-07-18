@@ -159,6 +159,28 @@ non-proposed status and an empty approvals list - a file written outside
 neither be approved nor pass a gate and would otherwise jam the pipeline
 silently.
 
+## Re-verification keys in outcome records (additive)
+
+After a successful rendered-head-verified apply, `onsite-apply` writes a
+re-verification window into the item's outcome record in `outcomes/`:
+
+```yaml
+reverify:
+  due: 2026-07-19T15:04:00Z    # first re-check: one hour after the verified apply
+  until: 2026-07-21T14:04:00Z  # window end: 48 hours after the verified apply
+```
+
+`hoo-daily` re-checks the live values against the applied values between
+`due` and `until`; a mismatch is a P1 signal ("applied change no longer
+live - external revert suspected; re-propose") delivered in the daily
+alert. The window exists because an external bulk revert can undo an
+applied change minutes after verification, and waiting for the next full
+audit to notice is too slow. After `until` passes, the drift watch owns
+the long horizon - the drift baseline was already refreshed at apply
+time. The keys are additive: `schema_version` stays 1, and records
+without them (older applies, git-static deliveries, dry-run outcomes)
+are simply never re-checked this way.
+
 ## drift/baseline.json
 
 The stored snapshot the daily drift watch (`hoo-daily`, `onsite.drift`)

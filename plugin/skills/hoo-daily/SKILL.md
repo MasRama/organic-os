@@ -52,6 +52,20 @@ scheduled runs receive the brain path from the routine configuration.
    `mark_notified(path)` right after a successful send.
 5. Outcome follow-ups: for items in `outcomes/` with a due measurement date of
    today, run the measurement per skills/onsite-measure and record.
+5.5. Applied-change re-verification: scan `outcomes/` for records with a
+   `reverify:` block whose `until` is still in the future (written by
+   skills/onsite-apply after a successful verify; see
+   site-repo-contract.md). For each with `due` <= now, fetch the live
+   values via the CMS adapter - the same fields the apply verified
+   (title, meta description, canonical) - and compare to what the outcome
+   record says was applied. Match: note the passing re-check in the
+   outcome record, nothing else. Mismatch: append one P1 signal -
+   "applied change no longer live - external revert suspected;
+   re-propose" - naming the item id, the field, the applied value, and
+   the live value; it goes out in the daily alert below. Once `until`
+   passes, stop re-checking: the drift watch owns the long horizon (the
+   baseline was already refreshed at apply time). Records without a
+   `reverify:` block are never re-checked this way.
 6. If brain mode is git: commit and push with message "signals: YYYY-MM-DD".
 
 Missing sources are stated, never guessed. This skill NEVER writes
@@ -96,7 +110,7 @@ After every section above has run, decide whether the operator needs to
 hear anything today. Actionable content is exactly:
 
 - P1 signals created by this run (drift "changed outside the loop",
-  money-page drops from step 4)
+  money-page drops from step 4, failed re-verifications from step 5.5)
 - the no-data nudge from step 3.5
 
 If any exist, send ONE message through the configured approval channel,
