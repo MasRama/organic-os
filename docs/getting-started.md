@@ -20,7 +20,17 @@ process.
 `python3 -c "import yaml"`; if that fails, run
 `python3 -m pip install --user pyyaml` before running setup.
 
+Every organic-os command is namespaced by the plugin name -
+`/organic-os:setup`, `/organic-os:daily`, and so on - so there is no
+collision with another plugin's `/setup` or `/daily` command in the same
+session.
+
 ## Run setup
+
+Not sure where to start? `/organic-os:start` health-checks the environment
+(Python, PyYAML, the registry) and routes you into quick-start or full
+setup for a new site, or a compact status view for a returning one. Setup
+itself, walked through below, is what it hands off to either way.
 
 ```
 /organic-os:setup

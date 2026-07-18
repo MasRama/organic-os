@@ -67,7 +67,7 @@ Three bounded modules, one install:
 | **onsite-optimizer** | Audits any public page with no credentials; with a WordPress connection, applies approved on-page fixes and publishes approved drafts, always verified and rollback-capable |
 | **content-engine** | Turns an approved brief into a publish-ready draft - research, brand-voice compliance, SEO/authority pass, editorial QA - with an optional featured-image step |
 
-Verified inventory (2026-07-18): **18 skills, 18 slash commands, 14
+Verified inventory (2026-07-18): **19 skills, 19 slash commands, 14
 specialist agents, 52 passing tests.**
 
 ```mermaid
@@ -106,6 +106,24 @@ invoked over Bash; no server process, no stdio MCP server, no database.
 
 Prerequisite: Python 3.9+ with PyYAML (`python3 -m pip install --user
 pyyaml`). Nothing to host.
+
+### Install, step by step
+
+1. Add the marketplace.
+
+   ![Terminal: adding the organic-os marketplace](docs/images/install-1-marketplace.svg)
+
+2. Install the plugin.
+
+   ![Terminal: installing the organic-os plugin](docs/images/install-2-install.svg)
+
+3. First run: `/organic-os:start` walks you through everything else -
+   health check, then quick-start or full setup.
+
+   ![Terminal: running the organic-os guided start](docs/images/install-3-start.svg)
+
+Cowork users: the same two `/plugin` commands work in the chat input, no
+CLI needed.
 
 ## Quickstart by persona
 
@@ -208,7 +226,10 @@ and backlink data beyond Google Ads and GSC, connected with your own
 credentials. organic-os never scrapes on its own.
 
 **What happens if I run setup again?**
-`/organic-os:setup` detects your registered sites and asks update, add,
+Run `/organic-os:start` any time you are not sure what to do next - it
+health-checks the environment and routes you to the right place, including
+back into setup. `/organic-os:setup` itself detects your registered sites
+and asks update, add,
 switch, or status. Update mode only rewrites the `site-profile.yaml`
 sections you pick and never touches `signals/`, `decisions/`,
 `reflections/`, or existing skillbook entries - config is editable, memory
