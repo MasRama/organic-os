@@ -2,6 +2,36 @@
 
 ## [Unreleased]
 
+## [0.3.0-alpha.1] - 2026-07-19
+
+The v0.3 phase opens with its structural priority: the CMS adapter
+contract. Alpha signals the phase is open, not finished.
+
+- **refactor(onsite): CmsAdapter contract; WordPress is adapter one.**
+  `plugin/lib/onsite/cms.py` defines the cms capability slot's interface
+  (ADR-0009): `CmsAdapter` with `get_post`, `update_post`, `create_post`,
+  `update_seo_meta`, `get_rendered_head`, `snapshot`, `rollback`, plus
+  the introspection pair `capabilities()` (what the adapter can do, and
+  the `needs_human` actions it honestly cannot) and `adapter_name()`.
+  The `adapter_for` factory builds the configured adapter from the
+  additive `cms: {type: wordpress}` site-profile key, defaulting to
+  wordpress when a wordpress endpoint exists and refusing unknown types
+  by naming the supported list. `WPClient` implements the contract:
+  `update_rankmath` and `get_head` stay as the WordPress-specific
+  implementations, with the contract names delegating to them. The
+  onsite skills now speak slot language ("the CMS adapter, WordPress
+  today"), drift accepts any adapter, and 20 new contract tests bring
+  the suite to 145.
+- **docs: adapter contribution guide.** CONTRIBUTING's "Contributing a
+  CMS adapter" section: implement `CmsAdapter`, the `capabilities()`
+  honesty rule (`needs_human` steps end partially-applied, never faked
+  success), the fake-transport test bar mirroring `tests/test_wp.py`,
+  and gates stay in core (adapters never gate). The PR template gains
+  the adapter checklist line; ROADMAP marks the contract landed early,
+  with the git-static and Shopify adapters remaining open.
+- Honesty note: this release is a pure refactor with zero behavior
+  change, proven by the pre-existing test suite passing unmodified.
+
 ## [0.2.1] - 2026-07-19
 
 Channel neutrality, made explicit and made checkable.
