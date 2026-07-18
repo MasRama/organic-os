@@ -69,14 +69,15 @@ as its WordPress-specific alias for `update_seo_meta`). Adding a CMS is
 now a new adapter file plus a profile entry, not a fork - see
 CHANGELOG.md and CONTRIBUTING.md's "Contributing a CMS adapter" section.
 The onsite skills were normalized to ADR-0009 slot language ("the CMS
-adapter, WordPress today") in the same wave. The git-based static-site
-adapter below and the Shopify adapter (deprioritized) remain open.
+adapter, WordPress today") in the same wave. Also landed early, in
+v0.3.0-alpha.2: the git-based static-site adapter -
+`onsite.gitstatic.GitStaticClient` targets Astro/Next/Hugo/Jekyll-class
+sites, writes markdown/MDX frontmatter in a local clone of the site
+repo, and delivers every approved change as a pull request, so the human
+merge is the final act - the natural pair for the pr-merge approval
+channel, serving the early-adopter persona directly. See CHANGELOG.md.
+The Shopify adapter (deprioritized) remains open.
 
-- **Git-based static-site adapter.** Proposals arrive as pull requests
-  against a static-site repo (Astro, Hugo, Jekyll, and similar) instead of
-  a REST write - the approve gate becomes "merge the PR," matching the
-  pr-merge approval channel that already exists. Serves the early-adopter
-  persona directly.
 - **Analytics adapter slot.** GA4 is the first adapter; Microsoft Clarity
   and Matomo are welcome contributions.
 - **Image-generation adapter slot.** Canva is the first adapter; Gemini

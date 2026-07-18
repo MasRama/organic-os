@@ -2,6 +2,52 @@
 
 ## [Unreleased]
 
+## [0.3.0-alpha.2] - 2026-07-19
+
+Adapter two: git-static. Proposals arrive as pull requests; merging is
+approving.
+
+- **feat(onsite): git-static adapter.** `plugin/lib/onsite/gitstatic.py`
+  implements the CmsAdapter contract for static sites built from a git
+  repo (Astro, Next, Hugo, Jekyll class): content is markdown/MDX files
+  with YAML frontmatter, and the adapter reads and writes them in a
+  LOCAL CLONE (`cms: {type: git-static, repo_root: ..., content_dir:
+  ..., fields: {...}}`). It never shells out to git - the skill layer
+  runs the git/gh commands, which keeps the adapter testable and honest.
+  Frontmatter conventions, overridable per site via the `fields`
+  mapping: title, description, canonical, the draft flag, slug, and
+  `jsonld` for a raw JSON-LD string the site's layout must render.
+  `capabilities()` declares the gaps instead of papering over them:
+  `schema_injection: "frontmatter-field"`, `rendered_head_verify: False`
+  (static sites verify post-deploy), `needs_human: ["merge-pr",
+  "deploy"]`, and `get_rendered_head` raises naming the gap rather than
+  faking a verify. Snapshot stores the file's full text; rollback
+  restores it byte-identical. Dry-run mirrors WPClient: zero writes,
+  every intent in `dry_run_log`. `adapter_for` builds it from the
+  additive `cms:` profile key. 35 new tmp-dir tests (no real git, no
+  transport) bring the suite to 180.
+- **feat: git-static skill path + pr-merge flow.** onsite-apply and
+  onsite-publish gain the git-static branch: the gate check runs
+  unchanged BEFORE any write, changes land on a new
+  `organic-os/<item-id>` branch, `gh pr create` carries the proposal
+  text as the body, and the item sits `partially-applied` (apply) or
+  stays `drafted` (publish) until merge detection (`gh pr view --json
+  state`) moves it to applied/published - no publish without a human
+  merge. For pr-merge-channel sites the brain-repo proposal PR's merge
+  is recorded as the approval via the contract CLI when detected, so
+  the same gesture governs both layers. Verification states the honest
+  limit: no rendered head at apply time; a best-effort live fetch
+  against `cms.deploy_url` after the merge, recorded as exactly that.
+  Docs in the same wave: site-repo-contract documents the git-static
+  profile keys, approval-channels' pr-merge section covers the
+  two-layer flow, getting-started gains the one-line git-static
+  variant, and the information map's adapter row names both supported
+  types.
+- **docs + release.** CONTRIBUTING cites GitStaticClient as the second
+  reference implementation - the smallest honest adapter, no transport
+  at all; ROADMAP moves the git-based static-site adapter to landed
+  early (the Shopify adapter stays deprioritized, as documented).
+
 ## [0.3.0-alpha.1] - 2026-07-19
 
 The v0.3 phase opens with its structural priority: the CMS adapter

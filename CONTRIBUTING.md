@@ -77,8 +77,13 @@ Both commands should be clean before you start (every test passing,
 
 The cms capability slot (ADR-0009,
 `docs/adr/0009-capability-slots-not-tool-bindings.md`) takes new backends
-as adapters. WordPress (`plugin/lib/onsite/wp.py`) is adapter one; use it
-as the reference implementation.
+as adapters. WordPress (`plugin/lib/onsite/wp.py`) is adapter one and the
+reference for a REST backend. Git-static
+(`plugin/lib/onsite/gitstatic.py`) is adapter two and the smallest honest
+adapter - a local-clone file writer with no transport at all and every
+gap declared (`rendered_head_verify: False`, `needs_human: ["merge-pr",
+"deploy"]`, `get_rendered_head` raises naming the gap). Start from
+whichever shape your backend matches.
 
 - **Implement `CmsAdapter`** (`plugin/lib/onsite/cms.py`): one class per
   backend covering the full surface - `get_post`, `update_post`,
@@ -93,10 +98,12 @@ as the reference implementation.
   (`docs/adr/0007-partially-applied-state.md`) - an adapter never fakes
   success for an action it cannot perform.
 - **The test bar.** A fake-transport test file mirroring
-  `tests/test_wp.py`'s pattern (an injected fake session, no network),
-  proving the contract end to end: reads, writes, the snapshot/rollback
-  round-trip, dry-run logging with zero transport calls, and backend
-  errors surfacing as `RuntimeError` carrying the backend's message.
+  `tests/test_wp.py`'s pattern (an injected fake session, no network) -
+  or, for a file-based backend, `tests/test_gitstatic.py`'s tmp-dir
+  pattern (no real git, no transport) - proving the contract end to end:
+  reads, writes, the snapshot/rollback round-trip, dry-run logging with
+  zero transport calls, and backend errors surfacing as `RuntimeError`
+  carrying the backend's message.
 - **Gates stay in core.** Adapters never gate: `require_approved` /
   `require_approval_lineage` run in the skills through `core.contracts`
   before any mutating adapter call. An adapter performs the write it is
