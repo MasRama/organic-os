@@ -2,10 +2,11 @@
 
 ADR-0009 (capability slots, not tool bindings): organic-os code and skills
 talk to "the CMS adapter", never to a named tool. `CmsAdapter` documents
-the slot's interface; `onsite.wp.WPClient` (WordPress) is adapter one.
-Adding a CMS is a new adapter file implementing this class plus a
-site-profile `cms: {type: ...}` entry - never a rewrite of contract code,
-and never a fork of a skill.
+the slot's interface; `onsite.wp.WPClient` (WordPress) is adapter one,
+`onsite.gitstatic.GitStaticClient` (git-static) is adapter two. Adding a
+CMS is a new adapter file implementing this class plus a site-profile
+`cms: {type: ...}` entry - never a rewrite of contract code, and never a
+fork of a skill.
 
 Contract rules, binding on every adapter:
 
@@ -25,7 +26,7 @@ Contract rules, binding on every adapter:
 """
 from __future__ import annotations
 
-SUPPORTED_CMS_TYPES = ("wordpress",)
+SUPPORTED_CMS_TYPES = ("wordpress", "git-static")
 
 
 class CmsAdapter:
@@ -83,10 +84,10 @@ class CmsAdapter:
     # -- introspection --
     def capabilities(self) -> dict:
         """What this adapter can and cannot do:
-        {'seo_meta_fields': bool, 'schema_injection': bool,
-         'rendered_head_verify': bool, 'needs_human': [action types the
-         adapter cannot perform]}. The honesty rule: declare the gaps;
-        never fake success around them."""
+        {'seo_meta_fields': bool, 'schema_injection': bool or a mode
+         string (e.g. 'frontmatter-field'), 'rendered_head_verify': bool,
+         'needs_human': [action types the adapter cannot perform]}. The
+        honesty rule: declare the gaps; never fake success around them."""
         raise NotImplementedError
 
     def adapter_name(self) -> str:
@@ -104,8 +105,11 @@ def adapter_for(profile, secret: str = "", session=None,
     to wordpress if the profile has a wordpress endpoint configured.
     `secret` is the adapter's write credential, passed in from the site
     env file and never stored in the profile; for wordpress, the
-    Application Password. An unknown or missing type raises ValueError
-    naming the supported types.
+    Application Password. The git-static adapter takes no secret and no
+    session - it reads and writes files in a local clone
+    (`cms: {type: git-static, repo_root: ..., content_dir: ...,
+    fields: {...}}`); the skill layer runs the git/gh commands. An
+    unknown or missing type raises ValueError naming the supported types.
     """
     profile = profile or {}
     cms_type = str((profile.get("cms") or {}).get("type") or "").strip()
@@ -116,6 +120,19 @@ def adapter_for(profile, secret: str = "", session=None,
         wp = profile.get("wordpress") or {}
         return WPClient(wp.get("endpoint", ""), wp.get("username", ""),
                         secret, session=session, dry_run=dry_run)
+    if cms_type == "git-static":
+        from .gitstatic import GitStaticClient  # off the module load path too
+        cms = profile.get("cms") or {}
+        repo_root = str(cms.get("repo_root") or "").strip()
+        if not repo_root:
+            raise ValueError(
+                "cms type git-static needs repo_root: the local clone of "
+                "the site repo (cms: {type: git-static, repo_root: ...} "
+                "in site-profile.yaml)")
+        return GitStaticClient(repo_root,
+                               content_dir=cms.get("content_dir",
+                                                   "src/content"),
+                               fields=cms.get("fields"), dry_run=dry_run)
     supported = ", ".join(SUPPORTED_CMS_TYPES)
     if not cms_type:
         raise ValueError(
