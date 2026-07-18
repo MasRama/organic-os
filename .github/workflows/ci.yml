@@ -12,4 +12,4 @@ jobs:
         with: { python-version: "3.12" }
       - run: pip install pyyaml pytest
       - run: ./scripts/audit.sh
-      - run: if [ -d tests ]; then pytest -q; else echo "no tests yet"; fi
+      - run: if [ -d tests ]; then python -m pytest -q; else echo "no tests yet"; fi
