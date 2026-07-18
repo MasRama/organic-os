@@ -61,7 +61,12 @@ LEDGER_FILE="$HOME/.config/organic-os/cost-ledger-$(date +%Y%m).tsv"
   # in a headless run, so invoke the skill by name instead. JSON output
   # keeps the run's usage fields next to the assistant text; both are
   # recovered below with python3 only - no jq dependency.
-  claude -p "Invoke the organic-os:$SKILL skill and follow it end to end. When finished, stage, commit, and push all changes to git." --permission-mode bypassPermissions --output-format json > "$CLAUDE_JSON" 2>&1
+  #
+  # The --model flag is belt-and-braces: an ANTHROPIC_MODEL env override
+  # reaches the main loop unreliably for sub-agents in headless runs, so
+  # pin the model on the command line as well. Defaults to the sonnet
+  # alias when the env file sets nothing.
+  claude -p "Invoke the organic-os:$SKILL skill and follow it end to end. When finished, stage, commit, and push all changes to git." --model "${ANTHROPIC_MODEL:-sonnet}" --permission-mode bypassPermissions --output-format json > "$CLAUDE_JSON" 2>&1
 
   END_EPOCH=$(date +%s)
   DURATION=$(( END_EPOCH - START_EPOCH ))

@@ -211,6 +211,30 @@ ANTHROPIC_SMALL_FAST_MODEL=<newest fast/small model id from the list above>
 Re-run the routine after adding these. This turns a silent alias-drift
 failure into an explicit, version-pinned config you control.
 
+### Headless resilience
+
+Field-tested notes for runs where nobody is watching a terminal:
+
+- **Sub-agent dispatch may fail in headless runs.** A known upstream
+  limitation: launching parallel specialist agents from inside a headless
+  `claude -p` run can fail on model resolution or agent-type lookup even
+  when the same skill fans out fine interactively. Skills fall back to
+  running the same stages inline by design - slower, same output. Treat a
+  run that did this as complete, not degraded.
+- **Watch a live run through its report file.** Long stages append
+  one-line progress markers to the run's report as they go; `tail -f` the
+  newest `runs/<date>-*/REPORT.md` in the brain repo to see where a run
+  currently is, without touching the run itself.
+- **Real-time output, if you want the raw stream.** `claude -p` accepts
+  `--output-format stream-json`, which emits events as they happen instead
+  of one JSON blob at the end. The wrapper uses plain `json` (it wants the
+  final usage fields), but a debugging one-off with `stream-json` shows a
+  stuck run's last action immediately.
+- **If a skill fails to load mid-run**, re-invoke using the skill body
+  read straight from the plugin directory
+  (`$CLAUDE_PLUGIN_ROOT/skills/<name>/SKILL.md`) - the file on disk is the
+  same instruction text the skill loader would have served.
+
 ### TCC warning: brain path
 
 **Symptom:** `launchd` (or cron) logs show `error: unable to create

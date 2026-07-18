@@ -16,3 +16,7 @@ description: Use to audit on-page SEO for a URL or a whole site section - "audit
 5. Output: per-URL scorecard table + prioritized issue list. File signals for
    P0/P1 issues if a brain repo exists. Propose nothing here; that is
    onsite-propose's job.
+
+At each stage boundary, append a one-line progress marker with a UTC
+timestamp to the run report file before starting the stage - headless runs
+are watched by tailing that file, not a terminal.

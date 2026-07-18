@@ -13,6 +13,21 @@ to create and update posts and their meta; it cannot install plugins, change
 site settings, or manage other users, so a leaked Application Password stays
 contained.
 
+### Capability matrix: what each action needs
+
+| Action | Minimum role |
+|---|---|
+| Read content, run audits | None - public REST reads |
+| Write posts and their SEO meta via REST | Editor, with an Application Password |
+| Purge SEO-plugin caches, change plugin settings, manage options | Administrator |
+
+The plugin does NOT request Administrator. When an approved proposal
+includes a step from the Administrator row, that step is reported as
+pending-human in the outcome record, and the proposal ends
+`partially-applied` (see `docs/adr/0007` in the repo) with a note naming
+exactly what a human must finish - it is never silently skipped, and never
+a reason to hand the agent an Administrator credential.
+
 ## 2. Generate an Application Password
 
 In wp-admin, go to Users -> Profile (for the `organic-agent` user) ->

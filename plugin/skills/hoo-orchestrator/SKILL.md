@@ -30,3 +30,7 @@ description: Use for any broad organic-growth request - "audit my organic presen
 
 Every signal line must be falsifiable: observation + "we are wrong if" + a
 leading indicator. Reject vague signals.
+
+At each stage boundary, append a one-line progress marker with a UTC
+timestamp to the run report file before starting the stage - headless runs
+are watched by tailing that file, not a terminal.

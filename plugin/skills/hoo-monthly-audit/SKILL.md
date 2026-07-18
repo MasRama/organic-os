@@ -17,3 +17,7 @@ description: Use for the monthly deep audit - "run the monthly audit", /organic-
    false; call `mark_notified(path)` right after a successful send.
 5. Output runs/YYYYMM-monthly/REPORT.md: executive summary in plain language,
    then per-specialist sections, then this month's queued work.
+
+At each stage boundary, append a one-line progress marker with a UTC
+timestamp to the run report file before starting the stage - headless runs
+are watched by tailing that file, not a terminal.

@@ -22,3 +22,6 @@ description: Use to produce a publish-ready draft from an approved content brief
    active voice, statistics cited inline with live links.
 6. Never edit brain frontmatter directly. The contract CLI is the only write
    path for status and approvals.
+7. At each stage boundary, append a one-line progress marker with a UTC
+   timestamp to the run report file before starting the stage - headless
+   runs are watched by tailing that file, not a terminal.

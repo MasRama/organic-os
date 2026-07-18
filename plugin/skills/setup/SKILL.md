@@ -549,10 +549,15 @@ Checks, in order:
    \"from core import registry; print(registry.get_active())\"` on the
    runtime machine."
 4. **WordPress REST** (only if WordPress connected) - pass if `curl -u
-   '<user>:<app-password>' '<endpoint>/wp/v2/users/me'` returns 200 JSON
-   for the configured user. Fix on fail: recheck `plugin/docs/credentials/
-   wordpress.md` step 2 (recreate the Application Password) or step 4
-   (bridge plugin not active).
+   '<user>:<app-password>' '<endpoint>/wp/v2/users/me?context=edit'`
+   returns 200 JSON for the configured user. The detail column names the
+   role detected from the response's `roles` field and what it cannot do,
+   per the capability matrix in `plugin/docs/credentials/wordpress.md` -
+   e.g. "role: editor - can write posts and SEO meta; cannot purge
+   SEO-plugin caches or change plugin settings, those steps will be
+   reported pending-human and end the proposal partially-applied". Fix on
+   fail: recheck `plugin/docs/credentials/wordpress.md` step 2 (recreate
+   the Application Password) or step 4 (bridge plugin not active).
 5. **Approval channel test delivery** - for telegram: send a real test
    message ("organic-os setup test - reply not required") to the
    configured chat id and confirm the API call returned ok. State the
