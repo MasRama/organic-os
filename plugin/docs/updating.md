@@ -22,7 +22,7 @@ side effect of an update.
   state.
 - **Your WordPress site.** organic-os only writes to WordPress through the
   gated apply/publish steps behind an approval (see
-  `docs/approval-channels.md`); an update to the plugin does not run those
+  `plugin/docs/approval-channels.md`); an update to the plugin does not run those
   steps and cannot reach a live site on its own.
 
 The plugin directory contains no user data - `scripts/audit.sh` check 7
@@ -45,7 +45,7 @@ aspirations:
   format bytes changed across two minor releases.
 - **A major release that changes the layout ships a migration.** The
   migration step lives in `/organic-os:setup`'s update mode (see
-  `docs/getting-started.md`), and `core.contracts.check_schema()` blocks
+  `plugin/docs/getting-started.md`), and `core.contracts.check_schema()` blocks
   every routine (`hoo-daily`, `hoo-weekly`, the orchestrator) from running
   against an incompatible brain until you run it. You get a clear message
   naming the exact command to run, never silent corruption or a routine

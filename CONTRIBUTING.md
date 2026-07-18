@@ -18,7 +18,7 @@ guidance below exists to keep it that way.
   a new write path alongside `lib/onsite/wp.py`, or a new approval channel
   alongside telegram/pr-merge/slack/email in `lib/core/approval.py`.
 - **Docs.** Fixes, clarifications, missing setup steps.
-- **Evidence updates, with primary sources.** A change to `docs/evidence.md`
+- **Evidence updates, with primary sources.** A change to `plugin/docs/evidence.md`
   needs a real citation (a study, a vendor analysis with methodology, a
   controlled experiment) - not "I heard AI cites X more now."
 
@@ -54,7 +54,7 @@ default `organic-hq-<site>/` scaffolding already does this) and re-push.
 
 Found a tactic that works? Open an issue describing the tactic, its
 evidence tier (`strong` / `moderate` / `anecdotal`, matching
-`docs/evidence.md`), and where the evidence comes from - no URLs, no
+`plugin/docs/evidence.md`), and where the evidence comes from - no URLs, no
 keywords, no brand names, no screenshots of a real site. The roadmap's
 anonymized lessons library (see `ROADMAP.md`, v1.0) will formalize this into
 something structured; until then, an issue is the right venue.
@@ -83,7 +83,7 @@ Both commands should be clean before you start (52 tests passing,
   root-level docs. Open the script to see the exact pattern. If the audit
   flags a word, rephrase rather than add it to an exclude list.
 - **Every claim sourced.** Numbers, study results, and comparisons need a
-  link to where they came from, the same standard `docs/evidence.md` holds
+  link to where they came from, the same standard `plugin/docs/evidence.md` holds
   itself to.
 
 ## PR checklist

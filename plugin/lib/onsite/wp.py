@@ -5,7 +5,7 @@ json=..., timeout=...).
 
 RankMath meta keys must be REST-registered on the site (the bundled
 playground/wp-extras/organic-os-bridge.php mu-plugin, or Devora's
-rank-math-api-manager). See docs/credentials/wordpress.md.
+rank-math-api-manager). See plugin/docs/credentials/wordpress.md.
 """
 from __future__ import annotations
 import base64

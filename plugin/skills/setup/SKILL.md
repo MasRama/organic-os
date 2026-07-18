@@ -118,7 +118,7 @@ Defaulted silently (state each one in the summary table, do not ask):
   Quick-start never probes connectors or asks for credentials - analysis-only
   is the correct default outcome for a 2-minute setup.
 - **Runtime**: `manual`. The user runs commands themselves until they choose
-  to schedule routines (`docs/routines.md`).
+  to schedule routines (`$CLAUDE_PLUGIN_ROOT/docs/routines.md`).
 - **Brain path**: `~/organic-hq/<slug>`, same derivation as full setup.
 - **Brain mode**: `local` (no git init, no GitHub repo offer). Quick-start
   optimizes for "see something work in two minutes," not for versioned
@@ -147,7 +147,7 @@ Defaulted silently (state each one in the summary table, do not ask):
 5. Competitors: domains (up to 5 to start).
 6. Operator knowledge: "What do you already know works in this niche - tips, channels, formats?" Each answer becomes a skillbook entry tagged `evidence: anecdotal`.
 7. Connectors: probe availability (try listing GA4/GSC tools; ask about Notion, Slack, Canva). Record available/absent in site-profile - never store tokens.
-8. Google Ads: ask whether they have a developer token and which access level. Point to https://github.com/shalintripathi/organic-os/blob/main/docs/credentials/google-ads-token.md (also at $CLAUDE_PLUGIN_ROOT/../docs/credentials/google-ads-token.md in a local checkout). Record status only.
+8. Google Ads: ask whether they have a developer token and which access level. Point to https://github.com/shalintripathi/organic-os/blob/main/plugin/docs/credentials/google-ads-token.md (also at $CLAUDE_PLUGIN_ROOT/docs/credentials/google-ads-token.md in a local checkout). Record status only.
 9. WordPress: connected site? If yes: endpoint URL + username; instruct the user to create an Application Password (Users -> Profile) and store it via:
    `mkdir -p ~/.config/organic-os && read -s -p "App password: " P && printf 'WP_APP_PASSWORD=%s\n' "$P" > ~/.config/organic-os/<site-slug>.env && chmod 600 ~/.config/organic-os/<site-slug>.env`
    Never echo the password into the transcript.
@@ -164,7 +164,7 @@ Defaulted silently (state each one in the summary table, do not ask):
 2. Fill `site-profile.yaml` with every answer (edit the file directly).
 3. Seed skillbook: for each operator note, run a small Python snippet calling `core.contracts.skillbook_append(root, note, evidence="anecdotal", source="operator")`.
 4. If brain mode git: `git init`, first commit, offer `gh repo create <name> --private`.
-5. Register routines per the chosen runtime by following https://github.com/shalintripathi/organic-os/blob/main/docs/routines.md (also at $CLAUDE_PLUGIN_ROOT/../docs/routines.md in a local checkout) for that runtime, and write the chosen cadence into site-profile `routines:`.
+5. Register routines per the chosen runtime by following https://github.com/shalintripathi/organic-os/blob/main/plugin/docs/routines.md (also at $CLAUDE_PLUGIN_ROOT/docs/routines.md in a local checkout) for that runtime, and write the chosen cadence into site-profile `routines:`.
 6. Call `core.registry.register(<url>, <name>, <brain-path>)` to add this site to `~/.config/organic-os/sites.yaml` and make it the active site.
 7. Print a summary: what is configured, what is degraded (missing connectors/credentials) and the exact doc to fix each gap.
 

@@ -28,7 +28,7 @@ Repeat for `/organic-os:weekly` (weekly cadence) and
 `/organic-os:monthly-audit` (monthly cadence). The scheduled agent clones
 (or re-opens) the brain repo fresh each run, so it only sees connectors
 authorized at the account level (claude.ai connectors, not local MCP
-servers) - see the connector note in `docs/credentials/gsc-ga4.md`.
+servers) - see the connector note in `plugin/docs/credentials/gsc-ga4.md`.
 
 Honest cost: this runs on your existing Claude subscription's usage, the
 same as any other scheduled agent task. There is no separate billing and no

@@ -82,7 +82,7 @@ Then offer a menu, AskUserQuestion with options:
   through pending items.
 - **Update settings** - invoke `setup` in update mode.
 - **Add a site** - invoke `setup` in add mode.
-- **Docs** - point at `docs/getting-started.md` and `README.md`'s
+- **Docs** - point at `$CLAUDE_PLUGIN_ROOT/docs/getting-started.md` and `README.md`'s
   Quickstart-by-persona section.
 
 ## Step 4: always close with the three commands

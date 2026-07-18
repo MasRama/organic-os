@@ -14,7 +14,7 @@ scheduled cloud runs (claude.ai scheduled tasks), because the authorization
 lives on your account rather than on a single machine.
 
 This is the recommended path if you plan to run routines on the
-claude-scheduled runtime (see `docs/routines.md`) - a scheduled agent has no
+claude-scheduled runtime (see `plugin/docs/routines.md`) - a scheduled agent has no
 access to anything running only on your laptop, so a local-only setup would
 silently lose GSC/GA4 data on every scheduled run.
 
@@ -31,7 +31,7 @@ environment separate from your machine.
 
 Nothing breaks. `hoo-daily` and the orchestrator skip the GSC/GA4 pull and
 say so in the run's REPORT.md, and `hoo-keyword-intel` falls further down
-its tier ladder (see `docs/credentials/google-ads-token.md`) to CSV import.
+its tier ladder (see `plugin/docs/credentials/google-ads-token.md`) to CSV import.
 Setup asks about connectors once and records `available | absent | unknown`
 in `site-profile.yaml` under `connectors:` - it never stores a token or
 credential for either service, only the fact that a connector exists.

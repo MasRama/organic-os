@@ -6,7 +6,7 @@ session working from spec §10, on `hq-fsn1-01` per the locked personal-infra
 stack (Hetzner FSN1 + Ubuntu + Caddy + Cloudflare). The organic-os build
 itself does not depend on this deployment existing; it only needs the
 resulting WordPress endpoint and an Application Password once the
-playground session hands them off (see `docs/credentials/wordpress.md`).
+playground session hands them off (see `plugin/docs/credentials/wordpress.md`).
 
 The files this runbook deploys - `docker-compose.yml`, `uploads.ini`,
 `Caddyfile.snippet`, `wp-extras/organic-os-bridge.php` - live in this
@@ -60,7 +60,7 @@ hand-retype them.
    ```
    In RankMath's settings, turn on Headless CMS Support (this adds the
    `rankmath/v1/getHead` route organic-os uses for write verification - see
-   `docs/credentials/wordpress.md` step 5).
+   `plugin/docs/credentials/wordpress.md` step 5).
 
 7. **Confirm the bridge mu-plugin loaded.** `organic-os-bridge.php` is
    already mounted into `wp-content/mu-plugins/` by the compose file (step
@@ -76,7 +76,7 @@ hand-retype them.
    ```
    Store the endpoint, username, and printed password in
    `~/.config/organic-os/playground.env` per
-   `docs/credentials/wordpress.md` step 2. Never commit this file.
+   `plugin/docs/credentials/wordpress.md` step 2. Never commit this file.
 
 9. **Seed content.** Create 4-6 posts covering a spread of topics so agents
    have real material to audit and propose against:
@@ -98,7 +98,7 @@ hand-retype them.
     Console (HTML tag or DNS verification), submit the sitemap
     (`https://playground.shivaatripathi.com/sitemap_index.xml`, RankMath's
     default), and create a GA4 property for the domain. These feed
-    `docs/credentials/gsc-ga4.md`'s connector path once authorized.
+    `plugin/docs/credentials/gsc-ga4.md`'s connector path once authorized.
 
 ## Verification checklist
 
@@ -108,7 +108,7 @@ build. All must pass.
 - [ ] `https://playground.shivaatripathi.com` loads over HTTPS with a valid
       certificate and no redirect loop.
 - [ ] REST auth works with the app password, using the exact curl from
-      `docs/credentials/wordpress.md` step 6:
+      `plugin/docs/credentials/wordpress.md` step 6:
       ```
       curl -u 'organic-agent:APP_PASSWORD' 'https://playground.shivaatripathi.com/wp-json/wp/v2/posts?per_page=1&context=edit'
       ```

@@ -138,16 +138,16 @@ skip Google Ads, leave connectors unconfigured). Run
 `/organic-os:onsite-audit https://yoursite.com` - a read-only on-page audit
 against a live URL, no login required. Read the report it writes under
 `runs/` in the brain repo it scaffolded. Full walkthrough:
-`docs/getting-started.md`.
+`plugin/docs/getting-started.md`.
 
 **WordPress owner: gated writes to your own site.** Work through
-`docs/credentials/wordpress.md` to create a dedicated Editor user and an
+`plugin/docs/credentials/wordpress.md` to create a dedicated Editor user and an
 Application Password, then run `/organic-os:setup` with that connection
 filled in. Run `/organic-os:onsite-audit`, then `/organic-os:propose` to
 turn findings into fix proposals, approve the ones you want in
 `approvals/queue.md`, and run `/organic-os:apply` - every write is verified
 against the live page after it lands. Full walkthrough:
-`docs/getting-started.md`.
+`plugin/docs/getting-started.md`.
 
 **Analytics operator, no WordPress.** Connect the GSC and GA4 connectors (or
 any GSC/GA4 MCP server already in your session) at setup, skip WordPress
@@ -155,7 +155,7 @@ entirely. Run `/organic-os:daily` and `/organic-os:weekly` - manually at
 first, on a schedule once you trust what they surface (see Routines below).
 Watch `signals/` for the raw observations and `approvals/queue.md` for
 anything that crossed a threshold worth a human decision. Full walkthrough:
-`docs/getting-started.md`.
+`plugin/docs/getting-started.md`.
 
 ## Human gates and your data
 
@@ -200,7 +200,7 @@ subscription usage), a local OS schedule (your own machine, has to be
 on at the scheduled time), GitHub Actions CI (an API key, billed per token,
 separate from subscription usage), or fully manual (run the commands
 yourself whenever you want). Full comparison and setup steps for each:
-`docs/routines.md`.
+`plugin/docs/routines.md`.
 
 ## Evidence honesty
 
@@ -210,7 +210,7 @@ weakly supported - schema markup shows no measured lift on AI citations in
 controlled testing (still shipped, because it holds up independently for
 Google rich results), and `llms.txt` sees close to zero AI-bot traffic in
 the largest study run on it to date (shipped only as an optional, low-cost
-hedge). Full ranked table with sources: `docs/evidence.md`.
+hedge). Full ranked table with sources: `plugin/docs/evidence.md`.
 
 ## FAQ
 
@@ -229,7 +229,7 @@ only turns on the gated apply/publish steps.
 Depends on the runtime: claude.ai scheduled tasks and a local schedule run
 on your existing Claude subscription usage, no separate bill. CI (GitHub
 Actions) is billed per token via your own Anthropic API key, separate from
-subscription usage. Full comparison: `docs/routines.md`.
+subscription usage. Full comparison: `plugin/docs/routines.md`.
 
 **Can I bring my own SERP/backlink data?**
 Yes. organic-os ships no scraper by design (ADR-0006, `docs/adr/0006-no-scraping.md`).
@@ -262,14 +262,14 @@ No. `/plugin update organic-os` replaces plugin code only; your brain
 repo(s), `~/.config/organic-os/`, and your WordPress site are outside the
 plugin directory and untouched by design. A brain-layout change ships a
 migration and a compatibility check blocks routines with a clear message
-instead of silent corruption. Full policy: `docs/updating.md`.
+instead of silent corruption. Full policy: `plugin/docs/updating.md`.
 
 **Why does nothing prompt me to connect Google Analytics?**
 organic-os bundles no MCP servers and cannot trigger an OAuth prompt
 itself. `/organic-os:start` and `/organic-os:setup` probe what you have
 already connected and print exact instructions for your surface instead,
 then every skill degrades gracefully per what it finds. Full model:
-`docs/connectors.md`.
+`plugin/docs/connectors.md`.
 
 ## Roadmap
 
@@ -288,9 +288,9 @@ see `CONTRIBUTING.md` for the full guide and the data boundary CI enforces.
 - [WordPress/mcp-adapter](https://github.com/WordPress/mcp-adapter) - the official WordPress MCP bridge; not load-bearing in v1 (onsite-optimizer writes over plain REST) but tracked for its 1.0.
 - [Automattic/mcp-wordpress-remote](https://github.com/Automattic/mcp-wordpress-remote) - a reference implementation for remote WordPress MCP auth flows.
 - [Devora-AS/rank-math-api-manager](https://github.com/Devora-AS/rank-math-api-manager) - exposes RankMath's SEO meta fields over the WordPress REST API; the alternative to organic-os's own bundled bridge mu-plugin.
-- [AminForou/mcp-gsc](https://github.com/AminForou/mcp-gsc) - a Search Console MCP server; one of the paths `docs/credentials/gsc-ga4.md` documents.
+- [AminForou/mcp-gsc](https://github.com/AminForou/mcp-gsc) - a Search Console MCP server; one of the paths `plugin/docs/credentials/gsc-ga4.md` documents.
 - [DataForSEO MCP server](https://github.com/dataforseo/mcp-server-typescript) - a documented BYO adapter for paid keyword/SERP data beyond Google Ads.
-- [firecrawl/llmstxt-generator](https://github.com/firecrawl/llmstxt-generator) - a reference implementation for generating `llms.txt`, which organic-os ships as an optional hedge per `docs/evidence.md`.
+- [firecrawl/llmstxt-generator](https://github.com/firecrawl/llmstxt-generator) - a reference implementation for generating `llms.txt`, which organic-os ships as an optional hedge per `plugin/docs/evidence.md`.
 - [oneglanse](https://github.com/aryamantodkar/oneglanse) - an open-source GEO/AI-visibility tracker; a reference for how `hoo-citation-tracker` measures share of voice across AI engines.
 - [Aggarwal et al., "GEO: Generative Engine Optimization," KDD 2024](https://arxiv.org/abs/2311.09735) - the controlled-experiment basis for organic-os's strong-tier AEO/GEO tactics.
 - [Shinn et al., "Reflexion: Language Agents with Verbal Reinforcement Learning," NeurIPS 2023](https://arxiv.org/abs/2303.11366) - the memory-via-reflection pattern behind the weekly reflector.

@@ -49,10 +49,10 @@ report`), and the gate self-verification script (`scripts/verify-gates.sh`)
   next mutating stage runs.
 - **Cost transparency per routine run.** Each daily/weekly/monthly run
   reports the token cost of the run it just completed, not just the
-  runtime-level cost model in `docs/routines.md`.
+  runtime-level cost model in `plugin/docs/routines.md`.
 - **Bing Webmaster + IndexNow submission.** Useful, but not a week-one win
   - demoted to last in this release. Bing indexation already matters to
-  `onsite-audit` findings (strong-evidence tier, `docs/evidence.md`); this
+  `onsite-audit` findings (strong-evidence tier, `plugin/docs/evidence.md`); this
   adds the submission side, not just the audit side.
 
 ## v0.3 - Execution breadth

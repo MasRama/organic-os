@@ -21,7 +21,7 @@ Method:
    if the draft contains real reader questions with real answers (never
    fabricate Q&A to qualify for the schema).
 5. Evidence-honest: do not stuff the focus keyword beyond natural use -
-   keyword density has no citation-lift evidence (see docs/evidence.md);
+   keyword density has no citation-lift evidence (see plugin/docs/evidence.md);
    flag stuffing if the writer over-used it.
 6. Return the optimized draft plus the schema payload.
 

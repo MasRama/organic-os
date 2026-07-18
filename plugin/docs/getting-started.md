@@ -45,10 +45,10 @@ every answer is editable later by hand in `site-profile.yaml`.
 
 Setup never prompts you to authorize a connector - it probes what you have
 already connected and tells you exactly how to connect anything missing.
-See `docs/connectors.md` for the full model and a capability-by-capability
+See `plugin/docs/connectors.md` for the full model and a capability-by-capability
 table.
 
-Setup scaffolds a per-site "brain" repo (see `docs/site-repo-contract.md`)
+Setup scaffolds a per-site "brain" repo (see `plugin/docs/site-repo-contract.md`)
 and, if you choose a git brain, offers to create a private GitHub repo for
 it. Nothing about your site or your answers is sent anywhere except into
 that repo, which you own.
@@ -57,7 +57,7 @@ that repo, which you own.
 
 You can run organic-os against any public site with no credentials at all.
 Analysis is always free; only mutation is gated (see
-`docs/approval-channels.md`).
+`plugin/docs/approval-channels.md`).
 
 1. Run `/organic-os:setup` and answer the interview in analysis-only mode:
    skip WordPress, skip Google Ads, leave connectors unconfigured.
@@ -84,22 +84,22 @@ value from the plugin; each one turns on a specific capability.
 **Add GSC/GA4.** Authorize the Search Console and Analytics connectors (or
 run any GSC/GA4 MCP server you already have in Claude Code) and organic-os
 starts pulling real ranking and traffic signals instead of guessing from
-public pages alone. See `docs/credentials/gsc-ga4.md`.
+public pages alone. See `plugin/docs/credentials/gsc-ga4.md`.
 
 **Add WordPress.** Connect a dedicated Editor user with an Application
 Password and organic-os can write approved on-page fixes and publish
 approved drafts, always through the approval gate. See
-`docs/credentials/wordpress.md`.
+`plugin/docs/credentials/wordpress.md`.
 
 **Add Google Ads.** A developer token, even at the lowest access tier,
 opens up keyword research beyond what GSC alone can mine. See
-`docs/credentials/google-ads-token.md` for the full setup and what each
+`plugin/docs/credentials/google-ads-token.md` for the full setup and what each
 access tier enables.
 
 **Add a channel.** In-session approval works from day one, but a channel
 (Telegram, Slack, email, or a pr-merge workflow) lets proposals reach you
 outside a live session, which matters once routines run on a schedule. See
-`docs/approval-channels.md`.
+`plugin/docs/approval-channels.md`.
 
 **Schedule routines.** Once you are comfortable with what the plugin
 proposes, move daily/weekly/monthly runs off manual and onto a schedule -
@@ -107,7 +107,7 @@ claude.ai scheduled tasks, a local cron job, or CI. The weekly run adds a
 striking-distance detector on top of its analytics/SERP/AI-citation check
 and reflection: pages at GSC positions 4-15 with above-median impressions
 surface as gated proposals, no extra credential beyond GSC. See
-`docs/routines.md` for the full comparison and setup steps for each
+`plugin/docs/routines.md` for the full comparison and setup steps for each
 runtime.
 
 ## Updating
@@ -115,4 +115,4 @@ runtime.
 `/plugin update organic-os` only ever touches plugin code - your brain
 repo(s), `~/.config/organic-os/`, and any connected site are untouched by
 design, and a brain-layout change always ships with a migration path. See
-`docs/updating.md` for the full compatibility policy.
+`plugin/docs/updating.md` for the full compatibility policy.

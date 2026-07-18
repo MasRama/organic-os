@@ -8,12 +8,12 @@
   `lib/core` only.
 - **Your WordPress site, through your own Application Password.** Writes
   happen over HTTPS via the WordPress REST API, authenticated as a
-  dedicated Editor-role user you create (`docs/credentials/wordpress.md`).
+  dedicated Editor-role user you create (`plugin/docs/credentials/wordpress.md`).
   organic-os never has Administrator access unless you explicitly grant it,
-  and every write is gated on a recorded approval (`docs/site-repo-contract.md`).
+  and every write is gated on a recorded approval (`plugin/docs/site-repo-contract.md`).
 - **APIs you configured yourself.** GA4, GSC, Notion, Slack, Canva via your
   own claude.ai connectors or MCP servers; Google Ads via a developer token
-  and OAuth credentials you generate (`docs/credentials/google-ads-token.md`).
+  and OAuth credentials you generate (`plugin/docs/credentials/google-ads-token.md`).
   organic-os calls whichever of these you set up and states plainly which
   ones it found; it never assumes a credential exists.
 

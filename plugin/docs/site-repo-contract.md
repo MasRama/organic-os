@@ -114,7 +114,7 @@ S-014 [evidence: strong] [helpful: 3, harmful: 0, last-confirmed: 2026-07-18] Ti
 - **ID** (`S-NNN`) is assigned sequentially by `skillbook_append` and never
   reused.
 - **evidence** is one of `strong`, `moderate`, or `anecdotal` - the same
-  three-tier vocabulary `docs/evidence.md` uses, so a skillbook entry's
+  three-tier vocabulary `plugin/docs/evidence.md` uses, so a skillbook entry's
   confidence is comparable across the whole plugin.
 - **helpful / harmful** counters increment via `skillbook_update` whenever
   an outcome confirms or contradicts the lesson; they never reset.
