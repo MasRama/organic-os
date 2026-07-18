@@ -42,5 +42,19 @@ hits=$(grep -rnE "${IMPORT_PRE}hoo${IMPORT_POST}" $EXCLUDES plugin/lib/onsite 2>
 python3 -m json.tool .claude-plugin/marketplace.json >/dev/null || { say "FAIL marketplace.json"; fail=1; }
 python3 -m json.tool plugin/.claude-plugin/plugin.json >/dev/null || { say "FAIL plugin.json"; fail=1; }
 
+# 7. Brain-data boundary: business data belongs in a site's own brain repo,
+# never in this one (see CONTRIBUTING.md). Flags actual files/directories
+# only - prose mentions in docs are fine.
+BRAIN_FILES='site-profile.yaml skillbook.md tracking.yaml telegram-offset.json'
+for f in $BRAIN_FILES; do
+  hits=$(find . -not -path '*/.git/*' -not -path './plugin/lib/core/templates/*' -type f -name "$f")
+  [ -n "$hits" ] && { say "FAIL brain-data file found outside plugin/lib/core/templates/: $f"; say "$hits"; fail=1; }
+done
+BRAIN_DIRS='organic-hq* signals reflections'
+for d in $BRAIN_DIRS; do
+  hits=$(find . -not -path '*/.git/*' -not -path './plugin/lib/core/templates/*' -type d -name "$d")
+  [ -n "$hits" ] && { say "FAIL brain-data directory found outside plugin/lib/core/templates/: $d"; say "$hits"; fail=1; }
+done
+
 [ "$fail" -eq 0 ] && say "audit: clean"
 exit "$fail"

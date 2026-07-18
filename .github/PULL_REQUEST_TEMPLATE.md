@@ -1,0 +1,17 @@
+## What this changes
+
+<!-- One or two sentences. Link an issue if there is one. -->
+
+## Checklist
+
+- [ ] `python3 -m pytest tests/ -q` passes
+- [ ] `./scripts/audit.sh` is clean
+- [ ] No business data added (no `site-profile.yaml`, keyword lists, brand
+      rulebooks, competitor lists, or skillbook content - see
+      [CONTRIBUTING.md's data boundary](../CONTRIBUTING.md#the-data-boundary-hard-rule))
+- [ ] No secrets (API keys, tokens, passwords, `.env` files)
+- [ ] Every evidence/claim/statistic in this PR is sourced (a link, a study,
+      a real citation)
+- [ ] No em-dashes; no hype words (seamless, robust, delve, transform,
+      unlock, supercharge, cutting-edge, world-class, best-in-class,
+      synergy, holistic, revolutionary, and similar)
