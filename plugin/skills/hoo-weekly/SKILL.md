@@ -63,3 +63,27 @@ No GSC connector: skip this section and note it as one line in REPORT.md
 
 No GSC connector: skip this section and note it as one line in REPORT.md
 ("cannibalization: skipped, no GSC connector") instead of guessing.
+
+## Content decay
+
+1. Pull each page's GSC clicks for the last 28 days and for the same
+   page's 28-day window starting 90 days prior - two date-windowed pulls,
+   not a single trend line.
+2. Flag pages with a 30% or greater click decline between the two windows
+   AND at least 50 clicks in the older window (noise floor - a 5-click
+   page swinging 30% is not a signal).
+3. For the top 3 flagged pages by absolute click loss, write one P2
+   signal each: the page, both window values, the decline percent, and a
+   likely-cause hypothesis read off position-vs-CTR movement across the
+   same two windows - position fell = ranking problem; position held but
+   CTR fell = SERP feature intrusion or title/meta staleness. Name which
+   one the data points to.
+4. For the single clearest case, `create_item(kind="content-brief", ...)`
+   as a refresh brief - target the decayed page, cite the decline and the
+   likely-cause hypothesis, and let it move through the normal brief
+   lifecycle (approve -> skills/ce-produce -> skills/onsite-publish). At
+   most 1 gated proposal from this section per run; never drafted or
+   applied directly.
+
+No GSC connector: skip this section and note it as one line in REPORT.md
+("content decay: skipped, no GSC connector") instead of guessing.
