@@ -22,10 +22,10 @@ hits=$(grep -rnE "$SECRETS" $EXCLUDES --exclude-dir=specs --exclude-dir=plans --
 hits=$(grep -rn "$(printf '\xe2\x80\x94')" $EXCLUDES --exclude=audit.sh . || true)
 [ -n "$hits" ] && { say "FAIL em-dash found:"; say "$hits"; fail=1; }
 
-# 4. Banned phrases in shipped copy (plugin/, docs/, README, playground).
+# 4. Banned phrases in shipped copy (plugin/, docs/, README).
 # docs/specs + docs/plans are engineering meta-docs that quote the rules.
 BANNED='seamless|robust(ly)?|delve|dive into|in today.s fast-paced|transform(ative|ing)?|unlock|unleash|supercharge|game-chang|cutting-edge|world-class|best-in-class|synergy|holistic|revolutionary'
-hits=$(grep -rniE "$BANNED" $EXCLUDES --exclude-dir=specs --exclude-dir=plans --exclude=audit.sh plugin docs README.md SECURITY.md CONTRIBUTING.md ROADMAP.md CHANGELOG.md playground 2>/dev/null || true)
+hits=$(grep -rniE "$BANNED" $EXCLUDES --exclude-dir=specs --exclude-dir=plans --exclude=audit.sh plugin docs README.md SECURITY.md CONTRIBUTING.md ROADMAP.md CHANGELOG.md 2>/dev/null || true)
 [ -n "$hits" ] && { say "FAIL banned phrase:"; say "$hits"; fail=1; }
 
 # 5. Module boundary: no cross-module imports (absolute, package, or relative).

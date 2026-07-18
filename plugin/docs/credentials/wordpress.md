@@ -48,7 +48,7 @@ canonical, focus keyword) that organic-os reads and writes.
 RankMath's SEO meta fields are not exposed to the REST API by default. Pick
 one of two ways to expose them:
 
-- Copy `playground/wp-extras/organic-os-bridge.php` from this repo to
+- Copy `plugin/wordpress/organic-os-bridge.php` from this repo to
   `wp-content/mu-plugins/` on the target site. Must-use plugins load
   automatically with no activation step. Do this with either a one-line
   `wp eval` command run through WP-CLI, or a plain SFTP upload of the file
@@ -60,6 +60,9 @@ Either path achieves the same result: `rank_math_title`,
 `rank_math_description`, `rank_math_canonical_url`, `rank_math_focus_keyword`,
 and `agent_jsonld` become readable and writable through
 `wp-json/wp/v2/posts/<id>`.
+
+Want a sandbox first? Any local WordPress works - wp-env or the official
+Docker wordpress image - point setup at it like any site.
 
 ## 5. Enable RankMath Headless CMS Support
 

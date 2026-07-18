@@ -4,7 +4,7 @@ The session contract is requests-compatible: request(method, url, headers=...,
 json=..., timeout=...).
 
 RankMath meta keys must be REST-registered on the site (the bundled
-playground/wp-extras/organic-os-bridge.php mu-plugin, or Devora's
+plugin/wordpress/organic-os-bridge.php mu-plugin, or Devora's
 rank-math-api-manager). See plugin/docs/credentials/wordpress.md.
 """
 from __future__ import annotations
