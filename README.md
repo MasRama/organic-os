@@ -165,7 +165,9 @@ checks a proposal's current status before every WordPress write;
 exists in an item's history before a later stage (like publishing a drafted
 brief) is allowed to run. A hand-edited `status: approved` with no matching
 `approvals:` entry still fails the gate - every approval is recorded with
-who decided, when, and through which channel. There is no telemetry, no
+who decided, when, and through which channel. Verify the gate yourself:
+`./scripts/verify-gates.sh` red-teams these functions against a throwaway
+brain repo, no real site touched. There is no telemetry, no
 SERP or autocomplete scraping (see ADR-0006), and credentials never live in
 any repo - only env-file references do. Your brain repo is yours: it lives
 wherever you put it, private by default, and organic-os never pushes it

@@ -37,7 +37,10 @@
   code (`core.contracts.require_approved` /
   `core.contracts.require_approval_lineage`), not by convention - a
   hand-edited status field without a matching `approvals:` entry still
-  fails the gate.
+  fails the gate. Don't take that claim on faith: verify the gate yourself
+  with `./scripts/verify-gates.sh` - it red-teams `require_approved`,
+  `set_status`, `require_approval_lineage`, and `check_schema` against a
+  throwaway brain repo and prints PASS/FAIL per probe.
 
 ## The env-file convention
 
