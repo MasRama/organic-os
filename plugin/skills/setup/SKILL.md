@@ -417,6 +417,27 @@ connector most worth stopping to fix now." Still respect a "skip for now"
 answer if that is what the user wants - never force a connection, just
 make the tradeoff explicit before they choose.
 
+**IndexNow (offered last, no account needed).** After the connectors
+above, offer instant URL submission to Bing, Yandex, and the other
+IndexNow-participating engines. Same verify-not-record bar as everything
+else here:
+
+1. Generate a key: `hoo.indexnow.gen_key()` (32-char hex). Show it - it
+   is an ownership proof, not a secret.
+2. Instruct placing `<key>.txt` at the site root, containing exactly the
+   key (`hoo.indexnow.key_file_content(key)`): via the host's file
+   manager or SFTP into the web root, or - on WordPress, where the media
+   library cannot write to the root - a root-file plugin or the same
+   file-manager route. Offer "I'll place it now, then verify" or "skip
+   for now".
+3. Verify by fetching `https://<host>/<key>.txt` and comparing the body
+   to the key. Only a matching fetch earns enablement - then write
+   `indexnow: {enabled: true, key: <key>}` into site-profile.yaml
+   (additive key, schema stays 1). A failed or skipped fetch records
+   nothing and leaves IndexNow off; say what degrades - applied and
+   published changes wait to be crawled naturally instead of being
+   submitted on ship.
+
 ## Credentials: one secret at a time
 
 Applies to every secret this interview or an update touches - the

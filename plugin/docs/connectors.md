@@ -56,6 +56,26 @@ is the only approach that works identically on both surfaces.
 | Approval notifications outside a live session | Slack connector, or Telegram/email per `plugin/docs/approval-channels.md` | claude.ai Settings -> Connectors (Slack); channel-specific setup for Telegram/email | in-session approval works immediately with zero setup; you just have to be in the session when a proposal lands |
 | Asset/creative generation | Canva connector | claude.ai Settings -> Connectors, or `/mcp` / `claude mcp add` in Claude Code | Content briefs and drafts still produce text; no generated creative assets |
 | Publishing approved fixes/drafts to a live site | WordPress Application Password (env file) | `plugin/docs/credentials/wordpress.md` | Everything up to `approved` still works - proposals queue and get approved, they just are not applied until WordPress is connected |
+| Instant URL submission on ship (Bing, Yandex, other IndexNow engines) | `indexnow: {enabled, key}` in site-profile.yaml + `<key>.txt` at the site root | `/organic-os:setup` connector wizard (generate key, place file, verify by fetch) | Apply and publish work unchanged; changed URLs just wait to be crawled naturally |
+
+## IndexNow and Bing Webmaster
+
+When `site-profile.yaml` has `indexnow: {enabled: true, key: ...}`,
+`onsite-apply` and `onsite-publish` submit each successfully verified
+changed URL via `hoo.indexnow.submit()` - one POST to
+`api.indexnow.org/indexnow`, the single endpoint shared by Bing, Yandex,
+and every other participating engine - and record the response status in
+the outcome. Enablement runs through setup's connector wizard: generate a
+32-char hex key, place `<key>.txt` (containing exactly the key) at the
+site root, and the wizard verifies by fetching it before writing the
+profile key. No account, no OAuth, no API key.
+
+Bing Webmaster Tools itself is a different, honest story: site
+verification there is a manual step in Bing's portal (bing.com/webmasters
+- add the site, verify via DNS record, meta tag, or Bing's XML file, then
+submit the sitemap once). organic-os claims no Bing Webmaster API
+integration; IndexNow covers the submission path, and portal verification
+stays a one-time manual task you do yourself.
 
 Setup never stores a token, password, or credential in the brain repo or
 this plugin's own files - only a record of what a probe found, and where

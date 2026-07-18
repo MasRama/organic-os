@@ -45,11 +45,17 @@ stays `1`, and the directory only comes into existence the first time
 connector (`onsite.drift.save_baseline` creates it on demand). A brain
 repo with no WordPress connection never gets a `drift/` directory at all.
 
-The optional `site-profile.yaml` key `onsite: {dry_run: true}` is
-additive the same way (`schema_version` stays `1`; absence means off):
-when present, `onsite-apply` and `onsite-publish` run their full gated
-flow against a dry-run client that records every intended write instead
-of performing it - the outcome record is marked dry-run and lists them.
+Two optional `site-profile.yaml` keys are additive the same way
+(`schema_version` stays `1`; absence means off):
+
+- `onsite: {dry_run: true}` - `onsite-apply` and `onsite-publish` run
+  their full gated flow against a dry-run client that records every
+  intended write instead of performing it; the outcome record is marked
+  dry-run and lists them.
+- `indexnow: {enabled: true, key: <32-hex>}` - after a successful
+  verified apply or publish, the changed URL is submitted via IndexNow
+  and the response status recorded in the outcome (see
+  `plugin/docs/connectors.md`).
 
 ## Items: briefs and proposals
 

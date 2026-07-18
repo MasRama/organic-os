@@ -26,6 +26,12 @@ description: Use to execute APPROVED on-page proposals - "apply the approved fix
       stored `onsite.drift.baseline_path` entry, then `save_baseline`) so
       the change we just made intentionally is never flagged as drift by
       the next `hoo-daily` run.
+   g. IndexNow: when site-profile.yaml has `indexnow: {enabled: true,
+      key: ...}` (additive key), call `hoo.indexnow.submit(host, key,
+      [target_url])` after the successful verify and record the returned
+      status in the outcome record (`indexnow: {status: N, submitted: 1}`).
+      A non-200 is recorded, never retried in-run, and never fails the
+      apply. Skipped in dry-run - nothing changed, nothing to submit.
 3. Commit + push the brain repo if git. Summarize: applied / skipped / failed.
 
 ## Dry-run mode

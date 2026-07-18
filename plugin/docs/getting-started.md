@@ -109,6 +109,12 @@ opens up keyword research beyond what GSC alone can mine. See
 `plugin/docs/credentials/google-ads-token.md` for the full setup and what each
 access tier enables.
 
+**Enable IndexNow.** No account needed: setup's connector wizard generates
+a key, you place `<key>.txt` at the site root, and once the wizard
+verifies it by fetch, every successfully applied or published change gets
+its URL submitted to Bing, Yandex, and the other participating engines
+the moment it ships. See `plugin/docs/connectors.md`.
+
 **Add a channel.** In-session approval works from day one, but a channel
 (Telegram, Slack, email, or a pr-merge workflow) lets proposals reach you
 outside a live session, which matters once routines run on a schedule. See

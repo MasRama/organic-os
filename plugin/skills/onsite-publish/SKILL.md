@@ -18,6 +18,11 @@ description: Use to publish an APPROVED, drafted content item to WordPress - "pu
 4. Verify with `get_head`; on success `set_status(brief, "published")` and
    write the outcome record with measurement dates; on failure leave the post
    in draft and record the post id + failure reason in the outcome record.
+   IndexNow: when site-profile.yaml has `indexnow: {enabled: true, key: ...}`
+   (additive key) AND the post actually went live (status "publish" - a WP
+   draft has no public URL to submit), call `hoo.indexnow.submit(host, key,
+   [post_url])` after the successful verify and record the returned status
+   in the outcome record; a non-200 is recorded, never retried in-run.
 5. If a Canva image brief exists next to the draft (from ce-image), record its
    path in the outcome record for manual upload (media upload is not in v1).
 
