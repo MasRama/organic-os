@@ -1,0 +1,12 @@
+{
+  "name": "organic-os",
+  "owner": { "name": "Shivaa Tripathi", "url": "https://shivaatripathi.com" },
+  "plugins": [
+    {
+      "name": "organic-os",
+      "source": "./plugin",
+      "description": "An agentic organic-growth operating system: observe, decide, approve, apply, verify, learn. SEO + AEO/GEO + content + on-page execution with a memory that compounds.",
+      "version": "0.1.0"
+    }
+  ]
+}
