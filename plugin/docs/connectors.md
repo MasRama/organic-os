@@ -58,7 +58,30 @@ is the only approach that works identically on both surfaces.
 | Publishing approved fixes/drafts to a live site | WordPress Application Password (env file) | `plugin/docs/credentials/wordpress.md` | Everything up to `approved` still works - proposals queue and get approved, they just are not applied until WordPress is connected |
 
 Setup never stores a token, password, or credential in the brain repo or
-this plugin's own files - only the fact that a connector was found
-(`available | absent | unknown` in `site-profile.yaml`) or a path to a
-local env file. See `plugin/docs/updating.md` for how this boundary holds across
-plugin updates.
+this plugin's own files - only a record of what a probe found, and where
+it ran. `/organic-os:setup`'s connector wizard writes each connector as
+`{status, context, checked}` in `site-profile.yaml` via
+`core.contracts.record_connector()` - `status` is `verified` (a live query
+succeeded, not just tool presence), `unavailable`, or `declined`; `context`
+is where the probe ran (`local-cli`, `cowork-cloud`, `ci`), since a
+connector reachable from the setup session is not the same claim as one
+reachable from wherever routines actually run. See `plugin/docs/
+updating.md` for how this boundary holds across plugin updates.
+
+## No-data escalation in the daily routine
+
+`hoo-daily` needs GSC/GA4 to produce anything beyond "no sources
+available." When neither connector is reachable for a given run, the
+routine writes a specific `no-data:` signal line instead of the ordinary
+"no notable movement" one, and counts how many days in a row that has
+happened.
+
+At three consecutive no-data days, `hoo-daily` sends one nudge through the
+configured approval channel - a plain notification, not an approval item,
+since there is no decision to approve, only a connector to fix: "3 daily
+runs with no analytics data - GSC/GA4 are not reachable from this runtime.
+Fix: <exact connect instruction>." The nudge is marked sent with a
+`nudge-sent:` line inside that day's own signal file - no new state file -
+and `hoo-daily` checks the last 7 days of signals for that marker before
+sending again, so a persistently disconnected site gets nudged at most once
+a week, not every single day.
