@@ -14,8 +14,9 @@ description: Use to execute APPROVED on-page proposals - "apply the approved fix
       -> save to `outcomes/<item-id>-rollback.json` in the brain repo.
    c. Apply via wp.py: `update_rankmath` / `update_post` per the proposal body.
    d. Verify: `get_head(target_url)` - assert the new title/description appear
-      in the rendered head. On mismatch: `rollback()` immediately, set item
-      back by filing a new signal "apply-verify failed", and alert.
+      in the rendered head. On mismatch: `rollback()` immediately, then
+      `set_status(path, "failed", actor="agent")`, append a signal
+      "apply-verify failed", and alert. Never leave the item approved.
    e. `set_status(path, "applied", actor="agent")`; write an outcome record
       `outcomes/<item-id>.md`: what changed, when, rollback file, measurement
       due dates (+7d, +28d).

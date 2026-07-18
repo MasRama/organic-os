@@ -1,8 +1,10 @@
 """File contracts for the site brain. The ONLY code that reads/writes brain files.
 
 Item = a brief or proposal: markdown file with YAML frontmatter.
-Lifecycle: proposed -> approved|rejected; approved -> applied|drafted;
+Lifecycle: proposed -> approved|rejected; approved -> applied|drafted|failed;
 drafted -> published; applied|published -> measured.
+("failed" marks an approved item whose apply-verify failed and was rolled back;
+it happens pre-applied, so applied -> failed is deliberately illegal.)
 Skillbook: append-only entries with IDs; updates touch single entries only.
 """
 from __future__ import annotations
@@ -15,7 +17,7 @@ import yaml
 
 TRANSITIONS = {
     "proposed": {"approved", "rejected"},
-    "approved": {"applied", "drafted"},
+    "approved": {"applied", "drafted", "failed"},
     "drafted": {"published"},
     "applied": {"measured"},
     "published": {"measured"},

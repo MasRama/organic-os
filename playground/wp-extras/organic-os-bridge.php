@@ -27,7 +27,9 @@ add_action('wp_head', function () {
     if (!is_singular()) return;
     $jsonld = get_post_meta(get_the_ID(), 'agent_jsonld', true);
     if (!$jsonld) return;
-    json_decode($jsonld);
+    $decoded = json_decode($jsonld);
     if (json_last_error() !== JSON_ERROR_NONE) return; // never render invalid JSON
-    echo '<script type="application/ld+json">' . $jsonld . '</script>' . "\n";
+    // Re-encode instead of echoing the stored string: wp_json_encode escapes
+    // "</" as "<\/", so JSON containing "</script>" cannot break out of the tag.
+    echo '<script type="application/ld+json">' . wp_json_encode($decoded) . '</script>' . "\n";
 });

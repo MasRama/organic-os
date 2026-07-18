@@ -4,6 +4,7 @@ LIB = Path(__file__).resolve().parents[1] / "plugin" / "lib"
 sys.path.insert(0, str(LIB))
 
 import json  # noqa: E402
+import json as _json  # noqa: E402  (alias: 'json' is shadowed inside request())
 import pytest  # noqa: E402
 from onsite.wp import WPClient  # noqa: E402
 
@@ -12,15 +13,22 @@ class FakeSession:
     def __init__(self):
         self.calls = []
         self.responses = {}
-    def request(self, method, url, **kw):
-        self.calls.append((method, url, kw.get("json")))
-        body = self.responses.get((method, url), {"id": 42, "title": {"raw": "Old"},
-                                                  "meta": {"rank_math_title": "Old T"}})
+        self.force_error = None          # (status_code, body_text)
+    def request(self, method, url, auth=None, json=None, timeout=60, **kw):
+        self.calls.append((method, url, json))
+        if self.force_error:
+            status, text_body = self.force_error
+        else:
+            body = self.responses.get((method, url),
+                                      {"id": 42, "title": {"raw": "Old"},
+                                       "slug": "old-slug",
+                                       "meta": {"rank_math_title": "Old T"}})
+            status, text_body = 200, _json.dumps(body)
         class R:
-            status_code = 200
-            text = json.dumps(body)
+            status_code = status
+            text = text_body
             def json(self):
-                return body
+                return _json.loads(text_body)
         return R()
 
 
@@ -44,13 +52,14 @@ def test_update_rankmath_posts_meta():
 
 def test_snapshot_then_rollback_restores(tmp_path):
     s = FakeSession(); c = make_client(s)
-    snap = c.snapshot(42, fields=["title", "meta"])
+    snap = c.snapshot(42, fields=["title", "meta", "slug"])
     rec = tmp_path / "rollback.json"; rec.write_text(json.dumps(snap))
     c.rollback(json.loads(rec.read_text()))
     method, url, payload = s.calls[-1]
     assert method == "POST" and url.endswith("/wp/v2/posts/42")
     assert payload["title"] == "Old"          # restored raw title
     assert payload["meta"]["rank_math_title"] == "Old T"
+    assert payload["slug"] == "old-slug"      # slug round-trips too
 
 
 def test_create_post_draft_by_default():
@@ -58,3 +67,20 @@ def test_create_post_draft_by_default():
     c.create_post(title="T", content="C", slug="t")
     method, url, payload = s.calls[-1]
     assert payload["status"] == "draft"
+
+
+def test_call_raises_with_error_body():
+    s = FakeSession(); c = make_client(s)
+    s.force_error = (401, '{"code":"rest_forbidden","message":"Sorry"}')
+    with pytest.raises(RuntimeError) as exc:
+        c.get_post(42)
+    assert "401" in str(exc.value)
+    assert "rest_forbidden" in str(exc.value)
+
+
+def test_get_head_percent_encodes_url():
+    s = FakeSession(); c = make_client(s)
+    c.get_head("https://play.example/page?variant=b&utm=x")
+    method, url, payload = s.calls[-1]
+    assert "url=" in url
+    assert "&" not in url.split("url=", 1)[1]   # the page URL is fully encoded

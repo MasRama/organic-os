@@ -24,6 +24,8 @@ Store it using the standard organic-os credential pattern: one env file per
 site at `~/.config/organic-os/<site>.env`, containing at minimum:
 
 ```
+WP_ENDPOINT=https://SITE/wp-json
+WP_USERNAME=organic-agent
 WP_APP_PASSWORD=xxxx xxxx xxxx xxxx xxxx xxxx
 ```
 
@@ -73,8 +75,11 @@ Confirm the connection works with a direct curl call using the Application
 Password from step 2:
 
 ```
-curl -u 'organic-agent:APP_PASSWORD' https://SITE/wp-json/wp/v2/posts?per_page=1&context=edit
+curl -u 'organic-agent:APP_PASSWORD' 'https://SITE/wp-json/wp/v2/posts?per_page=1&context=edit'
 ```
+
+The URL must stay single-quoted: an unquoted `&` makes the shell background
+the command and drop `context=edit`.
 
 A working setup returns JSON for one post that includes a `meta` object
 containing `rank_math_title`. If `meta` is missing or empty, recheck step 4

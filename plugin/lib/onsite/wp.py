@@ -1,5 +1,7 @@
 """WordPress REST client for on-page SEO. Application-password auth.
 Session injected for tests; real use builds a stdlib session (no requests dep).
+The session contract is requests-compatible: request(method, url, headers=...,
+json=..., timeout=...).
 
 RankMath meta keys must be REST-registered on the site (the bundled
 playground/wp-extras/organic-os-bridge.php mu-plugin, or Devora's
@@ -7,7 +9,9 @@ rank-math-api-manager). See docs/credentials/wordpress.md.
 """
 from __future__ import annotations
 import base64
-import json
+import json as _json
+import urllib.error
+import urllib.parse
 import urllib.request
 
 RANKMATH_KEYS = {"title": "rank_math_title", "description": "rank_math_description",
@@ -17,20 +21,26 @@ RANKMATH_KEYS = {"title": "rank_math_title", "description": "rank_math_descripti
 
 
 class StdlibSession:
-    def request(self, method, url, headers=None, json_body=None, **kw):
-        data = json.dumps(json_body).encode() if json_body is not None else None
+    def request(self, method, url, headers=None, json=None, timeout=60, **kw):
+        data = _json.dumps(json).encode() if json is not None else None
         req = urllib.request.Request(url, data=data, method=method,
                                      headers=headers or {})
         if data:
             req.add_header("Content-Type", "application/json")
-        with urllib.request.urlopen(req, timeout=60) as r:
-            body = r.read().decode()
-            class R:
-                status_code = r.status
-                text = body
-                def json(self):
-                    return json.loads(body)
-            return R()
+        try:
+            with urllib.request.urlopen(req, timeout=timeout) as r:
+                status, body = r.status, r.read().decode()
+        except urllib.error.HTTPError as e:
+            # Surface the WordPress error body (rest_forbidden etc.) so the
+            # caller's status check can report it instead of a bare exception.
+            status, body = e.code, e.read().decode("utf-8", "replace")
+
+        class R:
+            status_code = status
+            text = body
+            def json(self):
+                return _json.loads(body)
+        return R()
 
 
 class WPClient:
@@ -44,10 +54,9 @@ class WPClient:
 
     def _call(self, method: str, path: str, payload=None):
         url = f"{self.endpoint}{path}"
-        kw = {"headers": {"Authorization": self.auth_header()}}
+        kw = {"headers": {"Authorization": self.auth_header()}, "timeout": 60}
         if payload is not None:
-            kw["json"] = payload           # FakeSession reads kw['json']
-            kw["json_body"] = payload      # StdlibSession reads kw['json_body']
+            kw["json"] = payload
         r = self.session.request(method, url, **kw)
         if getattr(r, "status_code", 200) >= 300:
             raise RuntimeError(f"WP {method} {path} -> {r.status_code}: {r.text[:200]}")
@@ -59,7 +68,8 @@ class WPClient:
 
     def get_head(self, page_url: str) -> dict:
         """RankMath Headless getHead: the rendered head for verification."""
-        return self._call("GET", f"/rankmath/v1/getHead?url={page_url}")
+        quoted = urllib.parse.quote(page_url, safe="")
+        return self._call("GET", f"/rankmath/v1/getHead?url={quoted}")
 
     # -- writes (callers MUST hold an approved item; enforced in skills) --
     def update_post(self, post_id: int, **fields) -> dict:
@@ -77,6 +87,8 @@ class WPClient:
 
     # -- rollback --
     def snapshot(self, post_id: int, fields) -> dict:
+        """Capture everything update_post can change so rollback() can undo it:
+        title, meta, content, slug, excerpt, status (pick via fields)."""
         post = self.get_post(post_id)
         snap = {"post_id": post_id}
         for f in fields:
@@ -87,6 +99,10 @@ class WPClient:
                                 for k in RANKMATH_KEYS.values()}
             elif f == "content":
                 snap["content"] = post.get("content", {}).get("raw", "")
+            elif f == "excerpt":
+                snap["excerpt"] = post.get("excerpt", {}).get("raw", "")
+            elif f in ("slug", "status"):
+                snap[f] = post.get(f, "")
         return snap
 
     def rollback(self, snap: dict) -> dict:

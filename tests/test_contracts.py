@@ -94,3 +94,20 @@ def test_queue_index_lists_pending(root):
     C.rebuild_queue(root)
     q = (root / "approvals" / "queue.md").read_text()
     assert "A guide" in q and "content-brief" in q
+
+
+def test_failed_status_only_from_approved(root):
+    p = C.create_item(root, kind="onpage-fix", slug="verify-fail", title="t", body="b",
+                      target="https://ex.com/v", source="s")
+    with pytest.raises(C.ContractError):
+        C.set_status(p, "failed", actor="agent")           # proposed -> failed illegal
+    C.set_status(p, "approved", actor="shivaa", channel="in-session")
+    C.set_status(p, "failed", actor="agent")               # approved -> failed legal
+    assert C.load_item(p)["meta"]["status"] == "failed"
+
+    q = C.create_item(root, kind="onpage-fix", slug="already-applied", title="t", body="b",
+                      target="https://ex.com/a", source="s")
+    C.set_status(q, "approved", actor="shivaa", channel="in-session")
+    C.set_status(q, "applied", actor="agent")
+    with pytest.raises(C.ContractError):
+        C.set_status(q, "failed", actor="agent")           # applied -> failed illegal
