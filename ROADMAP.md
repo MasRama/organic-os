@@ -113,6 +113,13 @@ The Shopify adapter (deprioritized) remains open.
   gate, scored per draft. Scaled, unedited AI content correlates with
   deindexation
   ([source](https://www.rankability.com/data/does-google-penalize-ai-content/)).
+- **Editorial policy in the site profile.** An additive `editorial:`
+  section turning an organization's written conventions (minimum internal
+  links, external-link limits, image requirements, sourcing rules) into
+  hard QA checks, the way the answer capsule and readability target are
+  enforced today. Free-text rulebook prose keeps working; this makes it
+  enforceable. Regulated-industry review stages (for example a compliance
+  reviewer before publish) belong to v1.0's multi-approver work.
 - **claude-seo audit import.** They audit, we operate: import a claude-seo
   report as a seed set of findings organic-os can turn into proposals,
   instead of re-deriving what a point-in-time audit already found.

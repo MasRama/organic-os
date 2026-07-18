@@ -58,6 +58,32 @@ fresh on each run. A plugin update changes the code that reads the brain,
 not the brain itself, so there is no session state, cache, or embedded
 history inside the plugin that an update could drop.
 
+## Your organization's definitions survive every update
+
+Everything that makes your deployment yours lives in YOUR brain, not in
+the plugin: brand voice and tonality rules, banned phrases, the
+readability target, editorial conventions written into your brand
+rulebook, keywords, competitors, operator knowledge, and every lesson the
+skillbook has learned. Two different organizations running the same
+plugin version produce different content because their brains differ -
+that is the design, not an accident.
+
+Practical consequences:
+
+- Updating the plugin never re-asks your setup questions and never resets
+  a definition. If a release changes what the profile can express, the
+  new keys are additive and optional; your existing profile keeps working.
+- Free-text editorial rules in your brand rulebook (for example "add at
+  least three internal links per post" or "every claim needs a named
+  source") are read and honored by the content pipeline today. Structured
+  enforcement of such rules, the way the answer capsule and readability
+  target are enforced as hard QA checks, is planned on the roadmap as an
+  `editorial:` profile section - additive when it arrives.
+- If your organization needs review stages beyond the standard approval
+  gate (for example a compliance review before publish), that belongs to
+  the multi-approver work on the roadmap. Until then, the approval
+  channel plus the pending queue is the single human gate.
+
 ## Downgrading
 
 Reinstall an older tag through the marketplace (`/plugin marketplace add
