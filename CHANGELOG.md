@@ -2,6 +2,61 @@
 
 ## [Unreleased]
 
+## [0.3.0-alpha.4] - 2026-07-19
+
+The page-essentials wave: a third-party audit of a live deployment
+exposed detection gaps; the dimension list now covers them. Detection
+belongs to the audit dimensions, remediation splits by artifact
+locality - the responsibility map is now an ADR.
+
+- **feat(onsite): page-essentials audit dimension.** onsite-audit gains
+  a numbered per-page dimension (site-wide where noted): author entity
+  (E-E-A-T - visible bio, sameAs, a named human reviewer note for
+  AI-attributed content, author schema `description` + `sameAs`; a thin
+  entity is a P2 signal + a gated site-level proposal), answer capsule
+  above the first H2 (P2 + refresh proposal), zero in-content images in
+  a 500+ word explainer (P3, image-brief path; the full image workflow
+  stays roadmapped), the ~155-char meta description flag folded into
+  the existing meta checks, square og:image under a summary_large_image
+  card (P3 + proposal, image-brief fallback when no landscape asset
+  exists), publisher schema shape (P3, entity-schema lane), and
+  site-wide sitemap membership for any published post older than 1 hour
+  (P2, with the cache-purge honesty note). Each check emits the
+  standard falsifiable signal and keeps the evidence discipline:
+  measured versus inferred, third-party outcomes never promised.
+  hoo-monthly-audit runs the dimension site-wide. New
+  `WPClient.update_user` writes the author profile description via
+  `/wp/v2/users` (dry-run aware); adapters declare
+  `author_profile_fields` in `capabilities()` (git-static: False), and
+  steps beyond `capabilities()` end partially-applied.
+- **feat(ce): capsule enforcement + readability + link judgment.** A
+  published article shipped without the mandated answer capsule - the
+  convention existed, the enforcement did not. ce-qa gains three hard
+  checks: the capsule (40-60 words, standalone, above the first H2; a
+  failing draft returns to the writer, never passes through),
+  readability (sentence-length stats; more than 5 sentences over 30
+  words or college-plus density returns the draft for splitting; target
+  profile-driven via the additive `brand.readability_target` key,
+  default grade 9-10), and dofollow links to commercial or competitor
+  domains flagged for an explicit editorial decision in the draft
+  notes. ce-editor re-confirms the capsule in the last read (belt and
+  braces); ce-produce writes `capsule: verified` into the draft
+  frontmatter as the handoff note, and onsite-publish refuses a draft
+  whose notes lack it (in-session human override, recorded in the
+  outcome record).
+- **docs: ADR-0010 - audit-dimension responsibility map.** Detection
+  belongs to head-of-organic's audit dimensions: the checklist is the
+  product's eyes, and a check that does not exist cannot fire.
+  Remediation splits by artifact locality - site-level through the
+  gated onsite lane, in-article at content-engine QA. The dimension
+  list is a living contract: every externally-caught miss becomes a
+  dimension addition, logged in the ADR. Cross-references the v0.3
+  entity-consistency item as the deeper successor and the claude-seo
+  import as the depth complement.
+
+2 new tests bring the suite to 197. No roadmap items move - this wave
+hardens existing audit scope. Audit and verify-gates green throughout.
+
 ## [0.3.0-alpha.3] - 2026-07-19
 
 Hardening from continued field testing: four gaps a real operating loop
