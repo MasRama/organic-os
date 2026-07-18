@@ -60,10 +60,18 @@ submission with the status recorded in the outcome) - see CHANGELOG.md.
 
 ## v0.3 - Execution breadth
 
-- **CMS adapter contract extracted from `wp.py`.** The structural
-  priority for this release: turns the current WordPress-specific write
-  path in `plugin/lib/onsite/wp.py` into a documented interface any
-  adapter can implement, so adding a CMS is a new file, not a fork.
+**Landed early:** the CMS adapter contract, the structural priority for
+this release, shipped in v0.3.0-alpha.1: `plugin/lib/onsite/cms.py`
+defines `CmsAdapter` (the cms slot's documented interface) plus the
+`adapter_for` factory reading the additive `cms: {type: wordpress}`
+site-profile key, and `WPClient` is adapter one (`update_rankmath` stays
+as its WordPress-specific alias for `update_seo_meta`). Adding a CMS is
+now a new adapter file plus a profile entry, not a fork - see
+CHANGELOG.md and CONTRIBUTING.md's "Contributing a CMS adapter" section.
+The onsite skills were normalized to ADR-0009 slot language ("the CMS
+adapter, WordPress today") in the same wave. The git-based static-site
+adapter below and the Shopify adapter (deprioritized) remain open.
+
 - **Git-based static-site adapter.** Proposals arrive as pull requests
   against a static-site repo (Astro, Hugo, Jekyll, and similar) instead of
   a REST write - the approve gate becomes "merge the PR," matching the

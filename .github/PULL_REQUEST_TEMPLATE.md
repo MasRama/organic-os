@@ -15,3 +15,7 @@
 - [ ] No em-dashes; no hype words (seamless, robust, delve, transform,
       unlock, supercharge, cutting-edge, world-class, best-in-class,
       synergy, holistic, revolutionary, and similar)
+- [ ] Adapter PRs only: `capabilities()` declares honestly what the adapter
+      cannot do (`needs_human`), and a fake-transport test file proves the
+      `CmsAdapter` contract (see
+      [CONTRIBUTING.md's adapter section](../CONTRIBUTING.md#contributing-a-cms-adapter))

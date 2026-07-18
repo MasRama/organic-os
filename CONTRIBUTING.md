@@ -14,9 +14,10 @@ guidance below exists to keep it that way.
 - **New skills or agents that read the site profile.** Anything under
   `plugin/skills/` or `plugin/agents/` that takes `site-profile.yaml` (or an
   equivalent generic input) and works for any site, not one business.
-- **CMS or channel adapters** implementing the `lib/core` contracts -
-  a new write path alongside `lib/onsite/wp.py`, or a new approval channel
-  alongside telegram/pr-merge/slack/email in `lib/core/approval.py`.
+- **CMS or channel adapters.** A new CMS backend implements the
+  `CmsAdapter` contract in `plugin/lib/onsite/cms.py` (see "Contributing
+  a CMS adapter" below); a new approval channel lands alongside
+  telegram/pr-merge/slack/email in `lib/core/approval.py`.
 - **Docs.** Fixes, clarifications, missing setup steps.
 - **Evidence updates, with primary sources.** A change to `plugin/docs/evidence.md`
   needs a real citation (a study, a vendor analysis with methodology, a
@@ -71,6 +72,38 @@ python3 -m pytest tests/ -q
 
 Both commands should be clean before you start (every test passing,
 `audit: clean`) and clean again before you open a PR.
+
+## Contributing a CMS adapter
+
+The cms capability slot (ADR-0009,
+`docs/adr/0009-capability-slots-not-tool-bindings.md`) takes new backends
+as adapters. WordPress (`plugin/lib/onsite/wp.py`) is adapter one; use it
+as the reference implementation.
+
+- **Implement `CmsAdapter`** (`plugin/lib/onsite/cms.py`): one class per
+  backend covering the full surface - `get_post`, `update_post`,
+  `create_post`, `update_seo_meta`, `get_rendered_head`, `snapshot`,
+  `rollback`, `capabilities`, `adapter_name`. Register the type in
+  `adapter_for` and `SUPPORTED_CMS_TYPES`, and document any
+  backend-specific site-profile keys the adapter reads.
+- **The capabilities() honesty rule.** Declare what your adapter cannot
+  do: `needs_human` lists the action types it cannot perform. When an
+  approved proposal includes such a step, the item ends
+  `partially-applied` with a note naming exactly what a human must finish
+  (`docs/adr/0007-partially-applied-state.md`) - an adapter never fakes
+  success for an action it cannot perform.
+- **The test bar.** A fake-transport test file mirroring
+  `tests/test_wp.py`'s pattern (an injected fake session, no network),
+  proving the contract end to end: reads, writes, the snapshot/rollback
+  round-trip, dry-run logging with zero transport calls, and backend
+  errors surfacing as `RuntimeError` carrying the backend's message.
+- **Gates stay in core.** Adapters never gate: `require_approved` /
+  `require_approval_lineage` run in the skills through `core.contracts`
+  before any mutating adapter call. An adapter performs the write it is
+  asked to perform, nothing more, and never inspects item status.
+- **PR checklist.** Tick the adapter line in the PR template: state which
+  `capabilities()` flags are true and why, backed by the backend's docs,
+  and point at the fake-transport test file.
 
 ## Standards
 
