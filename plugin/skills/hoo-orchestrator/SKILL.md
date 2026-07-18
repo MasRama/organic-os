@@ -5,8 +5,11 @@ description: Use for any broad organic-growth request - "audit my organic presen
 
 # Head of Organic - orchestrator
 
-1. Locate the brain repo (ask if unknown; a repo has site-profile.yaml at root).
-   Read site-profile.yaml fully.
+1. Locate the brain repo: try `core.registry.get_active()` first (the active
+   site's `brain` path). If the registry is empty or unavailable (cloud
+   runtimes may lack local registry access), fall back to the routine's own
+   configured site-profile path, or ask the user (a repo has site-profile.yaml
+   at root). Read site-profile.yaml fully.
 2. Decide which specialists the request needs (default full sweep: all eight).
    Launch them as parallel agents, each given the profile path + target URLs.
 3. Synthesize results. Deduplicate findings. Rank by impact x confidence.
