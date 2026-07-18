@@ -2,6 +2,47 @@
 
 ## [Unreleased]
 
+## [0.1.8] - 2026-07-19
+
+Baseline and audit-first setup (v0.2 wave 3) - see ROADMAP.md.
+
+- **setup:** AI-visibility baseline - a new optional step, offered in full
+  setup after connectors/credentials and before the postflight scorecard
+  (~5 minutes, always skippable). Samples up to 8 seed keywords and 2
+  competitors against whatever AI answer surfaces this session can reach
+  via WebSearch/WebFetch, records per query whether the brand and each
+  competitor appear and who is actually cited, and writes
+  `runs/<date>-ai-baseline/REPORT.md`: a per-query table plus three
+  summary numbers (brand mention rate, competitor mention rate,
+  share-of-voice ratio), each labeled with an explicit sampling caveat -
+  this method samples reachable engines, it does not measure every engine.
+  Appends one signal with the headline numbers and a 90-day falsifiability
+  line (re-run monthly via `/organic-os:citations`; no movement in mention
+  rate 90 days after shipped content work means the content strategy
+  hypothesis is wrong, not the baseline). Degrades to "baseline deferred"
+  with no web access rather than fabricating a report.
+- **hoo-citation-tracker:** when a baseline report exists, later runs
+  compare against it and report movement, not just this run's absolutes.
+- **setup:** audit-and-propose is now the default first-run flow, for both
+  quick-start and full setup. Setup asks for the site URL first, then
+  audits before asking anything else - fetches the homepage and sitemap,
+  detects WordPress/Yoast/RankMath from markup and sitemap shape, reads
+  3-5 representative pages, and proposes brand voice descriptors, audience
+  segments, 5-9 seed keywords, 3-5 content-SERP competitors (sites
+  competing for the same queries, not necessarily business rivals - the
+  proposal says so), and target geos, grounded in what was actually read.
+  The proposal is presented as a table for approval: accept all, edit
+  specific rows, or answer manually instead. Quick-start collapses to 3
+  questions (URL, approval channel, confirm) and now seeds keywords,
+  competitors, and voice from the audit instead of leaving them blank.
+  Full setup keeps every question the audit genuinely cannot answer -
+  operator knowledge, connectors, Google Ads, WordPress, approval channel,
+  runtime, brain mode - unchanged downstream of the new proposal step.
+  Degrades to the old blind-question defaults when the site cannot be
+  fetched.
+- **docs:** `plugin/docs/getting-started.md`'s setup walkthrough and
+  README's zero-credential quickstart now describe the audit-first flow.
+
 ## [0.1.7] - 2026-07-19
 
 Observe-side detectors (v0.2 wave 2) - see ROADMAP.md.

@@ -241,7 +241,12 @@ and backlink data beyond Google Ads and GSC, connected with your own
 credentials. organic-os never scrapes on its own.
 
 **What happens if I run setup again?**
-Run `/organic-os:start` any time you are not sure what to do next - it
+The very first run is audit-first: give it a URL and it fetches the
+homepage and sitemap, reads a few representative pages, and proposes
+brand voice, audience, keywords, competitors, and geos for you to accept,
+edit, or override, asking directly only for what it genuinely can't infer
+(connectors, WordPress, approval channel, runtime). Run
+`/organic-os:start` any time you are not sure what to do next - it
 health-checks the environment and routes you to the right place, including
 back into setup. `/organic-os:setup` itself detects your registered sites
 and asks update, add,

@@ -36,24 +36,14 @@ one-secret-at-a-time credentials flow - see CHANGELOG.md. Also landed
 early in v0.1.7 (wave 2 of the block below): the three observe-side
 detectors - the cannibalization detector and content decay detection in
 the weekly routine, and the site drift watch riding the daily observe -
-see CHANGELOG.md.
+see CHANGELOG.md. Also landed early in v0.1.8 (wave 3): the audit-and-
+propose interview and the AI-visibility baseline at setup - see
+CHANGELOG.md. This finishes the "Setup verification and runtime
+awareness" sub-block in full - every item first identified from
+first-run field testing has now shipped ahead of the formal v0.2 release.
 
-### Setup verification and runtime awareness (from first-run field testing)
+### Remaining for v0.2
 
-Everything in this sub-block except the item below shipped in v0.1.6 or
-v0.1.7 - see "Landed early" above.
-
-- **Audit-and-propose interview.** Still open, not part of the v0.1.6 or
-  v0.1.7 wave. Enter a URL; the plugin audits the site and presents a
-  pre-filled profile for approval instead of asking questions it can
-  already answer itself.
-
-- **AI-visibility baseline at setup.** Where you appear in AI answers today
-  versus two competitors, captured once during onboarding. 45 percent of
-  marketing leaders say they cannot measure this today, and commercial
-  tools price the capability at 99 to 499 dollars a month
-  ([source](https://www.semrush.com/news/463141-semrush-releases-expanded-2026-ai-visibility-index-analyzing-126-million-ai-search-prompts/),
-  [source](https://www.surmado.com/blog/best-ai-visibility-tools-2026)).
 - **Dry-run mode for `onsite-apply`.** Preview what a write would do
   against a live WordPress site without touching it - the counterpart to
   `scripts/verify-gates.sh` (landed early, see above), which already
