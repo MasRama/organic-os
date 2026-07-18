@@ -16,7 +16,10 @@ BRAIN="$(mktemp -d)"
 trap 'rm -rf "$BRAIN"' EXIT
 
 PYTHONPATH="plugin/lib" python3 - "$BRAIN" <<'PYEOF'
+import datetime
+import os
 import re
+import subprocess
 import sys
 from pathlib import Path
 
@@ -140,6 +143,41 @@ def p7():
         f"expected 3 logged write intents, got {wp.dry_run_log}"
 
 
+def p8():
+    p = item("p8")
+    C.set_status(p, "approved", actor="verify-gates", channel="in-session")
+    C.require_approved(p)  # a fresh approval passes
+
+    # Rewrite the approval timestamp to 40 days ago - simulates aging, which
+    # is why a direct file edit is fine inside this probe and nowhere else.
+    doc = C.load_item(p)
+    old = (datetime.datetime.now(datetime.timezone.utc)
+           - datetime.timedelta(days=40)).strftime("%Y-%m-%dT%H:%M:%SZ")
+    doc["meta"]["approvals"][-1]["at"] = old
+    C._dump(p, doc["meta"], doc["body"])
+
+    blocked = False
+    try:
+        C.require_approved(p)
+    except C.ContractError as e:
+        assert "expired" in str(e), f"block reason does not mention expiry: {e}"
+        blocked = True
+    assert blocked, "require_approved passed a 40-day-old approval"
+    assert C.load_item(p)["meta"]["status"] == "approved", \
+        "the gate changed the item's status on expiry (must stay re-confirmable)"
+
+    # Re-confirm through the contract CLI - the exact command the block
+    # message names - and the gate opens again on the fresh entry.
+    env = dict(os.environ, PYTHONPATH="plugin/lib")
+    r = subprocess.run([sys.executable, "-m", "core", "approve", str(p),
+                        "--actor", "verify-gates", "--channel", "in-session"],
+                       capture_output=True, text=True, env=env)
+    assert r.returncode == 0, f"CLI re-confirm failed: {r.stderr}"
+    assert len(C.load_item(p)["meta"]["approvals"]) == 2, \
+        "re-confirm did not append a fresh approval entry"
+    C.require_approved(p)  # must not raise
+
+
 probe(1, "require_approved on a fresh proposed item raises (gate closed by default)", p1)
 probe(2, "set_status proposed -> applied directly raises (no skipping the approval step)", p2)
 probe(3, "require_approval_lineage on a rejected item raises", p3)
@@ -150,13 +188,15 @@ probe(5, "a drafted item with a real approved lineage passes require_approval_li
 probe(6, "check_schema on a schema_version: 99 brain refuses with the update-plugin action", p6)
 probe(7, "dry-run does not relax the gate: a proposed item still refuses, and an "
          "approved dry-run apply makes zero session calls", p7)
+probe(8, "an approval aged past the TTL blocks with an expiry reason, keeps its "
+         "status, and re-confirming via the CLI reopens the gate", p8)
 
 sys.exit(fail_at)
 PYEOF
 status=$?
 
 if [ "$status" -eq 0 ]; then
-  printf '\nverify-gates: all 7 probes behaved as designed\n'
+  printf '\nverify-gates: all 8 probes behaved as designed\n'
 else
   printf '\nverify-gates: probe %d did not behave as designed\n' "$status"
 fi
