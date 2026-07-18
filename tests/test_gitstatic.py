@@ -88,6 +88,7 @@ def test_capabilities_declare_the_honest_gaps(repo):
     assert caps["seo_meta_fields"] is True
     assert caps["schema_injection"] == "frontmatter-field"
     assert caps["rendered_head_verify"] is False
+    assert caps["author_profile_fields"] is False
     assert caps["needs_human"] == ["merge-pr", "deploy"]
 
 

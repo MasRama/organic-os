@@ -47,6 +47,7 @@ def test_wpclient_capabilities_shape():
     assert caps["seo_meta_fields"] is True
     assert caps["schema_injection"] is True
     assert caps["rendered_head_verify"] is True
+    assert caps["author_profile_fields"] is True
     assert caps["needs_human"] == ["seo-plugin-cache-purge", "plugin-settings"]
 
 

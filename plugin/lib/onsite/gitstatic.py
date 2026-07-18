@@ -229,6 +229,9 @@ class GitStaticClient(CmsAdapter):
             # jsonld is a frontmatter field the site's layout must render:
             "schema_injection": "frontmatter-field",
             "rendered_head_verify": False,  # static sites verify post-deploy
+            # No user database: author bios live in site content/config a
+            # human edits, so author-entity fixes end partially-applied.
+            "author_profile_fields": False,
             # Publishing is a human's merge, then the site's own deploy;
             # such steps end the item partially-applied with a note, never
             # faked as done.

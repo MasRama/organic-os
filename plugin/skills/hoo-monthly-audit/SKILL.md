@@ -11,6 +11,11 @@ description: Use for the monthly deep audit - "run the monthly audit", /organic-
    rankings - freshness is a strong-evidence AEO factor), schema validity,
    internal-link health, tracked-keyword trend over the month, outcomes review
    (which applied changes moved metrics; feed wins/losses to the reflector).
+   Run the page-essentials dimension (skills/onsite-audit step 3: author
+   entity, answer capsule, in-content images, social image shape,
+   publisher schema shape, sitemap membership) site-wide across the
+   audited page set, not only on newly flagged pages - the checklist is
+   the product's eyes, and a check that does not run cannot fire.
 3. Compare with last month's runs/ artifacts; the report leads with deltas.
 4. File signals, briefs, and fixes through core contracts; rebuild queue;
    notify per approval channel. Only send items where `is_notified(item)` is

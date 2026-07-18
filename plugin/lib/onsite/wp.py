@@ -105,6 +105,19 @@ class WPClient(CmsAdapter):
             return self._dry("update_rankmath", {"meta": meta}, post_id)
         return self._call("POST", f"/wp/v2/posts/{post_id}", {"meta": meta})
 
+    def update_user(self, user_id: int, **fields) -> dict:
+        """Site-level author-entity write (WordPress-specific, like
+        update_rankmath): profile fields via /wp/v2/users/<id> -
+        `description` (the visible bio) and `url`. The connected user can
+        always edit their own profile; editing another user's needs an
+        admin role, and that wall ends the item partially-applied per
+        skills/onsite-apply, never faked as done."""
+        if self.dry_run:
+            self.dry_run_log.append({"method": "update_user",
+                                     "fields": fields, "user_id": user_id})
+            return {"dry_run": True, "id": user_id, **fields}
+        return self._call("POST", f"/wp/v2/users/{user_id}", fields)
+
     def create_post(self, title: str, content: str, slug: str,
                     status: str = "draft", excerpt: str = "") -> dict:
         payload = {"title": title, "content": content, "slug": slug,
@@ -155,6 +168,7 @@ class WPClient(CmsAdapter):
             "seo_meta_fields": True,        # RankMath keys via the bridge
             "schema_injection": True,       # agent_jsonld via the bridge
             "rendered_head_verify": True,   # RankMath Headless getHead
+            "author_profile_fields": True,  # update_user via /wp/v2/users
             # The Editor role cannot do these (see the capability matrix in
             # plugin/docs/credentials/wordpress.md); such steps end the item
             # partially-applied with a note, never faked as done.

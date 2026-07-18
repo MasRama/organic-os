@@ -4,7 +4,7 @@ An agentic organic-growth operating system for any website, as a single
 Claude plugin. The loop is the product.
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
-![Tests](https://img.shields.io/badge/tests-195%20passing-brightgreen.svg)
+![Tests](https://img.shields.io/badge/tests-197%20passing-brightgreen.svg)
 ![Version](https://img.shields.io/badge/version-0.3.0-alpha.3-blue.svg)
 ![Works with](https://img.shields.io/badge/works%20with-Claude%20Code%20%2B%20Cowork-6f42c1.svg)
 
@@ -73,7 +73,7 @@ Three bounded modules, one install:
 | **content-engine** | Turns an approved brief into a publish-ready draft - research, brand-voice compliance, SEO/authority pass, editorial QA - with an optional featured-image step |
 
 Verified inventory (2026-07-19): **20 skills, 20 slash commands, 14
-specialist agents, 195 passing tests.**
+specialist agents, 197 passing tests.**
 
 ```mermaid
 flowchart TB

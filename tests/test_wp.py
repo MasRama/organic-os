@@ -88,9 +88,31 @@ def test_get_head_percent_encodes_url():
 
 # -- dry-run mode -------------------------------------------------------------
 
+def test_update_user_writes_profile_fields():
+    # Site-level author-entity fix: the onsite-audit page-essentials
+    # dimension proposes a user profile description; this is the write.
+    s = FakeSession(); c = make_client(s)
+    c.update_user(7, description="Bio text", url="https://play.example/about")
+    method, url, payload = s.calls[-1]
+    assert method == "POST" and url.endswith("/wp/v2/users/7")
+    assert payload == {"description": "Bio text",
+                       "url": "https://play.example/about"}
+
+
 def make_dry_client(sess):
     return WPClient("https://play.example/wp-json", "organic-agent", "secret",
                     session=sess, dry_run=True)
+
+
+def test_dry_run_update_user_zero_session_calls_logs_intent():
+    s = FakeSession(); c = make_dry_client(s)
+    out = c.update_user(7, description="Bio text")
+    assert s.calls == []                        # the session was never touched
+    assert out["dry_run"] is True
+    entry = c.dry_run_log[-1]
+    assert entry["method"] == "update_user"
+    assert entry["user_id"] == 7
+    assert entry["fields"]["description"] == "Bio text"
 
 
 def test_dry_run_update_rankmath_zero_session_calls_logs_intent():
