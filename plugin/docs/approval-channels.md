@@ -73,10 +73,31 @@ approve p-20260718-pricing-title
 reject  p-20260718-pricing-title not now, revisit after the redesign
 ```
 
-The reply must start with `approve` or `reject`, followed by the item id
+The strict form starts with `approve` or `reject`, followed by the item id
 exactly as posted; anything after that on a `reject` line is stored as the
 reason. Polling is replay-tolerant - the same reply delivered twice (a
 common effect of `getUpdates` retried across runs) is applied once.
+
+**Reply-context decisions.** Typing an item id on a phone is friction, so
+there is a second path: use Telegram's reply feature on the proposal
+message itself, and a bare decision word is enough - the item id is read
+from the message you replied to. Accepted words, case-insensitive:
+
+- approve: `approve`, `approved`, `yes`, `ok`, or a thumbs-up emoji
+- reject: `reject`, `rejected`, `no`, or a thumbs-down emoji
+
+Any text after the word becomes the note (so a reply of `ok ship it`
+approves with note "ship it"). The rules around it:
+
+- The strict `approve <item-id>` grammar still works everywhere and takes
+  precedence when both could apply - a typed id always wins over the
+  replied-to message's id.
+- A bare `approved` sent as a normal message (not a reply) resolves
+  nothing: without a reply there is no item id to resolve against.
+- A reply to a message that contains no item id resolves nothing.
+
+Both paths land in the same approvals record and the same replay-tolerant
+outcomes below.
 
 Polling goes through `core.approval.process_telegram_decisions`, which
 persists the last acknowledged Telegram update id at
