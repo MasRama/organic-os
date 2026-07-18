@@ -16,9 +16,11 @@ description: Use to execute APPROVED on-page proposals - "apply the approved fix
    c. Apply via wp.py: `update_rankmath` / `update_post` per the proposal body.
    d. Verify: `get_head(target_url)` - assert the new title/description appear
       in the rendered head. On mismatch: `rollback()` immediately, then
-      `set_status(path, "failed", actor="agent")`, append a signal
+      `PYTHONPATH="$CLAUDE_PLUGIN_ROOT/lib" python3 -m core status
+      <item-path> failed --actor agent`, append a signal
       "apply-verify failed", and alert. Never leave the item approved.
-   e. `set_status(path, "applied", actor="agent")`; write an outcome record
+   e. `PYTHONPATH="$CLAUDE_PLUGIN_ROOT/lib" python3 -m core status
+      <item-path> applied --actor agent`; write an outcome record
       `outcomes/<item-id>.md`: what changed, when, rollback file, measurement
       due dates (+7d, +28d).
    f. On a successful verify, refresh the drift baseline for this page
@@ -51,4 +53,5 @@ post id, and fields. Skip the drift-baseline refresh (2f); the page did
 not change.
 
 HARD RULES: no snapshot -> no write. Verify after every write. A failed verify
-means rollback, never retry-and-hope.
+means rollback, never retry-and-hope. Never edit brain frontmatter directly.
+The contract CLI is the only write path for status and approvals.

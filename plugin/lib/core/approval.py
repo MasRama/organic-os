@@ -1,4 +1,5 @@
 """Channel-neutral approval operations over the brain repo."""
+from __future__ import annotations
 import json
 from pathlib import Path
 from . import contracts as C
@@ -24,12 +25,13 @@ def find(root, item_id: str):
     raise C.ContractError(f"no item {item_id}")
 
 
-def record_decision(root, item_id: str, decision: str, actor: str, channel: str) -> None:
+def record_decision(root, item_id: str, decision: str, actor: str, channel: str,
+                    note: str | None = None) -> None:
     """Records a decision. Replay-tolerant: poll loops may deliver the same decision twice."""
     path = find(root, item_id)
     if C.load_item(path)["meta"]["status"] == decision:
         return
-    C.set_status(path, decision, actor=actor, channel=channel)
+    C.set_status(path, decision, actor=actor, channel=channel, note=note)
     C.rebuild_queue(root)
 
 
@@ -68,14 +70,15 @@ def process_telegram_decisions(root, token: str, chat_id, transport=None) -> lis
     decisions, last = T.poll_decisions(http, token, chat_id, offset=offset)
 
     results = []
-    for item_id, decision, _reason in decisions:
+    for item_id, decision, reason in decisions:
         try:
             find(root, item_id)
         except C.ContractError:
             results.append((item_id, "unknown"))
             continue
         try:
-            record_decision(root, item_id, decision, actor="telegram", channel="telegram")
+            record_decision(root, item_id, decision, actor="telegram",
+                            channel="telegram", note=reason or None)
             results.append((item_id, "recorded"))
         except C.ContractError as e:
             if "illegal transition" in str(e):

@@ -14,8 +14,11 @@ description: Use to produce a publish-ready draft from an approved content brief
 3. Save the final draft as <brief-file>.draft.md next to the brief (frontmatter:
    title, slug, meta_description, focus_keyword, schema block). Save the
    research pack + QA log under runs/YYYYMMDD-produce-<slug>/.
-4. `set_status(brief, "drafted", actor="agent")`. Then invoke ce-image for the
+4. `PYTHONPATH="$CLAUDE_PLUGIN_ROOT/lib" python3 -m core status
+   <brief-path> drafted --actor agent`. Then invoke ce-image for the
    featured-image step. Publishing is onsite-publish's job (separately gated).
 5. Rules from the profile override everything: voice, banned phrases, rulebook.
    House defaults if profile is silent: answer capsule up top, no em-dashes,
    active voice, statistics cited inline with live links.
+6. Never edit brain frontmatter directly. The contract CLI is the only write
+   path for status and approvals.

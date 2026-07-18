@@ -27,7 +27,22 @@ that a decision was actually recorded.
 
 `approvals/queue.md` in the brain repo is the index: every item currently
 sitting at `proposed` appears there, rebuilt on every change. That file is
-the thing you actually look at.
+the thing you actually look at. The rebuild also lints existing approval
+records: an `approvals:` entry with no `decision` field (the fingerprint
+of a hand-edit) is surfaced as a `MALFORMED-APPROVAL` row.
+
+Never edit brain frontmatter directly. The contract CLI is the only write
+path for status and approvals:
+
+```
+PYTHONPATH="$CLAUDE_PLUGIN_ROOT/lib" python3 -m core approve <item-path> --actor NAME --channel CH [--note TEXT]
+PYTHONPATH="$CLAUDE_PLUGIN_ROOT/lib" python3 -m core reject  <item-path> --actor NAME --channel CH [--note TEXT]
+PYTHONPATH="$CLAUDE_PLUGIN_ROOT/lib" python3 -m core status  <item-path> <new-status> --actor NAME
+```
+
+It prints the resulting status line, and refuses an illegal transition
+with a nonzero exit and the reason on stderr - the same contract checks
+every skill goes through.
 
 **No channel is privileged.** You choose one at setup; every channel below
 records the same thing (actor, decision, channel, timestamp) into the same

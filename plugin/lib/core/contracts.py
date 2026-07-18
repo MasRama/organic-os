@@ -116,16 +116,19 @@ def load_item(path) -> dict:
     return {"meta": meta, "body": m.group(2)}
 
 
-def set_status(path, status: str, actor: str, channel: str | None = None) -> None:
+def set_status(path, status: str, actor: str, channel: str | None = None,
+               note: str | None = None) -> None:
     item = load_item(path)
     cur = item["meta"]["status"]
     if status not in TRANSITIONS.get(cur, set()):
         raise ContractError(f"illegal transition {cur} -> {status}")
     item["meta"]["status"] = status
     if status in {"approved", "rejected"}:
-        item["meta"]["approvals"].append(
-            {"actor": actor, "channel": channel or "unknown",
-             "decision": status, "at": _now()})
+        entry = {"actor": actor, "channel": channel or "unknown",
+                 "decision": status, "at": _now()}
+        if note:
+            entry["note"] = note
+        item["meta"]["approvals"].append(entry)
     _dump(Path(path), item["meta"], item["body"])
 
 
@@ -291,6 +294,14 @@ def rebuild_queue(root) -> Path:
             except ContractError:
                 rows.append(f"- MALFORMED: {folder}/{f.name}")
                 continue
+            # Lint: every approvals entry must carry a decision field. An
+            # entry without one is the fingerprint of a hand-edit that
+            # bypassed set_status - surface it, never silently accept it.
+            for entry in meta.get("approvals") or []:
+                if not isinstance(entry, dict) or "decision" not in entry:
+                    rows.append(f"- MALFORMED-APPROVAL: {folder}/{f.name} "
+                                "(entry missing decision field)")
+                    break
             if meta["status"] == "proposed":
                 rows.append(f"- `{meta['id']}` [{meta['kind']}] {meta['title']} "
                             f"(created {meta['created']}) -> {folder}/{f.name}")

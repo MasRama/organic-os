@@ -22,4 +22,8 @@ description: Use to turn audit findings or signals into concrete gated change pr
    - pr-merge: commit the proposal file on a branch, open a PR (gh pr create)
    - slack/email: post/send a summary via the available connector; approval
      happens in-session or by channel reply read at the next run
-5. Record any in-session decisions immediately via `record_decision`.
+5. Record any in-session decisions immediately via the contract CLI:
+   `PYTHONPATH="$CLAUDE_PLUGIN_ROOT/lib" python3 -m core approve <item-path>
+   --actor <user> --channel in-session` (or `reject`, with `--note` for any
+   reason given). Never edit brain frontmatter directly. The contract CLI is
+   the only write path for status and approvals.

@@ -15,4 +15,8 @@ description: Use to measure applied/published changes at day 7 and day 28 - "mea
 3. Append the delta to the outcome record + one signal line
    ("outcome <item-id>: position 8.2 -> 5.9 after title rewrite").
 4. Wins and losses BOTH matter: the reflector reads outcomes to score
-   skillbook entries helpful/harmful. Set status "measured" at day-28.
+   skillbook entries helpful/harmful. At day-28, set the item to measured
+   via `PYTHONPATH="$CLAUDE_PLUGIN_ROOT/lib" python3 -m core status
+   <item-path> measured --actor agent`. Never edit brain frontmatter
+   directly. The contract CLI is the only write path for status and
+   approvals.

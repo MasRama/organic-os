@@ -89,6 +89,34 @@ def test_create_item_rejects_path_escape_slug(root):
     assert list(root.rglob("escape.md")) == []
 
 
+def test_set_status_records_note_only_when_given(root):
+    p = C.create_item(root, kind="onpage-fix", slug="with-note", title="t", body="b",
+                      target="https://ex.com/n", source="s")
+    C.set_status(p, "approved", actor="op", channel="in-session", note="looks good")
+    assert C.load_item(p)["meta"]["approvals"][0]["note"] == "looks good"
+
+    q = C.create_item(root, kind="onpage-fix", slug="no-note", title="t", body="b",
+                      target="https://ex.com/m", source="s")
+    C.set_status(q, "approved", actor="op", channel="in-session")
+    assert "note" not in C.load_item(q)["meta"]["approvals"][0]
+
+
+def test_rebuild_queue_flags_approval_entry_missing_decision(root):
+    p = C.create_item(root, kind="onpage-fix", slug="bad-approval", title="t", body="b",
+                      target="https://ex.com/b", source="s")
+    raw = p.read_text()
+    assert "approvals: []" in raw, "unexpected frontmatter shape, cannot hand-write entry"
+    p.write_text(raw.replace(
+        "approvals: []",
+        "approvals:\n- actor: someone\n  channel: manual-edit\n"
+        "  at: '2026-07-19T00:00:00Z'"))
+    C.rebuild_queue(root)
+    q = (root / "approvals" / "queue.md").read_text()
+    assert "MALFORMED-APPROVAL" in q
+    assert "entry missing decision field" in q
+    assert p.name in q
+
+
 def test_queue_index_lists_pending(root):
     C.create_item(root, kind="content-brief", slug="guide", title="A guide", body="b",
                   target="", source="s")

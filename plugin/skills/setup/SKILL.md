@@ -601,6 +601,10 @@ to hand to the user, not a caveat to bury.
 
 - Analysis-only mode is a valid outcome: a user with zero credentials still gets
   audits, briefs, and keyword work from public data.
+- Never edit brain frontmatter directly. The contract CLI
+  (`PYTHONPATH="$CLAUDE_PLUGIN_ROOT/lib" python3 -m core ...`) is the only
+  write path for status and approvals - setup itself never touches item
+  status, and never teaches the user to hand-edit an item file either.
 - Never write a secret into the brain repo, the registry, or the transcript. Env files only.
 - Re-running setup is safe: the scaffolder never overwrites; the interview
   offers current values as defaults; update mode never touches memory.

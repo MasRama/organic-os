@@ -15,7 +15,8 @@ description: Use to publish an APPROVED, drafted content item to WordPress - "pu
    "publish" only when site-profile sets publishing: direct), then
    `update_rankmath` with title/description/focus keyword from the draft's
    frontmatter, and `agent_jsonld` if the draft includes schema.
-4. Verify with `get_head`; on success `set_status(brief, "published")` and
+4. Verify with `get_head`; on success `PYTHONPATH="$CLAUDE_PLUGIN_ROOT/lib"
+   python3 -m core status <brief-path> published --actor agent` and
    write the outcome record with measurement dates; on failure leave the post
    in draft and record the post id + failure reason in the outcome record.
    IndexNow: when site-profile.yaml has `indexnow: {enabled: true, key: ...}`
@@ -30,3 +31,6 @@ Dry-run: with `onsite: {dry_run: true}` in site-profile.yaml, run the same
 gated flow with `WPClient(..., dry_run=True)` - nothing is created, the
 brief stays `drafted`, and the outcome record is marked dry-run listing
 every write from `wp.dry_run_log` (see skills/onsite-apply).
+
+Never edit brain frontmatter directly. The contract CLI is the only write
+path for status and approvals.

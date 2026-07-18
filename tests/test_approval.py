@@ -60,6 +60,17 @@ def test_process_telegram_decisions_persists_offset_across_calls(tmp_path):
     assert http.calls[1]["offset"] == 8  # second call: persisted offset (7) + 1
 
 
+def test_process_telegram_decisions_records_reason_as_note(tmp_path):
+    root = init_site_repo(tmp_path / "b", "https://e.com", "E")
+    p = C.create_item(root, "onpage-fix", "fix1", "Fix one", "body", "https://e.com/1", "s")
+    item_id = C.load_item(p)["meta"]["id"]
+    http = FakeTelegramHTTP([_updates((5, f"reject {item_id} too thin"))])
+    A.process_telegram_decisions(root, token="t", chat_id=42, transport=http)
+    entry = C.load_item(p)["meta"]["approvals"][0]
+    assert entry["decision"] == "rejected"
+    assert entry["note"] == "too thin"
+
+
 def test_process_telegram_decisions_unknown_id_never_raises(tmp_path):
     root = init_site_repo(tmp_path / "b", "https://e.com", "E")
     http = FakeTelegramHTTP([_updates((3, "approve b-20260101-ghost"))])
