@@ -171,7 +171,10 @@ brief) is allowed to run. A hand-edited `status: approved` with no matching
 who decided, when, and through which channel. Approvals also expire: after
 30 days (configurable per site via `approvals: {ttl_days: n}`) both gates
 block until you re-confirm - the item keeps its status, and one `approve`
-command refreshes the clock. Verify the gate yourself:
+command refreshes the clock. Expiry applies to every channel because it
+lives in the contract layer, not in any channel adapter: in-session,
+Telegram, and pr-merge approvals all age identically. Verify the gate
+yourself:
 `./scripts/verify-gates.sh` red-teams these functions against a throwaway
 brain repo, no real site touched. Or try everything risk-free on your real
 site: set `onsite: {dry_run: true}` in `site-profile.yaml` and apply runs

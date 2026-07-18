@@ -56,9 +56,13 @@ file. Switching channels later is a one-line edit to `site-profile.yaml`.
 
 ## Approval expiry
 
-An approval is not forever. Both gates also check that the latest approved
-record is younger than the site's TTL - 30 days by default, configurable
-per site in `site-profile.yaml`:
+An approval is not forever, and expiry is a contract-layer fact: it is
+enforced at the gate, not in any channel. No channel implements its own
+clock and no channel can opt out - every channel's approvals age
+identically, because both gates check the same recorded timestamp
+regardless of where the decision came from. Concretely, the gates check
+that the latest approved record is younger than the site's TTL - 30 days
+by default, configurable per site in `site-profile.yaml`:
 
 ```yaml
 approvals:
@@ -80,13 +84,33 @@ MUTATION BLOCKED: approval for 20260315-pricing-title.md expired
 python3 -m core approve proposals/20260315-pricing-title.md --actor <you> --channel <channel>
 ```
 
-Running that `approve` appends a fresh approval entry, refreshing the
-clock; the item's history keeps every confirmation. From Telegram,
-re-confirming is the same gesture as confirming: reply `approve` to the
-original proposal message again, and because the decision lands in the
-same `record_decision` path, the expired approval is refreshed rather
-than no-opped. A replay within the TTL is still a silent no-op, so
-duplicate deliveries never pad the record. See docs/adr/0008 in the repo.
+Re-confirming appends a fresh approval entry through the same
+`record_decision` path a first confirmation takes, refreshing the clock;
+the item's history keeps every confirmation, and a replay within the TTL
+is still a silent no-op, so duplicate deliveries never pad the record.
+How you re-confirm depends only on where you are, not on any
+channel-specific expiry machinery:
+
+- **in-session:** the skill that hits the block re-asks you directly and
+  records the fresh decision - the same AskUserQuestion flow as a first
+  approval.
+- **telegram:** the same gesture as confirming. Reply `approve` to the
+  original proposal message again; because the decision lands in the
+  same `record_decision` path, the expired approval is refreshed rather
+  than no-opped.
+- **slack / email:** the same reply semantics wherever the adapter reads
+  replies at the next run. Today's adapters are notify-only, so
+  re-confirm in-session or with the CLI below.
+- **pr-merge:** merging is a one-time event, so a merged PR cannot be
+  re-merged to refresh the clock. Leave a fresh approving comment on the
+  PR to document the intent, and record the re-approval via the CLI
+  below - the merge commit stays the original approval record, and the
+  new entry sits alongside it in the item's history.
+- **universal:** `python3 -m core approve <item-path> --actor NAME
+  --channel CH` works from anywhere, whatever channel recorded the
+  original approval.
+
+See docs/adr/0008 in the repo.
 
 ## in-session
 
