@@ -4,8 +4,8 @@ An agentic organic-growth operating system for any website, as a single
 Claude plugin. The loop is the product.
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
-![Tests](https://img.shields.io/badge/tests-57%20passing-brightgreen.svg)
-![Version](https://img.shields.io/badge/version-0.1.5-blue.svg)
+![Tests](https://img.shields.io/badge/tests-90%20passing-brightgreen.svg)
+![Version](https://img.shields.io/badge/version-0.1.9-blue.svg)
 ![Works with](https://img.shields.io/badge/works%20with-Claude%20Code%20%2B%20Cowork-6f42c1.svg)
 
 ## The loop
@@ -73,7 +73,7 @@ Three bounded modules, one install:
 | **content-engine** | Turns an approved brief into a publish-ready draft - research, brand-voice compliance, SEO/authority pass, editorial QA - with an optional featured-image step |
 
 Verified inventory (2026-07-19): **20 skills, 20 slash commands, 14
-specialist agents, 57 passing tests.**
+specialist agents, 90 passing tests.**
 
 ```mermaid
 flowchart TB
@@ -170,7 +170,10 @@ brief) is allowed to run. A hand-edited `status: approved` with no matching
 `approvals:` entry still fails the gate - every approval is recorded with
 who decided, when, and through which channel. Verify the gate yourself:
 `./scripts/verify-gates.sh` red-teams these functions against a throwaway
-brain repo, no real site touched. There is no telemetry, no
+brain repo, no real site touched. Or try everything risk-free on your real
+site: set `onsite: {dry_run: true}` in `site-profile.yaml` and apply runs
+the whole gated flow - approval check included - while writing nothing,
+recording instead every change it would have made. There is no telemetry, no
 SERP or autocomplete scraping (see ADR-0006), and credentials never live in
 any repo - only env-file references do. Your brain repo is yours: it lives
 wherever you put it, private by default, and organic-os never pushes it

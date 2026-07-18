@@ -41,24 +41,20 @@ propose interview and the AI-visibility baseline at setup - see
 CHANGELOG.md. This finishes the "Setup verification and runtime
 awareness" sub-block in full - every item first identified from
 first-run field testing has now shipped ahead of the formal v0.2 release.
+Also landed early in v0.1.9 (wave 4): cost transparency per routine run
+(the monthly cost ledger written by the runtime wrapper, surfaced in the
+Monday report), dry-run mode for `onsite-apply` (the full gated flow
+against a client that records intended writes instead of performing
+them, proven by verify-gates probe 7), and Bing Webmaster + IndexNow
+submission (key generation, root-file verification, and per-ship URL
+submission with the status recorded in the outcome) - see CHANGELOG.md.
 
 ### Remaining for v0.2
 
-- **Dry-run mode for `onsite-apply`.** Preview what a write would do
-  against a live WordPress site without touching it - the counterpart to
-  `scripts/verify-gates.sh` (landed early, see above), which already
-  proves the approval gates themselves fail closed.
 - **Approval expiry.** Honest gap today: an item sitting at `approved` or
   `drafted` for weeks is still actionable with no re-confirmation step. A
   staleness window means a stale item requires re-confirmation before the
-  next mutating stage runs.
-- **Cost transparency per routine run.** Each daily/weekly/monthly run
-  reports the token cost of the run it just completed, not just the
-  runtime-level cost model in `plugin/docs/routines.md`.
-- **Bing Webmaster + IndexNow submission.** Useful, but not a week-one win
-  - demoted to last in this release. Bing indexation already matters to
-  `onsite-audit` findings (strong-evidence tier, `plugin/docs/evidence.md`); this
-  adds the submission side, not just the audit side.
+  next mutating stage runs. Pending a product decision on TTL semantics.
 
 ## v0.3 - Execution breadth
 

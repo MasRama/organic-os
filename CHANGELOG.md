@@ -2,6 +2,52 @@
 
 ## [Unreleased]
 
+## [0.1.9] - 2026-07-19
+
+Cost, dry-run, and IndexNow (v0.2 wave 4) - see ROADMAP.md.
+
+- **runtime:** cost transparency per routine run. `run-routine.sh` now
+  runs `claude -p` with `--output-format json`, times the run, recovers
+  the assistant text and any usage fields with python3 only (no jq), and
+  appends one row per run - date, routine, duration seconds,
+  tokens-or-unavailable - to a monthly ledger at
+  `~/.config/organic-os/cost-ledger-YYYYMM.tsv`, plus a cost line in the
+  routine log. Usage parsing is defensive across CLI versions and says
+  "usage unavailable in this CLI version" rather than guessing. The
+  Monday report closes its "What moved" section with a one-line cost
+  summary when the ledger exists and never invents numbers when it does
+  not; `plugin/docs/routines.md` documents what the ledger can and cannot
+  capture per runtime (subscription runtimes: tokens counted, not billed
+  per token; CI: tokens are money; runs that bypass the wrapper leave no
+  row).
+- **onsite:** dry-run mode for apply. `WPClient(dry_run=True)` records
+  every mutating call (update_post, update_rankmath, create_post,
+  rollback) in `dry_run_log` - method, post id, fields - and returns a
+  realistic-shaped response marked `dry_run: True` without touching the
+  session; reads behave normally (4 new tests). With
+  `onsite: {dry_run: true}` in site-profile.yaml (additive, schema stays
+  1), `onsite-apply` and `onsite-publish` run the full gated flow -
+  `require_approved` still enforced before the dry-run write, so a dry
+  run rehearses the real path - write nothing, leave the item's status
+  untouched, and mark the outcome record dry-run with every write that
+  would have happened. `scripts/verify-gates.sh` gains probe 7: dry-run
+  does not relax the gate, and an approved dry-run apply makes zero
+  session calls.
+- **hoo:** IndexNow and Bing submission. `plugin/lib/hoo/indexnow.py`
+  (5 new tests): `gen_key` (32-char hex), `key_file_content`, and
+  `submit` - one stdlib POST to `api.indexnow.org` with
+  `{host, key, keyLocation, urlList}` through an injectable transport,
+  returning `{status, submitted}` and never raising on a non-200. With
+  `indexnow: {enabled: true, key: ...}` in site-profile.yaml (additive),
+  apply and publish submit each successfully verified changed URL and
+  record the status in the outcome; publish only submits posts that
+  actually went live. Setup's connector wizard offers enablement
+  verify-not-record style: generate the key, place `<key>.txt` at the
+  site root, verify by fetch, then enable. `plugin/docs/connectors.md`
+  adds the capability row and an honest Bing Webmaster paragraph - portal
+  verification is manual, IndexNow covers the submission path, no API
+  integration claimed.
+
 ## [0.1.8] - 2026-07-19
 
 Baseline and audit-first setup (v0.2 wave 3) - see ROADMAP.md.
