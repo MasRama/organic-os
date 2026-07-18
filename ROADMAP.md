@@ -23,30 +23,26 @@ field testing): user docs shipping inside the plugin package, the runtime
 wrapper plus launchd templates, and the rewritten local-runtime guide
 (the `setup-token` requirement for headless auth, template-body invocation
 instead of a slash string, model-404 recovery, and the TCC brain-path
-guard now enforced in code, not just documented) - see CHANGELOG.md.
+guard now enforced in code, not just documented) - see CHANGELOG.md. Also
+landed early in v0.1.6 (wave 1 of the block below, from the same first-run
+field testing): the postflight scorecard (setup ends by testing what it
+configured, not just writing config), runtime-location awareness (setup
+distinguishes where it runs from where routines will run, and tags every
+connector probe with the context it was tested in), the connector wizard
+with live verification (GA4/GSC absence is a blocker to resolve with a
+guided connect and a passed probe, not a status to record; `hoo-daily`
+escalates a nudge after 3 consecutive no-data runs), and the
+one-secret-at-a-time credentials flow - see CHANGELOG.md.
 
 ### Setup verification and runtime awareness (from first-run field testing)
 
-- **Postflight scorecard.** Setup ends by testing what it configured, not
-  just writing config: headless auth in the runtime's real context, model
-  resolution, WordPress REST, approval-channel delivery, git push, and,
-  for a local runtime, one real scheduled run with the commit as proof.
-  Prints working or degraded per item, with the exact fix, instead of a
-  single pass/fail line.
-- **Runtime-location awareness.** Setup distinguishes where it runs from
-  where routines will run. The registry is written where routines live,
-  and connector probes are tagged with the context they were tested in -
-  never recorded as plainly available from the wrong side.
-- **Audit-and-propose interview.** Enter a URL; the plugin audits the site
-  and presents a pre-filled profile for approval instead of asking
-  questions it can already answer itself.
-- **Connector wizard with live verification.** GA4/GSC absence is a
-  blocker to resolve with a guided connect and a passed probe, not a
-  status to record. Routines escalate a nudge after consecutive
-  no-data runs.
-- **One-secret-at-a-time credentials flow.** Precise naming and a
-  paste-into-terminal option, one credential per step instead of a wall
-  of env-file fields at once.
+Everything in this sub-block except the item below shipped in v0.1.6 -
+see "Landed early" above.
+
+- **Audit-and-propose interview.** Still open, not part of the v0.1.6
+  wave. Enter a URL; the plugin audits the site and presents a pre-filled
+  profile for approval instead of asking questions it can already answer
+  itself.
 
 - **Cannibalization detector.** Two URLs splitting one query is often the
   real blocker behind a page stuck at positions 4-15, not a content or

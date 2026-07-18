@@ -2,6 +2,51 @@
 
 ## [Unreleased]
 
+## [0.1.6] - 2026-07-19
+
+Setup verification and runtime awareness (v0.2 wave 1, field-tested) -
+see ROADMAP.md.
+
+- **core:** `contracts.record_connector()` - the `connectors:` block in
+  `site-profile.yaml` now stores `{status, context, checked}` per
+  connector, never a bare string or boolean. `status` is `verified`
+  (a live probe query succeeded, not just tool presence), `unavailable`,
+  or `declined`; `context` records where the probe actually ran
+  (`local-cli`, `cowork-cloud`, `ci`) so a connector reachable from the
+  setup session is never recorded as available for a runtime that cannot
+  reach it. Upgrades pre-wave-1 bare-string entries in place, one
+  connector at a time, without touching siblings.
+- **core:** `contracts.write_scorecard()` - writes a pass/degraded/fail
+  table with the exact fix command per non-pass row to
+  `runs/<date>-setup-scorecard/REPORT.md`.
+- **setup:** rewritten as v3 - runtime-aware, verify-not-record. A new
+  "where am I, where will routines run" step catches a setup/runtime
+  environment mismatch (e.g. a cloud Cowork session onboarding a local
+  runtime) before scaffolding anything, and bans running git through a
+  device bridge. The old passive connector probe is replaced by a
+  connector wizard: GA4/GSC (the heartbeat pair) then Notion/Slack/Canva,
+  each probed and then live-verified (GSC list-sites, a GA4 7-day
+  sessions pull, etc.) before ever recording `verified`, with a guided
+  connect, a wait-and-reprobe option, or an honest `declined` on
+  absence. Credentials move to a one-secret-at-a-time flow, precisely
+  named and always offering a paste-into-terminal alternative. Setup now
+  ends on a mandatory postflight scorecard - brain scaffold, git push,
+  registry readability in runtime context, WordPress REST, approval-
+  channel delivery, each connector's live result, headless auth + model
+  resolution, and (local runtime) one real scheduled run proven by
+  commit hash - and states "configured" and "verified working" as
+  different claims.
+- **start:** returning-user status now shows the latest postflight
+  scorecard's summary line, read-only.
+- **hoo:** `hoo-daily` escalates after 3 consecutive no-data days (GSC
+  and GA4 both unreachable) with one send_item-style nudge through the
+  configured approval channel, not an approval item - naming the exact
+  connect fix. The nudge is marked inside that day's own signal file (no
+  new state file) and is suppressed if one was already sent in the last
+  7 days.
+- **docs:** `plugin/docs/connectors.md` documents the new connector
+  record shape and the no-data escalation behavior.
+
 ## [0.1.5] - 2026-07-19
 
 - **onboarding:** user-facing docs now ship inside `plugin/docs/` so

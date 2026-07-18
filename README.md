@@ -266,10 +266,16 @@ instead of silent corruption. Full policy: `plugin/docs/updating.md`.
 
 **Why does nothing prompt me to connect Google Analytics?**
 organic-os bundles no MCP servers and cannot trigger an OAuth prompt
-itself. `/organic-os:start` and `/organic-os:setup` probe what you have
-already connected and print exact instructions for your surface instead,
-then every skill degrades gracefully per what it finds. Full model:
-`plugin/docs/connectors.md`.
+itself. `/organic-os:setup`'s connector wizard probes what you have
+already connected, runs one live verification query (a GSC site list, a
+GA4 7-day sessions pull) before recording anything as `verified`, and
+walks you through connecting anything missing for your surface, with the
+option to wait and re-probe or decline with an honest note on what
+degrades. GSC/GA4 absence gets called out explicitly, since `hoo-daily`
+logs no-data signals without one of them connected. Setup ends on a
+postflight scorecard that tests, not just records, what got configured -
+it never claims success on its own. Full model: `plugin/docs/
+connectors.md`.
 
 ## Roadmap
 
