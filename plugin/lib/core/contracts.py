@@ -197,6 +197,33 @@ def set_status(path, status: str, actor: str, channel: str | None = None,
     _dump(Path(path), item["meta"], item["body"])
 
 
+def reset_to_proposed(path, actor: str, note: str | None = None) -> None:
+    """Repair path for illegal birth states only. Items are born `proposed`
+    via create_item; a file that entered the brain with any other status and
+    an empty approvals list can neither be approved (its status has no legal
+    transition to approved) nor pass a lineage gate, so it jams the pipeline.
+    This resets such an item to proposed so the normal lifecycle can start.
+
+    GUARDED: refuses any item with approval history - those reached their
+    status legally and must move through status transitions. The repair is
+    recorded as a status_note so the item carries its own audit trail."""
+    item = load_item(path)
+    name = Path(path).name
+    if item["meta"].get("approvals"):
+        raise ContractError(
+            f"cannot reset {name}: item has approval history; use status transitions")
+    cur = item["meta"]["status"]
+    if cur == "proposed":
+        raise ContractError(f"{name} is already proposed - nothing to repair")
+    item["meta"]["status"] = "proposed"
+    stamp = (f"reset to proposed by {actor} at {_now()} "
+             f"(born {cur} with no approvals)")
+    if note:
+        stamp += f": {note}"
+    item["meta"]["status_note"] = stamp
+    _dump(Path(path), item["meta"], item["body"])
+
+
 def require_approved(path) -> dict:
     item = load_item(path)
     if item["meta"]["status"] != "approved":
@@ -369,6 +396,16 @@ def rebuild_queue(root) -> Path:
                     rows.append(f"- MALFORMED-APPROVAL: {folder}/{f.name} "
                                 "(entry missing decision field)")
                     break
+            # Lint: items are born proposed. A non-proposed status with an
+            # empty approvals list is an illegal birth state (the file was
+            # written outside create_item) - it can neither be approved nor
+            # pass a lineage gate, so surface it with the repair command
+            # instead of letting it jam the pipeline invisibly.
+            if meta["status"] != "proposed" and not (meta.get("approvals") or []):
+                rows.append(f"- ILLEGAL-STATE: {folder}/{f.name} "
+                            f"(born {meta['status']} with no approvals - repair: "
+                            f"python3 -m core reset-to-proposed {folder}/{f.name})")
+                continue
             if meta["status"] == "proposed":
                 rows.append(f"- `{meta['id']}` [{meta['kind']}] {meta['title']} "
                             f"(created {meta['created']}) -> {folder}/{f.name}")

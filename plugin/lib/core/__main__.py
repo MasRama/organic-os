@@ -8,6 +8,13 @@ Usage (PYTHONPATH must point at the plugin's lib/ directory):
     python3 -m core approve <item-path> --actor NAME --channel CH [--note TEXT]
     python3 -m core reject  <item-path> --actor NAME --channel CH [--note TEXT]
     python3 -m core status  <item-path> <new-status> --actor NAME [--note TEXT]
+    python3 -m core reset-to-proposed <item-path> --actor NAME [--note TEXT]
+
+`reset-to-proposed` is the repair path for an illegal birth state: an item
+file that entered the brain with a non-proposed status and an empty
+approvals list (the queue flags these as ILLEGAL-STATE rows). It refuses
+any item with approval history - those must move through status
+transitions. The repair is recorded as a status_note on the item.
 
 Prints the resulting status line on success. A refused write (illegal
 transition, missing item) exits nonzero with the ContractError message on
@@ -46,6 +53,12 @@ def _build_parser() -> argparse.ArgumentParser:
     p.add_argument("--actor", required=True)
     p.add_argument("--channel", default=None)
     p.add_argument("--note", default=None)
+    p = sub.add_parser(
+        "reset-to-proposed",
+        help="repair an item born with a non-proposed status and no approvals")
+    p.add_argument("item_path", help="path to the brief/proposal .md file")
+    p.add_argument("--actor", required=True)
+    p.add_argument("--note", default=None)
     return parser
 
 
@@ -60,6 +73,9 @@ def main(argv=None) -> int:
                               "approved" if args.cmd == "approve" else "rejected",
                               actor=args.actor, channel=args.channel,
                               note=args.note)
+        elif args.cmd == "reset-to-proposed":
+            C.reset_to_proposed(path, actor=args.actor, note=args.note)
+            C.rebuild_queue(root)
         else:
             C.set_status(path, args.new_status, actor=args.actor,
                          channel=args.channel, note=args.note)

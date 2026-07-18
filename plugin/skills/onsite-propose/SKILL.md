@@ -11,6 +11,9 @@ description: Use to turn audit findings or signals into concrete gated change pr
    JSON-LD payload, or a content edit (quote the exact before/after text).
 3. One proposal item per page: `create_item(kind="onpage-fix", target=<url>,
    body=<before/after table + rationale + expected effect + falsifiability>)`.
+   `create_item` is the ONLY birth path - items are born `proposed` with an
+   empty approvals list; never write a `proposals/` file directly or set
+   any other status at creation.
 4. Rebuild queue. Notify per the profile approval channel. Only send items
    where `core.contracts.is_notified(item)` is false; call
    `core.contracts.mark_notified(path)` immediately after a successful send

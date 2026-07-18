@@ -224,6 +224,79 @@ def test_approval_lineage_fresh_proposed_raises(root):
         C.require_approval_lineage(p)
 
 
+# -- illegal birth states ------------------------------------------------------
+
+def _hand_birth(root, status, slug="born-wrong", kind="content-brief"):
+    """Simulates the field bug: an item file that entered the brain with a
+    non-proposed status and an empty approvals list (born outside create_item).
+    Such an item can neither be approved (drafted -> approved is illegal) nor
+    pass a lineage gate, so it jams the pipeline until repaired."""
+    p = C.create_item(root, kind=kind, slug=slug, title="t", body="b",
+                      target="", source="s")
+    raw = p.read_text()
+    assert "status: proposed" in raw, "unexpected frontmatter shape"
+    p.write_text(raw.replace("status: proposed", f"status: {status}", 1))
+    return p
+
+
+def test_rebuild_queue_flags_born_drafted_with_no_approvals(root):
+    p = _hand_birth(root, "drafted")
+    C.rebuild_queue(root)
+    q = (root / "approvals" / "queue.md").read_text()
+    assert "ILLEGAL-STATE" in q
+    assert p.name in q
+    assert "born drafted with no approvals" in q
+    assert "reset-to-proposed" in q  # the repair command is named inline
+
+
+def test_rebuild_queue_does_not_flag_legitimate_items(root):
+    C.create_item(root, kind="onpage-fix", slug="legit-proposed", title="t",
+                  body="b", target="https://ex.com/lp", source="s")
+    p = C.create_item(root, kind="content-brief", slug="legit-drafted", title="t",
+                      body="b", target="", source="s")
+    C.set_status(p, "approved", actor="op", channel="in-session")
+    C.set_status(p, "drafted", actor="agent")
+    C.rebuild_queue(root)
+    q = (root / "approvals" / "queue.md").read_text()
+    assert "ILLEGAL-STATE" not in q
+
+
+def test_reset_to_proposed_repairs_born_drafted_item(root):
+    p = _hand_birth(root, "drafted")
+    C.reset_to_proposed(p, actor="operator")
+    meta = C.load_item(p)["meta"]
+    assert meta["status"] == "proposed"
+    assert "born drafted" in meta["status_note"]
+    # the normal lifecycle works again from here
+    C.set_status(p, "approved", actor="op", channel="in-session")
+    assert C.load_item(p)["meta"]["status"] == "approved"
+
+
+def test_reset_to_proposed_records_actor_and_note(root):
+    p = _hand_birth(root, "applied", slug="born-applied", kind="onpage-fix")
+    C.reset_to_proposed(p, actor="operator",
+                        note="import script wrote status directly")
+    note = C.load_item(p)["meta"]["status_note"]
+    assert "operator" in note
+    assert "import script wrote status directly" in note
+
+
+def test_reset_to_proposed_refuses_item_with_approval_history(root):
+    p = C.create_item(root, kind="onpage-fix", slug="has-history", title="t",
+                      body="b", target="https://ex.com/h", source="s")
+    C.set_status(p, "approved", actor="op", channel="in-session")
+    with pytest.raises(C.ContractError, match="approval history"):
+        C.reset_to_proposed(p, actor="operator")
+    assert C.load_item(p)["meta"]["status"] == "approved"  # untouched
+
+
+def test_reset_to_proposed_already_proposed_refuses(root):
+    p = C.create_item(root, kind="onpage-fix", slug="fine-as-is", title="t",
+                      body="b", target="https://ex.com/f", source="s")
+    with pytest.raises(C.ContractError, match="already proposed"):
+        C.reset_to_proposed(p, actor="operator")
+
+
 # -- approval expiry -----------------------------------------------------------
 
 def _age_latest_approval(path, days):

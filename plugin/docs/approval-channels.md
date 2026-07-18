@@ -44,7 +44,16 @@ path for status and approvals:
 PYTHONPATH="$CLAUDE_PLUGIN_ROOT/lib" python3 -m core approve <item-path> --actor NAME --channel CH [--note TEXT]
 PYTHONPATH="$CLAUDE_PLUGIN_ROOT/lib" python3 -m core reject  <item-path> --actor NAME --channel CH [--note TEXT]
 PYTHONPATH="$CLAUDE_PLUGIN_ROOT/lib" python3 -m core status  <item-path> <new-status> --actor NAME
+PYTHONPATH="$CLAUDE_PLUGIN_ROOT/lib" python3 -m core reset-to-proposed <item-path> --actor NAME [--note TEXT]
 ```
+
+`reset-to-proposed` exists for exactly one case: an item file that entered
+the brain with a non-proposed status and an empty approvals list - an
+illegal birth state (items are born `proposed` via `create_item`). Such an
+item can neither be approved nor pass a gate, so the queue flags it as an
+`ILLEGAL-STATE` row naming this repair. The command refuses any item with
+approval history; those reached their status legally and must move through
+status transitions. The repair is recorded as a `status_note` on the item.
 
 It prints the resulting status line, and refuses an illegal transition
 with a nonzero exit and the reason on stderr - the same contract checks

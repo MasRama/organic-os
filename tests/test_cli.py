@@ -76,6 +76,34 @@ def test_missing_args_exit_nonzero(tmp_path):
     assert run_cli("status", str(p), "--actor", "a").returncode != 0  # no status
 
 
+def test_reset_to_proposed_cli_repairs_and_rebuilds_queue(tmp_path):
+    root = _brain(tmp_path)
+    p = C.create_item(root, "content-brief", "born-wrong", "t", "b", "", "s")
+    raw = p.read_text()
+    assert "status: proposed" in raw
+    p.write_text(raw.replace("status: proposed", "status: drafted", 1))
+    C.rebuild_queue(root)
+    assert "ILLEGAL-STATE" in (root / "approvals" / "queue.md").read_text()
+    r = run_cli("reset-to-proposed", str(p), "--actor", "operator")
+    assert r.returncode == 0, r.stderr
+    assert "proposed" in r.stdout
+    assert C.load_item(p)["meta"]["status"] == "proposed"
+    q = (root / "approvals" / "queue.md").read_text()
+    assert "ILLEGAL-STATE" not in q   # repaired item rejoins the normal queue
+    assert "born-wrong" in q          # as an ordinary pending row
+
+
+def test_reset_to_proposed_cli_refuses_item_with_history(tmp_path):
+    root = _brain(tmp_path)
+    p = C.create_item(root, "onpage-fix", "fix-hist", "t", "b",
+                      "https://example.com/h", "s")
+    C.set_status(p, "approved", actor="operator", channel="in-session")
+    r = run_cli("reset-to-proposed", str(p), "--actor", "operator")
+    assert r.returncode != 0
+    assert "approval history" in r.stderr
+    assert C.load_item(p)["meta"]["status"] == "approved"
+
+
 def test_nonexistent_item_exits_nonzero(tmp_path):
     _brain(tmp_path)
     r = run_cli("approve", str(tmp_path / "b" / "proposals" / "ghost.md"),

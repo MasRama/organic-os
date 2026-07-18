@@ -20,6 +20,11 @@ description: Use for any broad organic-growth request - "audit my organic presen
    - content ideas -> `create_item(kind="content-brief", ...)`
    - on-page fixes -> `create_item(kind="onpage-fix", ...)`
    - run artifacts -> `runs/YYYYMMDD-orchestrator/` (numbered raw files + REPORT.md)
+   Items are created ONLY via `create_item` (born `proposed`, empty
+   approvals) or the contract CLI - never by writing a `briefs/` or
+   `proposals/` file directly, and never with any other status at
+   creation. A brief that ce-produce will later draft still starts
+   `proposed` and reaches `drafted` only through approved lineage.
 5. Rebuild the queue (`rebuild_queue`) and notify per the profile's approval
    channel (see skills/onsite-apply for the adapter pattern). Only send items
    where `is_notified(item)` is false; call `mark_notified(path)` right after

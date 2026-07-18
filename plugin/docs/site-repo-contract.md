@@ -152,7 +152,12 @@ Rebuilt by `rebuild_queue` on every status change: one line per item
 currently sitting at `proposed`, across both `briefs/` and `proposals/`,
 sorted by filename. A malformed item (bad frontmatter, missing fields)
 appears as a `MALFORMED` row instead of being silently dropped, so a broken
-file surfaces instead of disappearing from view.
+file surfaces instead of disappearing from view. An item born with a
+non-proposed status and an empty approvals list - a file written outside
+`create_item` - appears as an `ILLEGAL-STATE` row naming the repair
+(`python3 -m core reset-to-proposed <path>`), because such an item can
+neither be approved nor pass a gate and would otherwise jam the pipeline
+silently.
 
 ## drift/baseline.json
 

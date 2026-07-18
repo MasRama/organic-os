@@ -7,7 +7,16 @@ description: Use to produce a publish-ready draft from an approved content brief
 
 1. Input: an APPROVED brief item (require_approved - drafting counts as work
    the user pays attention for, so briefs are gated before drafting).
-   A user may also hand a manual brief; then confirm scope in-session first.
+   A user may also hand a manual brief. Register it before anything else:
+   confirm scope in-session, then `create_item(kind="content-brief", ...)`
+   with the brief text as the body - items are born `proposed`, never any
+   other status - and record the in-session approval via the contract CLI
+   so require_approved passes. Never save a hand-written file into
+   `briefs/` and never set a status at creation: a brief born `drafted`
+   with no approvals can neither be approved nor published, and jams the
+   pipeline until `python3 -m core reset-to-proposed` repairs it. A brief
+   this pipeline will draft still starts `proposed` and reaches `drafted`
+   only through its approved lineage (step 4).
 2. Stages, sequential agents (each receives profile path + prior artifacts):
    ce-researcher -> ce-writer -> ce-brand-auditor -> ce-seo-aeo -> ce-qa ->
    ce-editor.
