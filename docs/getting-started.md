@@ -43,6 +43,11 @@ optional WordPress connection, which approval channel to use, and which
 runtime should execute routines. Every question has a sensible default and
 every answer is editable later by hand in `site-profile.yaml`.
 
+Setup never prompts you to authorize a connector - it probes what you have
+already connected and tells you exactly how to connect anything missing.
+See `docs/connectors.md` for the full model and a capability-by-capability
+table.
+
 Setup scaffolds a per-site "brain" repo (see `docs/site-repo-contract.md`)
 and, if you choose a git brain, offers to create a private GitHub repo for
 it. Nothing about your site or your answers is sent anywhere except into
@@ -100,3 +105,10 @@ outside a live session, which matters once routines run on a schedule. See
 proposes, move daily/weekly/monthly runs off manual and onto a schedule -
 claude.ai scheduled tasks, a local cron job, or CI. See `docs/routines.md`
 for the full comparison and setup steps for each runtime.
+
+## Updating
+
+`/plugin update organic-os` only ever touches plugin code - your brain
+repo(s), `~/.config/organic-os/`, and any connected site are untouched by
+design, and a brain-layout change always ships with a migration path. See
+`docs/updating.md` for the full compatibility policy.

@@ -5,7 +5,7 @@ Claude plugin. The loop is the product.
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Tests](https://img.shields.io/badge/tests-52%20passing-brightgreen.svg)
-![Version](https://img.shields.io/badge/version-0.1.2-blue.svg)
+![Version](https://img.shields.io/badge/version-0.1.3-blue.svg)
 ![Works with](https://img.shields.io/badge/works%20with-Claude%20Code%20%2B%20Cowork-6f42c1.svg)
 
 ## The loop
@@ -73,7 +73,7 @@ Three bounded modules, one install:
 | **content-engine** | Turns an approved brief into a publish-ready draft - research, brand-voice compliance, SEO/authority pass, editorial QA - with an optional featured-image step |
 
 Verified inventory (2026-07-18): **19 skills, 19 slash commands, 14
-specialist agents, 52 passing tests.**
+specialist agents, 57 passing tests.**
 
 ```mermaid
 flowchart TB
@@ -254,6 +254,20 @@ Telegram bot token, the env file - and only touches the local registry or
 env file with explicit confirmation. Uninstalling the plugin itself never
 deletes your brain: it is an ordinary git repo or folder that lives outside
 the plugin's install location.
+
+**What happens when I update - do I lose anything?**
+No. `/plugin update organic-os` replaces plugin code only; your brain
+repo(s), `~/.config/organic-os/`, and your WordPress site are outside the
+plugin directory and untouched by design. A brain-layout change ships a
+migration and a compatibility check blocks routines with a clear message
+instead of silent corruption. Full policy: `docs/updating.md`.
+
+**Why does nothing prompt me to connect Google Analytics?**
+organic-os bundles no MCP servers and cannot trigger an OAuth prompt
+itself. `/organic-os:start` and `/organic-os:setup` probe what you have
+already connected and print exact instructions for your surface instead,
+then every skill degrades gracefully per what it finds. Full model:
+`docs/connectors.md`.
 
 ## Roadmap
 
