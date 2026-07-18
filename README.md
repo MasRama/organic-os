@@ -55,7 +55,12 @@ is the layer underneath that: daily signals, gated execution on your own
 WordPress site, outcome measurement against what you actually shipped, and
 a skillbook your site earns entry by entry as changes get confirmed to work
 or not. Point-in-time auditors tell you what is wrong today; organic-os
-runs the loop that fixes, verifies, and remembers.
+runs the loop that fixes, verifies, and remembers. The same gap shows up
+one level up the stack: commercial AI-visibility tools monitor where you
+appear in AI answers and leave execution on your desk
+([source](https://discoveredlabs.com/blog/profound-vs-peec-vs-otterly-which-ai-visibility-platform-should-you-buy));
+organic-os closes that loop with gated execution instead of another
+dashboard.
 
 ## What you get
 
@@ -178,6 +183,11 @@ with the tools below rather than replacing them.
 | [seranking/seo-skills](https://github.com/seranking/seo-skills) | No, manual invocation | No | No, deliverables only | No, vendor MCP + account |
 | [open-seo](https://github.com/every-app/open-seo) | Partially, hosted dashboard refresh | Partially, historical dashboard data | No | No, hosted dashboard |
 | **organic-os** | Yes, daily/weekly/monthly | Yes, skillbook | Yes, gated and verified | Yes |
+
+A fourth class worth naming respectfully: monitoring-only AI-visibility
+platforms (Profound, Peec, Otterly, and similar) measure where you appear
+in AI answers but stop there - no scheduled execution loop, no gated
+writes back to your site.
 
 ## Routines
 
