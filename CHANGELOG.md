@@ -2,6 +2,44 @@
 
 ## [Unreleased]
 
+## [0.1.5] - 2026-07-19
+
+- **onboarding:** user-facing docs now ship inside `plugin/docs/` so
+  marketplace and synced installs (which contain only the plugin
+  directory) actually have them - `$CLAUDE_PLUGIN_ROOT/../docs` never
+  resolved for those installs.
+- **runtime:** `plugin/runtime/` - a wrapper script (`run-routine.sh`)
+  and three `launchd` plist templates (daily, weekly, monthly) for the
+  local-schedule recipe.
+- **docs:** `plugin/docs/routines.md` rewritten from a first real
+  local-runtime install, covering five failure modes the original
+  version did not warn about: the `claude setup-token` requirement for
+  headless auth, passing a command's template body instead of a slash
+  string (slash-command expansion is not reliable headless), model-404
+  recovery when a CLI model alias resolves to a retired model, and what
+  the `claude-scheduled` runtime cannot reach (personal GitHub auth,
+  local env-file secrets, desktop-bridged connectors).
+- **core:** `registry.path_warnings()` - the TCC brain-path guard is now
+  enforced in code, not just documented: warns when a local runtime's
+  brain path sits under a macOS TCC-protected folder (Documents, Desktop,
+  Downloads) or inside a plugin-managed directory, and `/organic-os:setup`
+  re-asks with a safe default when it fires.
+- **refactor:** the bridge mu-plugin (`organic-os-bridge.php`) is a
+  product asset, not demo infra - relocated to `plugin/wordpress/` so it
+  ships with the plugin. The rest of `playground/` (compose file, Caddy
+  snippet, php.ini tweak, deploy runbook) is demo-deployment infra, not a
+  marketplace-user concern, and is removed from the package.
+- **docs:** `plugin/docs/credentials/wordpress.md` gains the direct
+  wp-admin URL for the Application Password screen, a one-line sandbox
+  pointer (any local WordPress works), and an explicit Editor-not-
+  Administrator note; `plugin/docs/approval-channels.md` explains why the
+  first message to your Telegram bot has to happen before the first poll.
+- **docs:** ROADMAP gains a new v0.2 sub-block, "Setup verification and
+  runtime awareness," covering five gaps this wave's field testing
+  surfaced (postflight scorecard, runtime-location awareness,
+  audit-and-propose interview, connector wizard with live verification,
+  one-secret-at-a-time credentials flow) - see ROADMAP.md.
+
 ## [0.1.4] - 2026-07-19
 
 - **fix(ci):** all five CI runs since the 0.1.3 publish failed at
