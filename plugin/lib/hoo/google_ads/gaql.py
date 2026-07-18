@@ -22,7 +22,7 @@ def _flatten(row) -> dict:
         return {"raw": str(row)}
 
 
-# Usage: PYTHONPATH=plugin/lib python3 -m hoo.google_ads.gaql <customer_id> "<query>"
+# Usage: PYTHONPATH="$CLAUDE_PLUGIN_ROOT/lib" python3 -m hoo.google_ads.gaql <customer_id> "<query>"
 # (the relative import below requires module execution, not direct file execution)
 if __name__ == "__main__":
     from .tier import real_client

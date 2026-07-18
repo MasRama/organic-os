@@ -10,9 +10,10 @@ description: Use for keyword research, competitor keyword gaps, "what should we 
    if present.
 
 ## Tier detection (once per session)
-Run: `python3 -c` snippet importing `hoo.google_ads.tier`: if env vars missing
--> tier "none". Else build real_client() and `tier.detect()` -> basic|explorer.
-Tell the user which tier is active and what that enables.
+Run: `PYTHONPATH="$CLAUDE_PLUGIN_ROOT/lib" python3 -c "..."` snippet importing
+`hoo.google_ads.tier`: if env vars missing -> tier "none". Else build
+real_client() and `tier.detect()` -> basic|explorer. Tell the user which tier
+is active and what that enables.
 
 ## basic (or standard)
 1. Ideas: `keyword_ideas.run` with profile target keywords as seeds AND, per
@@ -27,7 +28,7 @@ Tell the user which tier is active and what that enables.
 ## explorer
 Own-account GAQL only: search_term_view mining (queries with impressions and
 no matching target), keyword_view quality scores. State plainly: "Planner
-blocked at Explorer tier - apply for Basic (docs/credentials/google-ads-token.md)".
+blocked at Explorer tier - apply for Basic (https://github.com/shalintripathi/organic-os/blob/main/docs/credentials/google-ads-token.md, also at $CLAUDE_PLUGIN_ROOT/../docs/credentials/google-ads-token.md in a local checkout)".
 
 ## none (no token)
 GSC query mining via the user's GSC connector: 16 months, queries with
