@@ -5,6 +5,7 @@ LIB = Path(__file__).resolve().parents[1] / "plugin" / "lib"
 sys.path.insert(0, str(LIB))
 
 import pytest  # noqa: E402
+import yaml  # noqa: E402
 from core.init_site_repo import init_site_repo  # noqa: E402
 from core import contracts as C  # noqa: E402
 
@@ -184,3 +185,79 @@ def test_mark_notified_and_is_notified(root):
     assert C.is_notified(C.load_item(p)) is False
     C.mark_notified(p)
     assert C.is_notified(C.load_item(p)) is True
+
+
+# -- record_connector -----------------------------------------------------
+
+def test_record_connector_round_trip_preserves_other_profile_keys(root):
+    profile = root / "site-profile.yaml"
+    before = yaml.safe_load(profile.read_text())
+    C.record_connector(profile, "ga4", "verified", "local-cli")
+    after = yaml.safe_load(profile.read_text())
+    entry = after["connectors"]["ga4"]
+    assert entry["status"] == "verified"
+    assert entry["context"] == "local-cli"
+    assert entry["checked"]  # a UTC date was stamped
+    assert not isinstance(entry, bool)
+    # every other top-level key is untouched
+    for key in before:
+        if key != "connectors":
+            assert after[key] == before[key]
+
+
+def test_record_connector_overwrite_updates_not_duplicates(root):
+    profile = root / "site-profile.yaml"
+    C.record_connector(profile, "gsc", "unavailable", "cowork-cloud")
+    C.record_connector(profile, "gsc", "verified", "local-cli")
+    data = yaml.safe_load(profile.read_text())
+    assert data["connectors"]["gsc"]["status"] == "verified"
+    assert data["connectors"]["gsc"]["context"] == "local-cli"
+    # exactly one connectors mapping, no stray duplicate keys
+    assert list(data["connectors"]).count("gsc") == 1
+
+
+def test_record_connector_migrates_plain_string_entry_without_touching_siblings(root):
+    profile = root / "site-profile.yaml"
+    text = profile.read_text()
+    # simulate a pre-wave-1 profile: connectors stored as bare strings
+    assert "ga4: unknown" in text
+    C.record_connector(profile, "ga4", "verified", "ci")
+    data = yaml.safe_load(profile.read_text())
+    assert data["connectors"]["ga4"] == {
+        "status": "verified", "context": "ci",
+        "checked": data["connectors"]["ga4"]["checked"],
+    }
+    # sibling connector untouched - still the old bare-string form
+    assert data["connectors"]["gsc"] == "unknown"
+
+
+def test_record_connector_rejects_invalid_status(root):
+    profile = root / "site-profile.yaml"
+    with pytest.raises(C.ContractError):
+        C.record_connector(profile, "ga4", "connected", "local-cli")
+
+
+# -- write_scorecard --------------------------------------------------------
+
+def test_write_scorecard_table_has_fix_only_for_non_pass_rows(root):
+    checks = [
+        {"name": "brain scaffold", "status": "pass", "detail": "ok", "fix": ""},
+        {"name": "GA4 connector", "status": "degraded",
+         "detail": "not reachable from local-cli",
+         "fix": "claude mcp add ga4"},
+        {"name": "GSC connector", "status": "fail",
+         "detail": "absent", "fix": "claude mcp add gsc"},
+    ]
+    path = C.write_scorecard(root, checks)
+    assert path.name == "REPORT.md"
+    assert path.parent.parent == root / "runs"
+    text = path.read_text()
+    assert "brain scaffold" in text and "pass" in text
+    assert "GA4 connector" in text and "degraded" in text
+    assert "GSC connector" in text and "fail" in text
+    assert "claude mcp add ga4" in text
+    assert "claude mcp add gsc" in text
+    # the passing row's (empty) fix is not rendered as a fix line
+    pass_line_idx = text.index("brain scaffold")
+    fixes_idx = text.index("claude mcp add ga4")
+    assert pass_line_idx < fixes_idx

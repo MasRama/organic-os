@@ -148,6 +148,72 @@ def is_notified(item) -> bool:
     return bool(item["meta"].get("notified_at"))
 
 
+# -- connectors -----------------------------------------------------------
+
+CONNECTOR_STATUSES = {"verified", "unavailable", "declined"}
+
+
+def record_connector(profile_path, name: str, status: str, context: str) -> None:
+    """Updates the connectors: block in site-profile.yaml. status:
+    'verified'|'unavailable'|'declined'. context: where the probe ran, e.g.
+    'local-cli', 'cowork-cloud', 'ci'. Stored as 'name: {status: ...,
+    context: ..., checked: <UTC date>}'. Never stores bare booleans.
+
+    Only the named connector entry is touched - every other key in the
+    connectors: block and the rest of the profile is left exactly as read,
+    including pre-wave-1 profiles where sibling connectors are still bare
+    strings ('available'/'absent'/'unknown').
+    """
+    if status not in CONNECTOR_STATUSES:
+        raise ContractError(
+            f"connector status must be one of {sorted(CONNECTOR_STATUSES)}, got {status!r}")
+    path = Path(profile_path)
+    data = yaml.safe_load(path.read_text()) or {}
+    connectors = data.setdefault("connectors", {})
+    connectors[name] = {
+        "status": status,
+        "context": context,
+        "checked": _dt.datetime.now(_dt.timezone.utc).date().isoformat(),
+    }
+    _atomic_write(path, yaml.safe_dump(data, sort_keys=False))
+
+
+# -- postflight scorecard ---------------------------------------------------
+
+SCORECARD_STATUSES = {"pass", "degraded", "fail"}
+
+
+def write_scorecard(root, checks: list) -> Path:
+    """checks: list of {'name','status'('pass'|'degraded'|'fail'),'detail','fix'}.
+    Writes <root>/runs/<UTCdate>-setup-scorecard/REPORT.md with a pass/degraded/
+    fail table and the exact fix command per non-pass row. Returns the path.
+    """
+    today = _dt.datetime.now(_dt.timezone.utc).date().strftime("%Y%m%d")
+    folder = Path(root) / "runs" / f"{today}-setup-scorecard"
+    folder.mkdir(parents=True, exist_ok=True)
+
+    lines = [f"# Setup scorecard - {today}", "",
+             "| Check | Status | Detail |", "|---|---|---|"]
+    fixes = []
+    for c in checks:
+        status = c["status"]
+        if status not in SCORECARD_STATUSES:
+            raise ContractError(
+                f"scorecard status must be one of {sorted(SCORECARD_STATUSES)}, got {status!r}")
+        lines.append(f"| {c['name']} | {status} | {c.get('detail', '')} |")
+        if status != "pass":
+            fix = c.get("fix", "")
+            if fix:
+                fixes.append(f"- **{c['name']}**: `{fix}`")
+
+    if fixes:
+        lines += ["", "## Fixes", ""] + fixes
+
+    path = folder / "REPORT.md"
+    path.write_text("\n".join(lines) + "\n")
+    return path
+
+
 def require_approval_lineage(path) -> dict:
     """For post-approval lifecycle stages (e.g. drafted) where require_approved's status check no longer applies; safe because approved -> rejected is an illegal transition, so an approved lineage cannot be revoked."""
     item = load_item(path)
