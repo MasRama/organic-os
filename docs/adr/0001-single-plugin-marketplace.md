@@ -13,9 +13,10 @@ separate installs and three version numbers.
 
 ## Decision
 Ship one marketplace (`organic-os`) with one plugin (`organic-os`) that bundles
-all three modules internally, bounded by directory (`plugin/lib/hoo`,
-`plugin/lib/onsite`, `plugin/lib/ce`, `plugin/lib/core`) and import rules
-enforced in CI, rather than three separate plugins.
+all three modules internally, rather than three separate plugins. Script code
+is bounded by directory (`plugin/lib/core` shared contracts, `plugin/lib/hoo`,
+`plugin/lib/onsite`) with import rules enforced in CI; content-engine ships as
+markdown-only skills and agents with no lib directory.
 
 ## Consequences
 - One `claude plugin install organic-os` gives a user the full team, with no

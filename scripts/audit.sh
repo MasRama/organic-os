@@ -2,35 +2,40 @@
 # organic-os repo audit: personal-data leakage, secrets, style, module boundaries.
 # Usage: ./scripts/audit.sh   (exit 0 = clean, exit 1 = violations)
 set -uo pipefail
-cd "$(dirname "$0")/.."
+cd "$(dirname "$0")/.." || exit 1
 fail=0
 say() { printf '%s\n' "$*"; }
+EXCLUDES='--exclude-dir=.git --exclude-dir=__pycache__ --exclude-dir=.venv'
 
 # 1. Personal/employer data must never appear (spec §15). Case-insensitive.
+# docs/specs + docs/plans quote the blocklist verbatim; audit.sh defines it.
 PERSONAL='exotel|ameyo|wsofi|78382|32X|29X MROI|4\.2M|5-FTE|MQL to SQL|CAC reduction'
-hits=$(grep -rniE "$PERSONAL" --exclude-dir=.git --exclude-dir=__pycache__ --exclude-dir=.venv --exclude-dir=docs --exclude=audit.sh . || true)
+hits=$(grep -rniE "$PERSONAL" $EXCLUDES --exclude-dir=specs --exclude-dir=plans --exclude=audit.sh . || true)
 [ -n "$hits" ] && { say "FAIL personal/employer data:"; say "$hits"; fail=1; }
 
 # 2. Secrets patterns.
 SECRETS='AKIA[0-9A-Z]{16}|-----BEGIN|ghp_[A-Za-z0-9]{20,}|xox[baprs]-|sk-ant-|AIza[0-9A-Za-z_-]{30,}'
-hits=$(grep -rnE "$SECRETS" --exclude-dir=.git --exclude-dir=__pycache__ --exclude-dir=.venv --exclude-dir=specs --exclude-dir=plans --exclude=audit.sh . || true)
+hits=$(grep -rnE "$SECRETS" $EXCLUDES --exclude-dir=specs --exclude-dir=plans --exclude=audit.sh . || true)
 [ -n "$hits" ] && { say "FAIL secret-like string:"; say "$hits"; fail=1; }
 
 # 3. Em-dash ban (all shipped text).
-hits=$(grep -rn "$(printf '\xe2\x80\x94')" --exclude-dir=.git --exclude-dir=__pycache__ --exclude-dir=.venv --exclude=audit.sh . || true)
+hits=$(grep -rn "$(printf '\xe2\x80\x94')" $EXCLUDES --exclude=audit.sh . || true)
 [ -n "$hits" ] && { say "FAIL em-dash found:"; say "$hits"; fail=1; }
 
 # 4. Banned phrases in shipped copy (plugin/, docs/, README, playground).
-BANNED='seamless|robustly?|delve|dive into|in today.s fast-paced|transformative|unlock|unleash|supercharge|game-chang|cutting-edge|world-class|best-in-class|synergy|holistic|revolutionary'
-hits=$(grep -rniE "$BANNED" --exclude-dir=specs --exclude-dir=plans plugin docs README.md SECURITY.md playground 2>/dev/null | grep -v 'audit.sh' || true)
+# docs/specs + docs/plans are engineering meta-docs that quote the rules.
+BANNED='seamless|robust(ly)?|delve|dive into|in today.s fast-paced|transform(ative|ing)?|unlock|unleash|supercharge|game-chang|cutting-edge|world-class|best-in-class|synergy|holistic|revolutionary'
+hits=$(grep -rniE "$BANNED" $EXCLUDES --exclude-dir=specs --exclude-dir=plans --exclude=audit.sh plugin docs README.md SECURITY.md playground 2>/dev/null || true)
 [ -n "$hits" ] && { say "FAIL banned phrase:"; say "$hits"; fail=1; }
 
-# 5. Module boundary: no cross-module imports.
-hits=$(grep -rnE 'from (lib\.)?(hoo|onsite)|import (lib\.)?(hoo|onsite)' plugin/lib/core 2>/dev/null || true)
+# 5. Module boundary: no cross-module imports (absolute, package, or relative).
+IMPORT_PRE='(^|[^.a-zA-Z_])(from|import)[[:space:]]+(\.+)?((plugin\.)?lib\.)?'
+IMPORT_POST='(\.|[[:space:]]|$)'
+hits=$(grep -rnE "${IMPORT_PRE}(hoo|onsite)${IMPORT_POST}" $EXCLUDES plugin/lib/core 2>/dev/null || true)
 [ -n "$hits" ] && { say "FAIL core imports a module:"; say "$hits"; fail=1; }
-hits=$(grep -rnE 'from (lib\.)?onsite|import (lib\.)?onsite' plugin/lib/hoo 2>/dev/null || true)
+hits=$(grep -rnE "${IMPORT_PRE}onsite${IMPORT_POST}" $EXCLUDES plugin/lib/hoo 2>/dev/null || true)
 [ -n "$hits" ] && { say "FAIL hoo imports onsite:"; say "$hits"; fail=1; }
-hits=$(grep -rnE 'from (lib\.)?hoo|import (lib\.)?hoo' plugin/lib/onsite 2>/dev/null || true)
+hits=$(grep -rnE "${IMPORT_PRE}hoo${IMPORT_POST}" $EXCLUDES plugin/lib/onsite 2>/dev/null || true)
 [ -n "$hits" ] && { say "FAIL onsite imports hoo:"; say "$hits"; fail=1; }
 
 # 6. Manifests parse.
