@@ -1377,8 +1377,7 @@ def test_planner_csv_normalizes(tmp_path):
 
 def test_planner_csv_handles_dash_volumes(tmp_path):
     f = tmp_path / "kp.csv"
-    f.write_text("Keyword,Avg. monthly searches,Competition\nx,—10–100”,Low\n"
-                 .replace("—", '"').replace("–", "-").replace("”", '"'))
+    f.write_text('Keyword,Avg. monthly searches,Competition\nx,"10-100",Low\n')
     rows = csv_import.load_planner_csv(f)
     assert rows[0]["avg_monthly_searches"] == 55  # midpoint of a "10-100" range
 ```
