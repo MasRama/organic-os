@@ -45,8 +45,13 @@ stays `1`, and the directory only comes into existence the first time
 connector (`onsite.drift.save_baseline` creates it on demand). A brain
 repo with no WordPress connection never gets a `drift/` directory at all.
 
-Four optional `site-profile.yaml` keys are additive the same way
+Five optional `site-profile.yaml` keys are additive the same way
 (`schema_version` stays `1`; absence means off, or the stated default):
+
+- `brand: {readability_target: "grade 9-10"}` - the readability target
+  ce-qa's hard check holds drafts to (sentence-length stats; a draft
+  over target is returned for splitting). Absence means the default of
+  "grade 9-10".
 
 - `onsite: {dry_run: true}` - `onsite-apply` and `onsite-publish` run
   their full gated flow against a dry-run client that records every

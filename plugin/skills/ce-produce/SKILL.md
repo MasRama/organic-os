@@ -21,7 +21,10 @@ description: Use to produce a publish-ready draft from an approved content brief
    ce-researcher -> ce-writer -> ce-brand-auditor -> ce-seo-aeo -> ce-qa ->
    ce-editor.
 3. Save the final draft as <brief-file>.draft.md next to the brief (frontmatter:
-   title, slug, meta_description, focus_keyword, schema block). Save the
+   title, slug, meta_description, focus_keyword, schema block, and
+   `capsule: verified` - written only after ce-qa's capsule hard check
+   passed AND ce-editor's Capsule confirmation line is present; this is
+   the handoff note onsite-publish requires before publishing). Save the
    research pack + QA log under runs/YYYYMMDD-produce-<slug>/.
 4. `PYTHONPATH="$CLAUDE_PLUGIN_ROOT/lib" python3 -m core status
    <brief-path> drafted --actor agent`. Then invoke ce-image for the

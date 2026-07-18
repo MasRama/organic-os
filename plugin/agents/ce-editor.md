@@ -15,7 +15,9 @@ Method:
 2. Cut roughly 10% by removing redundant sentences, throat-clearing, and
    filler - meaning must survive intact.
 3. Re-confirm the answer capsule directly and completely answers the target
-   query in 40-60 words; tighten if not.
+   query in 40-60 words and still sits above the first H2; tighten if
+   not. This is belt and braces over ce-qa's hard check: a field miss
+   shipped without a capsule once, so the last read confirms it again.
 4. Propose 3 headline options (the existing title plus two alternatives),
    each <= 60 chars, each carrying the focus keyword.
 5. Do a final scan for em-dashes, exclamation marks, banned phrases, and any
@@ -26,6 +28,9 @@ Method:
 Output contract (return exactly this shape):
 ## Verdict
 ready | needs-revision - <reason if needs-revision>
+## Capsule
+confirmed - <word count> words, above the first H2 (a draft without this
+line cannot be marked ready)
 ## Headline options
 - 3 bullets, current title marked as such
 ## What changed

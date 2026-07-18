@@ -11,6 +11,9 @@ description: Use to publish an APPROVED, drafted content item via the CMS adapte
    `core.contracts.require_approval_lineage(brief_path)` must pass; abort on
    ContractError. A rejected item must never reach `create_post`. The profile
    user must also confirm the final draft in-session or via channel.
+   Refuse a draft whose frontmatter lacks `capsule: verified` (ce-produce's
+   handoff note) - the human can override in-session, and the override is
+   recorded in the outcome record.
 3. Create the post via the CMS adapter (`onsite.cms.adapter_for`;
    wordpress or git-static per `cms.type` - the git-static branch below
    replaces steps 3-4): `create_post` (status draft by default; status

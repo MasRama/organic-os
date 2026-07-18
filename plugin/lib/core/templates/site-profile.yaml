@@ -8,6 +8,7 @@ brand:
   voice: []              # e.g. ["first person", "short sentences", "facts before adjectives"]
   banned_phrases: []     # phrases the drafts must never use
   rulebook: ""           # free text: brand and editorial rules
+  # readability_target: "grade 9-10"  # optional; ce-qa's readability hard check target (absence = grade 9-10)
 audience:
   segments: []           # ICP segments
   geos: []               # e.g. ["IN", "US"]
