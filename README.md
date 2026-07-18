@@ -68,7 +68,7 @@ Three bounded modules, one install:
 
 | Module | Does |
 |---|---|
-| **head-of-organic** | Observes (GA4, GSC, Google Ads keyword intel, AI-citation tracking, competitor content, striking-distance queries) and decides: emits signals and work items with falsifiable reasoning behind each one |
+| **head-of-organic** | Observes (GA4, GSC, Google Ads keyword intel, AI-citation tracking, competitor content, striking-distance/cannibalization/decay queries, on-page drift) and decides: emits signals and work items with falsifiable reasoning behind each one |
 | **onsite-optimizer** | Audits any public page with no credentials; with a WordPress connection, applies approved on-page fixes and publishes approved drafts, always verified and rollback-capable |
 | **content-engine** | Turns an approved brief into a publish-ready draft - research, brand-voice compliance, SEO/authority pass, editorial QA - with an optional featured-image step |
 

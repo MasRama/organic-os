@@ -2,6 +2,48 @@
 
 ## [Unreleased]
 
+## [0.1.7] - 2026-07-19
+
+Observe-side detectors (v0.2 wave 2) - see ROADMAP.md.
+
+- **hoo:** cannibalization detector, added to `hoo-weekly` directly after
+  the striking-distance section and fed by the same 28-day GSC query
+  pull. Flags queries split across two or more landing pages with no
+  stable majority (guideline: the second page carries 20% or more of the
+  query's impressions), writes one P2 signal per case for the top 3 by
+  total impressions - query, both pages, positions, impression split, and
+  a falsifiability check - and calls out the linkage when a page also
+  shows up in the striking-distance list, since cannibalization is often
+  the actual blocker behind a stuck position. Opens at most one gated
+  consolidation proposal per run (canonical, 301, or content merge),
+  never applied automatically. Degrades to a one-line REPORT.md note when
+  GSC is unreachable.
+- **hoo:** content decay detection, also in `hoo-weekly`. Compares each
+  page's last-28-days GSC clicks against the same page's 28-day window
+  90 days back, flags a 30%+ decline above a 50-click noise floor on the
+  older window, and writes P2 signals for the top 3 pages by absolute
+  click loss with a likely-cause read on position-vs-CTR movement
+  (position fell means a ranking problem; position held but CTR fell
+  points at a SERP feature or title/meta staleness). At most one gated
+  refresh brief per run, created as a `content-brief` item so it moves
+  through the existing brief lifecycle into content-engine rather than
+  being applied directly. Same GSC-unavailable degradation.
+- **core + onsite:** site drift watch. `plugin/lib/onsite/drift.py`
+  (`snapshot_pages`, `baseline_path`, `save_baseline`, `compare`, 8 new
+  tests) snapshots title, RankMath title/description, canonical, slug,
+  status, and JSON-LD presence per tracked page via the existing
+  `wp.get_post()` getter, and diffs against a stored baseline at
+  `drift/baseline.json` (atomic-written through
+  `core.contracts._atomic_write`; additive, `schema_version` stays 1).
+  `hoo-daily` gains a WP-only "Drift watch" section: establishes the
+  baseline on first run against a capped tracked-page set (pages from
+  `outcomes/`/`proposals/` plus the homepage), then on later runs writes
+  one P1 signal per changed field before refreshing the baseline, so a
+  given drift is reported exactly once. `onsite-apply`'s verify step
+  refreshes the baseline for a page it just changed, so an approved
+  change is never reported back as drift on the next daily run. Skips
+  silently with no WordPress connector.
+
 ## [0.1.6] - 2026-07-19
 
 Setup verification and runtime awareness (v0.2 wave 1, field-tested) -

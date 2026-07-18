@@ -32,37 +32,28 @@ connector probe with the context it was tested in), the connector wizard
 with live verification (GA4/GSC absence is a blocker to resolve with a
 guided connect and a passed probe, not a status to record; `hoo-daily`
 escalates a nudge after 3 consecutive no-data runs), and the
-one-secret-at-a-time credentials flow - see CHANGELOG.md.
+one-secret-at-a-time credentials flow - see CHANGELOG.md. Also landed
+early in v0.1.7 (wave 2 of the block below): the three observe-side
+detectors - the cannibalization detector and content decay detection in
+the weekly routine, and the site drift watch riding the daily observe -
+see CHANGELOG.md.
 
 ### Setup verification and runtime awareness (from first-run field testing)
 
-Everything in this sub-block except the item below shipped in v0.1.6 -
-see "Landed early" above.
+Everything in this sub-block except the item below shipped in v0.1.6 or
+v0.1.7 - see "Landed early" above.
 
-- **Audit-and-propose interview.** Still open, not part of the v0.1.6
-  wave. Enter a URL; the plugin audits the site and presents a pre-filled
-  profile for approval instead of asking questions it can already answer
-  itself.
+- **Audit-and-propose interview.** Still open, not part of the v0.1.6 or
+  v0.1.7 wave. Enter a URL; the plugin audits the site and presents a
+  pre-filled profile for approval instead of asking questions it can
+  already answer itself.
 
-- **Cannibalization detector.** Two URLs splitting one query is often the
-  real blocker behind a page stuck at positions 4-15, not a content or
-  authority gap
-  ([source](https://www.averi.ai/how-to/striking-distance-keywords-the-ai-era-playbook-for-positions-4-15)).
 - **AI-visibility baseline at setup.** Where you appear in AI answers today
   versus two competitors, captured once during onboarding. 45 percent of
   marketing leaders say they cannot measure this today, and commercial
   tools price the capability at 99 to 499 dollars a month
   ([source](https://www.semrush.com/news/463141-semrush-releases-expanded-2026-ai-visibility-index-analyzing-126-million-ai-search-prompts/),
   [source](https://www.surmado.com/blog/best-ai-visibility-tools-2026)).
-- **Content decay detection in the weekly routine.** Carried over from the
-  v1 roadmap. Refresh loops are the most-loved feature of commercial
-  content tools
-  ([source](https://diyai.io/ai-tools/seo/clearscope-vs-surfer-seo/)).
-- **Site drift watch.** Detect changes you did not make - a theme update
-  that rewrites titles, a plugin that drops schema. The daily observe
-  already runs; drift detection rides it. (Pattern credit:
-  [AgriciDaniel/claude-seo](https://github.com/AgriciDaniel/claude-seo)'s
-  drift monitoring, adapted to a continuous loop.)
 - **Dry-run mode for `onsite-apply`.** Preview what a write would do
   against a live WordPress site without touching it - the counterpart to
   `scripts/verify-gates.sh` (landed early, see above), which already
