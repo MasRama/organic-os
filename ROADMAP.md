@@ -39,6 +39,11 @@ CHANGELOG.md.
   v1 roadmap. Refresh loops are the most-loved feature of commercial
   content tools
   ([source](https://diyai.io/ai-tools/seo/clearscope-vs-surfer-seo/)).
+- **Site drift watch.** Detect changes you did not make - a theme update
+  that rewrites titles, a plugin that drops schema. The daily observe
+  already runs; drift detection rides it. (Pattern credit:
+  [AgriciDaniel/claude-seo](https://github.com/AgriciDaniel/claude-seo)'s
+  drift monitoring, adapted to a continuous loop.)
 - **Gate self-verification script** (`scripts/verify-gates.sh`) plus a
   dry-run mode for `onsite-apply`. Confirms `require_approved` /
   `require_approval_lineage` actually block an unapproved write, without
@@ -69,6 +74,8 @@ CHANGELOG.md.
 - **Gated redirect and 404 fix workflow.** `onsite-audit` already finds
   broken links and missing redirects; this closes the loop with an apply
   path instead of leaving the finding as a report line.
+- **Gated image and alt-text fix workflow.** The audit already finds the
+  gaps; close the loop with proposals the apply path executes.
 - **Internal-link graph analysis.** A site-wide crawl that maps internal
   links and flags orphaned or under-linked money pages, feeding
   `link-authority-strategist`. The most-cited gap in commercial content
@@ -85,6 +92,10 @@ CHANGELOG.md.
 - **Comparison-content brief type in content-engine.** Listicles and
   X-vs-Y pages are the most-cited content shapes in AI search
   ([source](https://www.position.digital/blog/digital-pr-tactics/)).
+- **Topic clustering for content architecture.** Hub-and-spoke clusters
+  feeding brief generation. (Pattern credit:
+  [claude-seo](https://github.com/AgriciDaniel/claude-seo)'s SERP
+  clustering; ours consumes keyword-intel output.)
 - **AI-referral traffic segmentation in the daily observe.**
   ([source](https://www.semrush.com/blog/the-operational-gap-ai-seo-study/)).
 - **Editorial-oversight scoring before publish.** A human-review-required
