@@ -65,3 +65,82 @@ def test_register_locks_down_file_permissions(tmp_path):
 
 def test_get_active_none_when_no_registry(tmp_path):
     assert R.get_active(tmp_path / "sites.yaml") is None
+
+
+# -- path_warnings -----------------------------------------------------
+# Field report: a brain scaffolded under ~/Documents (or Desktop/Downloads)
+# breaks launchd/cron runs silently on macOS - TCC blocks the non-interactive
+# process from writing .git/index.lock there, and the only symptom is
+# "Operation not permitted" in the routine log. path_warnings() is an
+# advisory pre-check the setup skill runs before scaffolding a brain.
+
+def test_path_warnings_local_runtime_under_documents_warns_about_launchd():
+    warnings = R.path_warnings("~/Documents/my-site", "local")
+    assert len(warnings) == 1
+    assert "launchd" in warnings[0]
+
+
+def test_path_warnings_local_runtime_under_desktop_warns():
+    warnings = R.path_warnings("~/Desktop/my-site", "local")
+    assert len(warnings) == 1
+    assert "launchd" in warnings[0]
+
+
+def test_path_warnings_local_runtime_under_downloads_warns():
+    warnings = R.path_warnings("~/Downloads/my-site", "local")
+    assert len(warnings) == 1
+    assert "launchd" in warnings[0]
+
+
+def test_path_warnings_local_runtime_default_organic_hq_is_safe():
+    assert R.path_warnings("~/organic-hq/my-site", "local") == []
+
+
+def test_path_warnings_claude_scheduled_runtime_under_documents_is_safe():
+    # Documented call: claude-scheduled runs in the cloud, not against the
+    # local filesystem, so the macOS TCC failure mode this warning exists
+    # for cannot happen under this runtime - Documents/Desktop/Downloads
+    # are only a problem for the local runtime.
+    assert R.path_warnings("~/Documents/my-site", "claude-scheduled") == []
+
+
+def test_path_warnings_manual_runtime_under_documents_is_safe():
+    # Manual runs happen in an interactive Terminal session, which TCC does
+    # not restrict (only non-interactive launchd/cron processes are
+    # blocked), so there is nothing to warn about here either.
+    assert R.path_warnings("~/Documents/my-site", "manual") == []
+
+
+def test_path_warnings_ci_runtime_under_documents_is_safe():
+    # CI runs on a GitHub Actions runner, not the user's Mac at all.
+    assert R.path_warnings("~/Documents/my-site", "ci") == []
+
+
+def test_path_warnings_path_containing_plugins_segment_warns_any_runtime():
+    for runtime in ("local", "claude-scheduled", "ci", "manual"):
+        warnings = R.path_warnings(
+            "~/.claude/plugins/organic-os/brain", runtime
+        )
+        assert len(warnings) == 1
+        assert "plugin" in warnings[0].lower()
+
+
+def test_path_warnings_safe_path_returns_empty_list_for_every_runtime():
+    for runtime in ("local", "claude-scheduled", "ci", "manual"):
+        assert R.path_warnings("~/organic-hq/my-site", runtime) == []
+
+
+def test_path_warnings_inside_claude_plugin_root_env_warns(monkeypatch, tmp_path):
+    plugin_root = tmp_path / "organic-os-plugin"
+    plugin_root.mkdir()
+    monkeypatch.setenv("CLAUDE_PLUGIN_ROOT", str(plugin_root))
+    warnings = R.path_warnings(str(plugin_root / "brain"), "local")
+    assert len(warnings) == 1
+    assert "plugin" in warnings[0].lower()
+
+
+def test_path_warnings_both_conditions_returns_two_warnings():
+    warnings = R.path_warnings(
+        "~/Documents/.claude/plugins/organic-os/brain", "local"
+    )
+    assert len(warnings) == 2

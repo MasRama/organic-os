@@ -15,6 +15,13 @@ import yaml
 
 DEFAULT = Path.home() / ".config" / "organic-os" / "sites.yaml"
 
+# macOS TCC (Transparency, Consent, and Control) silently blocks
+# non-interactive processes - launchd and cron specifically - from writing
+# inside these folders, even though an interactive Terminal has full access
+# to them. A brain repo scaffolded here breaks local-runtime routines with
+# no warning ahead of time; see plugin/docs/routines.md.
+TCC_PROTECTED = ("Documents", "Desktop", "Downloads")
+
 
 def _slugify(url: str) -> str:
     host = urlparse(url if "://" in url else f"//{url}").hostname or url
@@ -67,3 +74,57 @@ def get_active(path=DEFAULT) -> dict | None:
     if not slug or slug not in data["sites"]:
         return None
     return {"slug": slug, **data["sites"][slug]}
+
+
+def path_warnings(brain_path, runtime: str) -> list[str]:
+    """Human-readable warnings about a chosen brain path, given the runtime
+    that will run its routines. Advisory only - an empty list means no
+    concerns found; the caller (setup skill) decides whether to re-ask.
+
+    - ``runtime == "local"`` and the path passes through a macOS
+      TCC-protected folder (Documents, Desktop, Downloads) anywhere in
+      it -> a strong warning naming the failure mode (launchd/cron silently
+      denied when writing ``.git/index.lock``, surfacing only as
+      "Operation not permitted" in the routine log) and the safe default.
+      This check is scoped to ``local`` on purpose: ``claude-scheduled``
+      runs in the cloud, never touching the local filesystem's TCC rules,
+      and ``manual``/``ci`` runs either happen in an interactive Terminal
+      (which TCC does not restrict) or on a CI runner (not the user's Mac
+      at all) - so the same path is not a problem under those runtimes.
+    - Any runtime: warns if the path sits inside this plugin's own
+      installed directory (``$CLAUDE_PLUGIN_ROOT``, when set) or contains
+      a ``/plugins/`` path segment - plugin install, update, or
+      marketplace sync can overwrite or delete files living there.
+    """
+    warnings: list[str] = []
+    p = Path(brain_path).expanduser()
+
+    if runtime == "local":
+        hit = [part for part in p.parts if part in TCC_PROTECTED]
+        if hit:
+            warnings.append(
+                f"Brain path is under {hit[0]!r}, a macOS-protected folder. "
+                "launchd (and cron) jobs are silently blocked by TCC from "
+                "writing there - git fails with \"error: unable to create "
+                "'.git/index.lock': Operation not permitted\" with no warning "
+                "ahead of time. Use the default ~/organic-hq/<slug> instead."
+            )
+
+    plugin_root = os.environ.get("CLAUDE_PLUGIN_ROOT")
+    inside_plugin_root = False
+    if plugin_root:
+        try:
+            p.relative_to(Path(plugin_root).expanduser())
+            inside_plugin_root = True
+        except ValueError:
+            inside_plugin_root = False
+
+    if inside_plugin_root or "/plugins/" in p.as_posix():
+        warnings.append(
+            "Brain path is inside a plugin directory. Plugin install, "
+            "update, or marketplace sync can overwrite or delete files "
+            "there - keep the brain repo outside any plugin directory, "
+            "e.g. ~/organic-hq/<slug>."
+        )
+
+    return warnings

@@ -156,6 +156,13 @@ Defaulted silently (state each one in the summary table, do not ask):
 12. Where should the brain live? Default `~/organic-hq/<slug>`, where `<slug>`
     is derived the same way the registry derives it (host minus `www.`, dots
     to hyphens - e.g. `example.com` -> `example-com`). Offer to change the path.
+    After the answer, run `PYTHONPATH="$CLAUDE_PLUGIN_ROOT/lib" python3 -c "..."`
+    calling `core.registry.path_warnings(<brain-path>, <runtime from question
+    11>)`. If it returns any warnings, show them to the user verbatim and
+    re-ask the question, with the default now switched to
+    `~/organic-hq/<slug>`. Do not scaffold anything at a path that still has
+    open warnings without the user explicitly confirming they want to
+    proceed anyway.
 13. Brain mode: git repo (recommended; needed for claude-scheduled and ci runtimes and for versioned memory) or local folder.
 
 ## Actions after the interview (full setup - first-run / add mode)
