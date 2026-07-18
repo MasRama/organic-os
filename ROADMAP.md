@@ -11,6 +11,12 @@ reprioritization - see `CONTRIBUTING.md`.
 
 ## v0.2 - First-week wins and loop hardening
 
+**Landed early:** brain-repo schema versioning + migration entry point
+shipped in v0.1.3 (`core.contracts.check_schema()`,
+`schema_version: 1` in `site-profile.yaml`, the migration entry point in
+`/organic-os:setup` update mode) rather than waiting for v0.2 - see
+CHANGELOG.md.
+
 - **Striking-distance detector in the weekly routine.** Pages sitting at
   positions 4-15 in GSC surfaced as gated proposals - pure GSC math, no new
   credentials to configure
@@ -33,11 +39,6 @@ reprioritization - see `CONTRIBUTING.md`.
   v1 roadmap. Refresh loops are the most-loved feature of commercial
   content tools
   ([source](https://diyai.io/ai-tools/seo/clearscope-vs-surfer-seo/)).
-- **Brain-repo schema versioning + migration entry point.** Every brain
-  repo scaffolded so far assumes the current `site-profile.yaml` /
-  `skillbook.md` / item-frontmatter shape. A version marker and a
-  migration path mean a schema change does not silently break an existing
-  installer's brain repo.
 - **Gate self-verification script** (`scripts/verify-gates.sh`) plus a
   dry-run mode for `onsite-apply`. Confirms `require_approved` /
   `require_approval_lineage` actually block an unapproved write, without

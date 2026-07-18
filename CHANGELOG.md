@@ -2,6 +2,28 @@
 
 ## [Unreleased]
 
+## [0.1.3] - 2026-07-18
+
+- **core:** brain schema versioning - every scaffolded `site-profile.yaml`
+  now carries `schema_version: 1`, and `core.contracts.check_schema()`
+  classifies any brain repo as missing, pre-versioning (stamp needed),
+  current, stale (migrate), or newer-than-plugin (update needed).
+  `/organic-os:start`, `/organic-os:setup` update mode, and the three
+  routine skills (`hoo-daily`, `hoo-weekly`, `hoo-orchestrator`) call it
+  before doing any work and stop with the exact next action on an
+  incompatible brain instead of guessing.
+- **docs:** `docs/updating.md` - what `/plugin update organic-os` can and
+  cannot touch (plugin code only; brain repos, `~/.config/organic-os/`,
+  and WordPress are outside its reach by design), the semver compatibility
+  policy, and the downgrade note.
+- **docs:** `docs/connectors.md` - the probe-and-guide connector model
+  (organic-os bundles no MCP servers and cannot trigger OAuth), why
+  (stdio MCP does not run on Cowork), and a capability-to-connector table.
+- **docs:** README FAQ gained two entries ("What happens when I update"
+  and "Why does nothing prompt me to connect Google Analytics") linking
+  the two new docs; version badge and verified inventory bumped to 0.1.3
+  and 57 passing tests.
+
 ## [0.1.2] - 2026-07-18
 
 - **onboarding:** `/organic-os:start` - the branded front door. Health-checks
