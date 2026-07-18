@@ -2,6 +2,61 @@
 
 ## [Unreleased]
 
+## [0.3.0-alpha.3] - 2026-07-19
+
+Hardening from continued field testing: four gaps a real operating loop
+surfaced, each fixed at the layer that owns it. No roadmap items move -
+this is regression work inside the phase.
+
+- **fix(core): illegal birth states cannot jam the pipeline.** An item
+  file that enters the brain with a non-proposed status and an empty
+  approvals list (written outside `create_item`) can neither be approved
+  nor pass a lineage gate - the loop stalls until a manual repair.
+  `rebuild_queue` now lints for the birth state and flags it as an
+  `ILLEGAL-STATE` row naming the exact repair, and a new guarded CLI
+  subcommand performs it: `python3 -m core reset-to-proposed <item-path>
+  --actor NAME [--note TEXT]`. The guard: only an item with an EMPTY
+  approvals list can be reset (the born-wrong case); anything with
+  approval history refuses - those reached their status legally and move
+  through status transitions. The repair persists as a `status_note` on
+  the item, so the file carries its own audit trail. The skill sweep
+  fixed the birth path itself: ce-produce's manual-brief instruction now
+  registers a handed brief via `create_item` (born `proposed`) plus a
+  recorded approval before drafting, and hoo-orchestrator plus
+  onsite-propose state the create_item-only birth rule explicitly.
+- **feat(core): affirmative synonyms on reply-context approvals.**
+  Reply-context affirmatives now cover `approve`, `approved`, `yes`,
+  `ok`, `go ahead`, `ship it`, `lgtm`, and thumbs-up (case-insensitive;
+  the phrase must start the reply; trailing text becomes the note).
+  Negatives are unchanged and deliberately narrow: deferrals such as
+  "wait" or "hold" remain non-decisions, because deferring is not
+  rejecting - protected by tests so a synonym wave can never widen it by
+  accident.
+- **feat: outcome notifications - the approver always hears what
+  happened.** onsite-apply and onsite-publish end every run by composing
+  ONE outcome summary and delivering it through the configured approval
+  channel: applied-and-verified items, partially-applied items with the
+  named human step, failed or rolled-back items with the reason, and
+  published posts with their URL. Silent success was the field gap -
+  approval without feedback breaks the loop. hoo-daily gains an
+  actionable-only daily alert (P1 signals or the no-data nudge, one
+  message, quiet days send nothing), and approval-channels.md now
+  carries the canonical "What you will hear and when" table, mapped in
+  docs/INFORMATION-MAP.md.
+- **feat: applied-change re-verification.** An external bulk revert can
+  undo an applied change minutes after verification, and waiting for the
+  next audit to notice is too slow. After a successful rendered-head
+  verify, the outcome record gains additive keys `reverify: {due: <UTC
+  now+1h>, until: <UTC now+48h>}`; hoo-daily re-checks live values
+  against applied values inside that window, and a mismatch is a P1
+  signal ("applied change no longer live - external revert suspected;
+  re-propose") in the daily alert. After `until`, the drift watch owns
+  the long horizon (the baseline was already refreshed at apply). Keys
+  documented in site-repo-contract.md; schema stays 1.
+
+15 new tests bring the suite to 195. Audit and verify-gates green
+throughout.
+
 ## [0.3.0-alpha.2] - 2026-07-19
 
 Adapter two: git-static. Proposals arrive as pull requests; merging is
