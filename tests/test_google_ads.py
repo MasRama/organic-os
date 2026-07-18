@@ -4,12 +4,18 @@ LIB = Path(__file__).resolve().parents[1] / "plugin" / "lib"
 sys.path.insert(0, str(LIB))
 
 import json  # noqa: E402
+from types import SimpleNamespace  # noqa: E402
 import pytest  # noqa: E402
 from hoo.google_ads import tier, keyword_ideas, historical  # noqa: E402
 
 
 class FakeIdeaService:
+    def __init__(self, error=None):
+        self.error = error
+
     def generate_keyword_ideas(self, request=None):
+        if self.error:
+            raise RuntimeError(self.error)
         class Idea:
             def __init__(self, text, vol, comp):
                 self.text = text
@@ -22,16 +28,18 @@ class FakeIdeaService:
 
 
 class FakeClient:
-    def __init__(self, planner_ok=True):
+    def __init__(self, planner_ok=True, error="PERMISSION_DENIED: planner blocked"):
         self.planner_ok = planner_ok
+        self.error = error
     def get_service(self, name):
         if name == "KeywordPlanIdeaService":
-            if not self.planner_ok:
-                raise RuntimeError("PERMISSION_DENIED: planner blocked")
-            return FakeIdeaService()
+            return FakeIdeaService(None if self.planner_ok else self.error)
         raise AssertionError(name)
     def get_type(self, name):
-        return type("T", (), {"__init__": lambda s: None})()
+        return SimpleNamespace(customer_id="", language="",
+                               geo_target_constants=[],
+                               keyword_seed=SimpleNamespace(keywords=[]),
+                               site_seed=SimpleNamespace(site=""))
 
 
 def test_detect_tier_basic():
@@ -39,6 +47,11 @@ def test_detect_tier_basic():
 
 def test_detect_tier_explorer():
     assert tier.detect(FakeClient(planner_ok=False), customer_id="1") == "explorer"
+
+def test_detect_tier_dead_auth_reraises():
+    dead = FakeClient(planner_ok=False, error="invalid_grant: token expired")
+    with pytest.raises(RuntimeError):
+        tier.detect(dead, customer_id="1")
 
 
 def test_keyword_ideas_normalizes(tmp_path):
@@ -58,6 +71,15 @@ def test_keyword_ideas_cache_hit(tmp_path):
     assert a == b
 
 
+def test_keyword_ideas_corrupt_cache_is_miss(tmp_path):
+    keyword_ideas.run(FakeClient(), "1", ["crm"], None, "2356", "1000", tmp_path)
+    cache_file = next(tmp_path.glob("ideas-*.json"))
+    cache_file.write_text("{not json")
+    out = keyword_ideas.run(FakeClient(), "1", ["crm"], None, "2356", "1000", tmp_path)
+    assert out[0]["keyword"] == "crm for smb"
+    assert json.loads(cache_file.read_text())  # cache rewritten clean
+
+
 def test_historical_batches(monkeypatch):
     calls = []
     def fake_fetch(client, customer_id, batch, geo, lang):
@@ -67,3 +89,31 @@ def test_historical_batches(monkeypatch):
     out = historical.run(FakeClient(), "1", [f"k{i}" for i in range(450)],
                          geo="2356", lang="1000")
     assert len(calls) == 3 and len(out) == 450  # 200 + 200 + 50
+
+
+def test_historical_retries_failed_batch_once(monkeypatch):
+    calls = {"n": 0}
+    def flaky(client, customer_id, batch, geo, lang):
+        calls["n"] += 1
+        if calls["n"] == 1:
+            raise RuntimeError("transient 503")
+        return [{"keyword": k} for k in batch]
+    monkeypatch.setattr(historical, "_fetch_batch", flaky)
+    monkeypatch.setattr(historical.time, "sleep", lambda s: None)
+    out = historical.run(FakeClient(), "1", [f"k{i}" for i in range(250)],
+                         geo="2356", lang="1000")
+    assert len(out) == 250 and calls["n"] == 3  # batch 1 retried, batch 2 clean
+
+
+def test_historical_raises_with_partial_after_two_failures(monkeypatch):
+    def fetch(client, customer_id, batch, geo, lang):
+        if batch[0] == "k200":
+            raise RuntimeError("hard failure")
+        return [{"keyword": k} for k in batch]
+    monkeypatch.setattr(historical, "_fetch_batch", fetch)
+    monkeypatch.setattr(historical.time, "sleep", lambda s: None)
+    with pytest.raises(RuntimeError) as ei:
+        historical.run(FakeClient(), "1", [f"k{i}" for i in range(250)],
+                       geo="2356", lang="1000")
+    assert "batch 200" in str(ei.value)
+    assert len(ei.value.partial) == 200  # batch 1's rows survive

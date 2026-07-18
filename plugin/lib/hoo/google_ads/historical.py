@@ -4,6 +4,7 @@ import time
 
 BATCH = 200
 SPACING_S = 1.1
+RETRY_S = 5.0
 
 
 def run(client, customer_id: str, keywords, geo: str, lang: str) -> list[dict]:
@@ -11,7 +12,17 @@ def run(client, customer_id: str, keywords, geo: str, lang: str) -> list[dict]:
     for i in range(0, len(keywords), BATCH):
         if i:
             time.sleep(SPACING_S)
-        out.extend(_fetch_batch(client, customer_id, keywords[i:i + BATCH], geo, lang))
+        batch = keywords[i:i + BATCH]
+        try:
+            out.extend(_fetch_batch(client, customer_id, batch, geo, lang))
+        except Exception:
+            time.sleep(RETRY_S)  # one retry per batch, then give up loudly
+            try:
+                out.extend(_fetch_batch(client, customer_id, batch, geo, lang))
+            except Exception as e:
+                err = RuntimeError(f"historical metrics failed at batch {i}")
+                err.partial = out  # rows fetched before the failure
+                raise err from e
     return out
 
 

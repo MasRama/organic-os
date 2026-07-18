@@ -2308,3 +2308,8 @@ git tag v0.1.0 && git push --tags
 
 
 
+
+## Amendments (review-driven, supersede the inline code above)
+- Phase 0 round 1: CI conditional pytest; audit scope narrowed (specs/plans only) + regex tightening.
+- Phase 1 round 1 (commit 9bfeecd): core hardening - chat-id string compare, deprecate guard, atomic writes, slug validation, UTC dates, sanitized telegram errors, idempotent approval replays, ContractError wrapping + MALFORMED queue rows.
+- Phase 2 round 1 (this commit): tier probe uses a real one-seed request with precise error classification; _build_request never swallows exceptions; csv_import handles K/M ranges, currency bids, UTF-16 TSV; historical retries once then raises with .partial; cache corruption = miss.
