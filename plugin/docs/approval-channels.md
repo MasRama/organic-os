@@ -54,6 +54,40 @@ every skill goes through.
 records the same thing (actor, decision, channel, timestamp) into the same
 file. Switching channels later is a one-line edit to `site-profile.yaml`.
 
+## Approval expiry
+
+An approval is not forever. Both gates also check that the latest approved
+record is younger than the site's TTL - 30 days by default, configurable
+per site in `site-profile.yaml`:
+
+```yaml
+approvals:
+  ttl_days: 30
+```
+
+The key is additive (absence means the default; `schema_version` stays 1),
+and the check is timestamp-based at gate time, so it applies to existing
+approval records too. A TTL below 1 refuses; to disable expiry, set a
+large value deliberately.
+
+Expiry means re-confirm, never silent rejection. The expired item keeps
+its status - `approved` stays `approved`, `drafted` stays `drafted` - and
+the gate blocks with the exact command to run:
+
+```
+MUTATION BLOCKED: approval for 20260315-pricing-title.md expired
+(approved 2026-03-15, ttl 30 days) - re-confirm with:
+python3 -m core approve proposals/20260315-pricing-title.md --actor <you> --channel <channel>
+```
+
+Running that `approve` appends a fresh approval entry, refreshing the
+clock; the item's history keeps every confirmation. From Telegram,
+re-confirming is the same gesture as confirming: reply `approve` to the
+original proposal message again, and because the decision lands in the
+same `record_decision` path, the expired approval is refreshed rather
+than no-opped. A replay within the TTL is still a silent no-op, so
+duplicate deliveries never pad the record. See docs/adr/0008 in the repo.
+
 ## in-session
 
 Nothing to set up. When you are in a live session and a skill has proposed

@@ -45,8 +45,8 @@ stays `1`, and the directory only comes into existence the first time
 connector (`onsite.drift.save_baseline` creates it on demand). A brain
 repo with no WordPress connection never gets a `drift/` directory at all.
 
-Two optional `site-profile.yaml` keys are additive the same way
-(`schema_version` stays `1`; absence means off):
+Three optional `site-profile.yaml` keys are additive the same way
+(`schema_version` stays `1`; absence means off, or the stated default):
 
 - `onsite: {dry_run: true}` - `onsite-apply` and `onsite-publish` run
   their full gated flow against a dry-run client that records every
@@ -56,6 +56,11 @@ Two optional `site-profile.yaml` keys are additive the same way
   verified apply or publish, the changed URL is submitted via IndexNow
   and the response status recorded in the outcome (see
   `plugin/docs/connectors.md`).
+- `approvals: {ttl_days: 30}` - how many days an approved decision stays
+  fresh before the gates require re-confirmation; absence means the
+  default of 30. Below 1 refuses - to disable expiry, set a large value
+  deliberately (see `plugin/docs/approval-channels.md` and docs/adr/0008
+  in the repo).
 
 ## Items: briefs and proposals
 

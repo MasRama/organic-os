@@ -168,7 +168,10 @@ checks a proposal's current status before every WordPress write;
 exists in an item's history before a later stage (like publishing a drafted
 brief) is allowed to run. A hand-edited `status: approved` with no matching
 `approvals:` entry still fails the gate - every approval is recorded with
-who decided, when, and through which channel. Verify the gate yourself:
+who decided, when, and through which channel. Approvals also expire: after
+30 days (configurable per site via `approvals: {ttl_days: n}`) both gates
+block until you re-confirm - the item keeps its status, and one `approve`
+command refreshes the clock. Verify the gate yourself:
 `./scripts/verify-gates.sh` red-teams these functions against a throwaway
 brain repo, no real site touched. Or try everything risk-free on your real
 site: set `onsite: {dry_run: true}` in `site-profile.yaml` and apply runs
