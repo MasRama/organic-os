@@ -8,7 +8,7 @@
 
 **Tech Stack:** Markdown skills/agents/commands per the Claude plugin format; Python 3.11+ (stdlib + pyyaml; google-ads and requests imported lazily and optional); bash; PHP (one mu-plugin file); pytest; GitHub Actions.
 
-**Working directory for every task:** `/Users/shiva/Documents/Claude/Projects/organic-os` (git repo, branch `main`). Playground WordPress deployment is OUT OF SCOPE (parallel session builds it from spec §10; Task 19 only ships reference files).
+**Working directory for every task:** the local organic-os checkout (git repo, branch `main`). Playground WordPress deployment is OUT OF SCOPE (parallel session builds it from spec §10; Task 19 only ships reference files).
 
 **Global rules for every task (from spec + house style):**
 - No em-dashes anywhere. Use ` - ` or commas.
