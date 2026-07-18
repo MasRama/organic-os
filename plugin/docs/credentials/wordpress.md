@@ -18,7 +18,11 @@ contained.
 In wp-admin, go to Users -> Profile (for the `organic-agent` user) ->
 Application Passwords, name the new password (for example `organic-os`), and
 click Add New Application Password. WordPress shows the password once; copy
-it immediately.
+it immediately. Direct URL: `/wp-admin/profile.php#application-passwords-section`.
+
+The Editor role is sufficient. Do not use an Administrator account, and
+never share your login password - the 24-character Application Password is
+the only secret the plugin needs.
 
 Store it using the standard organic-os credential pattern: one env file per
 site at `~/.config/organic-os/<site>.env`, containing at minimum:

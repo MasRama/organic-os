@@ -59,6 +59,10 @@ A two-minute walkthrough:
    and put `telegram_chat_id` (the same chat id) into `site-profile.yaml`
    under `approval:`.
 
+Before the first poll can find your chat, send your bot any message once -
+a bot cannot see a chat it has never been messaged in. Setup verifies by
+sending a confirmation message back.
+
 When a routine has something to approve, it posts the proposal id, kind,
 title, target, and a body excerpt, then exits without blocking - scheduled
 runs never sit and wait. The next run polls `getUpdates` for a reply
