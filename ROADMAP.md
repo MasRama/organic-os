@@ -6,8 +6,11 @@ this order: commercial AI-visibility tools stop at monitoring and leave
 execution on the user's desk
 ([source](https://discoveredlabs.com/blog/profound-vs-peec-vs-otterly-which-ai-visibility-platform-should-you-buy)).
 organic-os is built as the inverse - a gated execution loop, not another
-dashboard. Issues and PRs against any item here are welcome, including
-reprioritization - see `CONTRIBUTING.md`.
+dashboard. All adapter work below is governed by ADR-0009
+(`docs/adr/0009-capability-slots-not-tool-bindings.md`): every external
+tool is a swappable adapter behind a named capability slot, never a
+binding in contract logic. Issues and PRs against any item here are
+welcome, including reprioritization - see `CONTRIBUTING.md`.
 
 ## v0.2 - First-week wins and loop hardening - COMPLETE
 
@@ -66,6 +69,10 @@ submission with the status recorded in the outcome) - see CHANGELOG.md.
   a REST write - the approve gate becomes "merge the PR," matching the
   pr-merge approval channel that already exists. Serves the early-adopter
   persona directly.
+- **Analytics adapter slot.** GA4 is the first adapter; Microsoft Clarity
+  and Matomo are welcome contributions.
+- **Image-generation adapter slot.** Canva is the first adapter; Gemini
+  and local generators fit the same slot.
 - **Gated redirect and 404 fix workflow.** `onsite-audit` already finds
   broken links and missing redirects; this closes the loop with an apply
   path instead of leaving the finding as a report line.
