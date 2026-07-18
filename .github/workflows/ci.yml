@@ -1,0 +1,15 @@
+name: ci
+on:
+  push:
+    branches: [main, 'build/**']
+  pull_request:
+jobs:
+  audit-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install pyyaml pytest
+      - run: ./scripts/audit.sh
+      - run: if [ -d tests ]; then pytest -q; else echo "no tests yet"; fi

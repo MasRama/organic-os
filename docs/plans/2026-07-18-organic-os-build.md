@@ -8,7 +8,7 @@
 
 **Tech Stack:** Markdown skills/agents/commands per the Claude plugin format; Python 3.11+ (stdlib + pyyaml; google-ads and requests imported lazily and optional); bash; PHP (one mu-plugin file); pytest; GitHub Actions.
 
-**Working directory for every task:** `/Users/shiva/Documents/Claude/Projects/organic-os` (git repo, branch `main`). Playground WordPress deployment is OUT OF SCOPE (parallel session builds it from spec §10; Task 19 only ships reference files).
+**Working directory for every task:** the local organic-os checkout (git repo, branch `main`). Playground WordPress deployment is OUT OF SCOPE (parallel session builds it from spec §10; Task 19 only ships reference files).
 
 **Global rules for every task (from spec + house style):**
 - No em-dashes anywhere. Use ` - ` or commas.
@@ -1440,7 +1440,7 @@ description: Use for keyword research, competitor keyword gaps, "what should we 
 ## Tier detection (once per session)
 Run: `python3 -c` snippet importing `hoo.google_ads.tier`: if env vars missing
 -> tier "none". Else build real_client() and `tier.detect()` -> basic|explorer.
-Tell the user which tier is active and what that unlocks.
+Tell the user which tier is active and what that enables.
 
 ## basic (or standard)
 1. Ideas: `keyword_ideas.run` with profile target keywords as seeds AND, per
@@ -2066,7 +2066,7 @@ git add -A && git commit -m "feat(ce): six-stage content pipeline agents + produ
 7. Store credentials: `~/.config/organic-os/<site>.env` with the five `GOOGLE_ADS_*` vars, chmod 600
 8. Verify at any tier: ListAccessibleCustomers + one GAQL query
 9. Apply for Basic access (required for keyword planning; Explorer blocks planner services). Nominal ~5 business days; 2026 backlog acknowledged by Google, expect longer. Strengthen the application: advertiser verification, specific use-case text ("keyword research and reporting for my own accounts")
-10. What each tier unlocks (table: Test/Explorer/Basic/Standard vs planner, reporting, quotas)
+10. What each tier enables (table: Test/Explorer/Basic/Standard vs planner, reporting, quotas)
 Close with the fallback note: no token still gets GSC mining + CSV import.
 
 - [ ] **Step 3: Write `docs/credentials/gsc-ga4.md`**: the two supported paths - (a) claude.ai connectors for Search Console and Analytics (authorize in connector settings; available in Cowork, claude.ai, and scheduled runs), (b) any GSC/GA4 MCP server the user already runs in Claude Code. organic-os calls whichever tools exist and states which it found.
@@ -2308,3 +2308,9 @@ git tag v0.1.0 && git push --tags
 
 
 
+
+## Amendments (review-driven, supersede the inline code above)
+- Phase 0 round 1: CI conditional pytest; audit scope narrowed (specs/plans only) + regex tightening.
+- Phase 1 round 1 (commit 9bfeecd): core hardening - chat-id string compare, deprecate guard, atomic writes, slug validation, UTC dates, sanitized telegram errors, idempotent approval replays, ContractError wrapping + MALFORMED queue rows.
+- Phase 2 round 1 (this commit): tier probe uses a real one-seed request with precise error classification; _build_request never swallows exceptions; csv_import handles K/M ranges, currency bids, UTF-16 TSV; historical retries once then raises with .partial; cache corruption = miss.
+- Phase 3 round 1 (this commit): bridge re-encodes agent_jsonld via wp_json_encode (stored-XSS fix); onsite-publish gates on require_approved; StdlibSession surfaces HTTPError bodies; getHead percent-encodes the page URL; session contract unified on requests-style json=; snapshot/rollback also cover slug, excerpt, status; new "failed" status (approved -> failed only) wired into onsite-apply's verify-failure path. Round 2: require_approval_lineage added to core so the publish gate works on "drafted" briefs (require_approved's status check would block them); onsite-publish step 2 now gates on drafted status + approved lineage.
