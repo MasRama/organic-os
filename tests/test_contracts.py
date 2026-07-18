@@ -142,6 +142,64 @@ def test_failed_status_only_from_approved(root):
         C.set_status(q, "failed", actor="agent")           # applied -> failed illegal
 
 
+def test_partially_applied_from_approved_stores_status_note(root):
+    p = C.create_item(root, kind="onpage-fix", slug="partial", title="t", body="b",
+                      target="https://ex.com/p", source="s")
+    C.set_status(p, "approved", actor="shivaa", channel="in-session")
+    C.set_status(p, "partially-applied", actor="agent",
+                 note="title and meta written; plugin settings need an admin")
+    meta = C.load_item(p)["meta"]
+    assert meta["status"] == "partially-applied"
+    assert meta["status_note"] == "title and meta written; plugin settings need an admin"
+
+
+def test_partially_applied_to_applied_legal(root):
+    p = C.create_item(root, kind="onpage-fix", slug="partial-done", title="t", body="b",
+                      target="https://ex.com/pd", source="s")
+    C.set_status(p, "approved", actor="shivaa", channel="in-session")
+    C.set_status(p, "partially-applied", actor="agent")
+    C.set_status(p, "applied", actor="shivaa", channel="in-session")
+    assert C.load_item(p)["meta"]["status"] == "applied"
+
+
+def test_partially_applied_to_failed_legal(root):
+    p = C.create_item(root, kind="onpage-fix", slug="partial-rollback", title="t", body="b",
+                      target="https://ex.com/pr", source="s")
+    C.set_status(p, "approved", actor="shivaa", channel="in-session")
+    C.set_status(p, "partially-applied", actor="agent")
+    C.set_status(p, "failed", actor="agent")
+    assert C.load_item(p)["meta"]["status"] == "failed"
+
+
+def test_proposed_to_partially_applied_raises(root):
+    p = C.create_item(root, kind="onpage-fix", slug="partial-skip", title="t", body="b",
+                      target="https://ex.com/ps", source="s")
+    with pytest.raises(C.ContractError):
+        C.set_status(p, "partially-applied", actor="agent")
+
+
+def test_partially_applied_to_published_raises(root):
+    p = C.create_item(root, kind="onpage-fix", slug="partial-pub", title="t", body="b",
+                      target="https://ex.com/pp", source="s")
+    C.set_status(p, "approved", actor="shivaa", channel="in-session")
+    C.set_status(p, "partially-applied", actor="agent")
+    with pytest.raises(C.ContractError):
+        C.set_status(p, "published", actor="agent")
+
+
+def test_queue_shows_partially_applied_with_note(root):
+    p = C.create_item(root, kind="onpage-fix", slug="partial-queued", title="Half done",
+                      body="b", target="https://ex.com/pq", source="s")
+    C.set_status(p, "approved", actor="shivaa", channel="in-session")
+    C.set_status(p, "partially-applied", actor="agent",
+                 note="canonical pending: needs an admin")
+    C.rebuild_queue(root)
+    q = (root / "approvals" / "queue.md").read_text()
+    assert "PARTIAL" in q
+    assert "Half done" in q
+    assert "canonical pending: needs an admin" in q
+
+
 def test_approval_lineage_passes_for_drafted_after_approval(root):
     p = C.create_item(root, kind="content-brief", slug="lineage-ok", title="t", body="b",
                       target="", source="s")

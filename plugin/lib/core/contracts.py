@@ -1,10 +1,14 @@
 """File contracts for the site brain. The ONLY code that reads/writes brain files.
 
 Item = a brief or proposal: markdown file with YAML frontmatter.
-Lifecycle: proposed -> approved|rejected; approved -> applied|drafted|failed;
-drafted -> published; applied|published -> measured.
+Lifecycle: proposed -> approved|rejected; approved -> applied|drafted|failed|
+partially-applied; partially-applied -> applied|failed; drafted -> published;
+applied|published -> measured.
 ("failed" marks an approved item whose apply-verify failed and was rolled back;
-it happens pre-applied, so applied -> failed is deliberately illegal.)
+it happens pre-applied, so applied -> failed is deliberately illegal.
+"partially-applied" marks an approved item where some changes landed and the
+rest hit a permission or capability wall; a human finishes it -> applied, or
+the partial work is rolled back -> failed. See docs/adr/0007.)
 Skillbook: append-only entries with IDs; updates touch single entries only.
 """
 from __future__ import annotations
@@ -17,7 +21,8 @@ import yaml
 
 TRANSITIONS = {
     "proposed": {"approved", "rejected"},
-    "approved": {"applied", "drafted", "failed"},
+    "approved": {"applied", "drafted", "failed", "partially-applied"},
+    "partially-applied": {"applied", "failed"},
     "drafted": {"published"},
     "applied": {"measured"},
     "published": {"measured"},
@@ -129,6 +134,10 @@ def set_status(path, status: str, actor: str, channel: str | None = None,
         if note:
             entry["note"] = note
         item["meta"]["approvals"].append(entry)
+    elif note:
+        # Lifecycle notes (e.g. what a human must finish on a
+        # partially-applied item) live on the item, not in approvals.
+        item["meta"]["status_note"] = note
     _dump(Path(path), item["meta"], item["body"])
 
 
@@ -305,6 +314,12 @@ def rebuild_queue(root) -> Path:
             if meta["status"] == "proposed":
                 rows.append(f"- `{meta['id']}` [{meta['kind']}] {meta['title']} "
                             f"(created {meta['created']}) -> {folder}/{f.name}")
+            elif meta["status"] == "partially-applied":
+                # Partial work is never invisible: show what a human must
+                # finish right next to the pending approvals.
+                note = meta.get("status_note") or "human follow-up needed"
+                rows.append(f"- PARTIAL: `{meta['id']}` [{meta['kind']}] "
+                            f"{meta['title']} -> {folder}/{f.name} ({note})")
     q = root / "approvals" / "queue.md"
     q.write_text("# Pending approvals\n\n" + ("\n".join(rows) + "\n" if rows else "(none)\n"))
     return q

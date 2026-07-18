@@ -52,6 +52,25 @@ Write the outcome record marked `dry-run: true`, listing every entry from
 post id, and fields. Skip the drift-baseline refresh (2f); the page did
 not change.
 
+## Partial application
+
+When some changes in a proposal succeed and others hit a permission or
+capability wall (a step needs a WordPress role the connected user does not
+have), do NOT pick between "applied" and "failed" - both would lie. Set the
+honest state via the contract CLI, with a note naming exactly what a human
+must finish:
+
+```
+PYTHONPATH="$CLAUDE_PLUGIN_ROOT/lib" python3 -m core status <item-path> \
+  partially-applied --actor agent --note "<exactly what a human must finish>"
+```
+
+The outcome record lists done vs pending: every change that landed (with
+its verify result) and every step still waiting on a human, each named
+precisely. Once the human finishes the pending steps, the item moves
+partially-applied -> applied via the CLI; if the partial work is rolled
+back instead, partially-applied -> failed.
+
 HARD RULES: no snapshot -> no write. Verify after every write. A failed verify
 means rollback, never retry-and-hope. Never edit brain frontmatter directly.
 The contract CLI is the only write path for status and approvals.

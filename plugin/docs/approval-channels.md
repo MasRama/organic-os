@@ -12,10 +12,16 @@ The status lifecycle:
 
 ```
 proposed -> approved | rejected
-approved -> applied | drafted | failed
+approved -> applied | drafted | failed | partially-applied
+partially-applied -> applied | failed
 drafted  -> published
 applied | published -> measured
 ```
+
+`partially-applied` is the honest state for an approved proposal where some
+changes landed and the rest hit a permission or capability wall; the queue
+shows such items as PARTIAL rows with the human-follow-up note inline (see
+docs/adr/0007 in the repo).
 
 `approved` is the only status a mutating skill will act on, and the code
 that enforces this (`core.contracts.require_approved`, and
