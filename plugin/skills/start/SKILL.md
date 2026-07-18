@@ -74,6 +74,13 @@ Show a compact status, read-only, no writes:
 3. Last signal date: the filename (or latest entry date) of the most recent
    file in `<brain>/signals/`. If the directory is empty, say "no signals
    yet".
+4. Latest setup scorecard: find the most recent `<brain>/runs/*-setup-
+   scorecard/REPORT.md` by folder date, if any, and print one summary line
+   from its table - e.g. "setup scorecard (2026-07-19): 7/9 checks passing,
+   2 degraded (GA4 connector, approval channel) - run /organic-os:setup to
+   fix." If no scorecard folder exists yet, say "no setup scorecard yet -
+   run /organic-os:setup to generate one." This is a read, never a write -
+   `start` still writes nothing itself.
 
 Then offer a menu, AskUserQuestion with options:
 
