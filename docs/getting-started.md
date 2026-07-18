@@ -103,8 +103,12 @@ outside a live session, which matters once routines run on a schedule. See
 
 **Schedule routines.** Once you are comfortable with what the plugin
 proposes, move daily/weekly/monthly runs off manual and onto a schedule -
-claude.ai scheduled tasks, a local cron job, or CI. See `docs/routines.md`
-for the full comparison and setup steps for each runtime.
+claude.ai scheduled tasks, a local cron job, or CI. The weekly run adds a
+striking-distance detector on top of its analytics/SERP/AI-citation check
+and reflection: pages at GSC positions 4-15 with above-median impressions
+surface as gated proposals, no extra credential beyond GSC. See
+`docs/routines.md` for the full comparison and setup steps for each
+runtime.
 
 ## Updating
 

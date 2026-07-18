@@ -21,3 +21,20 @@ scheduled runs receive the brain path from the routine configuration.
 5. Queue any proposed work items; rebuild queue; notify per approval channel.
    Only send items where `is_notified(item)` is false; call `mark_notified(path)`
    right after a successful send. Commit + push if git.
+
+## Striking distance
+
+1. Pull GSC queries for the last 28 days for the profile's site.
+2. Filter to positions 4.0-15.0 with impressions above the site's median
+   impressions for the period.
+3. Group the filtered queries by landing page.
+4. For the top 5 opportunities, write one P2 signal per opportunity in
+   falsifiable form: query | page | position | impressions | leading
+   indicator to watch.
+5. Where a single page carries 2+ striking-distance queries, `create_item(
+   kind="onpage-fix", ...)` naming the specific on-page focus (the queries
+   it should consolidate around) - gated through the approval queue like
+   every other proposal, never applied directly.
+
+No GSC connector: skip this section and note it as one line in REPORT.md
+("striking distance: skipped, no GSC connector") instead of guessing.
