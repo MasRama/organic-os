@@ -74,6 +74,28 @@ exactly as posted; anything after that on a `reject` line is stored as the
 reason. Polling is replay-tolerant - the same reply delivered twice (a
 common effect of `getUpdates` retried across runs) is applied once.
 
+Polling goes through `core.approval.process_telegram_decisions`, which
+persists the last acknowledged Telegram update id at
+`approvals/telegram-offset.json` in the brain repo. Every run reads that
+file, polls `getUpdates` from just past it, and writes the new value back
+atomically - so replies stay acknowledged across runs and are never
+reprocessed (Telegram itself drops unacked updates after roughly 24h, which
+is why acking promptly matters).
+
+Each decision it processes gets one of three outcomes, and one bad reply
+never blocks the rest of the batch:
+
+- `recorded` - the decision applied (or already matched the item's current
+  status - replays are a no-op, not an error).
+- `stale` - the item has already moved past `proposed` (someone else
+  approved it, or it was already applied); the reply is skipped, nothing
+  raises.
+- `unknown` - the item id in the reply does not exist in this brain repo;
+  skipped, nothing raises. This is what makes **one Telegram bot shared
+  across multiple sites** safe: each site's routine polls with its own
+  offset and brain repo, and replies meant for a different site's items
+  simply come back `unknown` and are ignored cleanly.
+
 ## pr-merge
 
 The most auditable channel, and the natural pair for the CI runtime. The

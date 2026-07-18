@@ -16,6 +16,10 @@ There is nothing to host: the plugin is skills, agents, slash commands, and
 plain scripts invoked over Bash. No server, no database, no stdio MCP
 process.
 
+**Prerequisite:** the plugin's Python scripts need PyYAML. Check with
+`python3 -c "import yaml"`; if that fails, run
+`python3 -m pip install --user pyyaml` before running setup.
+
 ## Run setup
 
 ```
@@ -44,11 +48,16 @@ Analysis is always free; only mutation is gated (see
    skip WordPress, skip Google Ads, leave connectors unconfigured.
 2. Run `/organic-os:onsite-audit https://yoursite.com`. This reads the live
    page, no login required, and reports on-page SEO findings.
-3. Run the orchestrator (`/organic-os:daily` or ask for a full sweep). With
-   no connectors it still produces signals from whatever public data it can
-   reach and writes candidate briefs into the brain repo's `briefs/` and
-   `proposals/` folders.
-4. Open `approvals/queue.md` in the brain repo. That is your first queue of
+3. Run `/organic-os:daily`. It logs signals every run and only creates
+   briefs or proposals when a signal crosses a significant threshold (a
+   money-page drop, a lost AI citation). With zero credentials configured
+   there are no GSC/GA4 sources to pull from, so expect a signal like "no
+   sources available" rather than a queued brief or fix. For proposals from
+   day one with no credentials, ask for a full audit (the orchestrator fans
+   out to all eight specialists on public data alone) or run
+   `/organic-os:onsite-audit` and `/organic-os:propose` against its findings.
+4. Open `approvals/queue.md` in the brain repo. Once step 3 (or a full audit)
+   queues something, that file is your first queue of
    proposed work, sitting in `status: proposed`, waiting for a human
    decision. Nothing has touched your site yet.
 

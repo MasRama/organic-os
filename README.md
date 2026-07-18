@@ -73,8 +73,9 @@ Zero credentials required to see it work:
    WordPress, skip Google Ads, leave connectors unconfigured).
 2. `/organic-os:onsite-audit https://yoursite.com` - a read-only on-page
    audit against a live URL, no login needed.
-3. Run a full orchestrator sweep and let it emit signals and candidate
-   work items from whatever public data it can reach.
+3. `/organic-os:weekly` - runs the weekly health check and reflection,
+   emitting signals and candidate work items from whatever public data it
+   can reach.
 4. Open `approvals/queue.md` in the brain repo it scaffolded. That is your
    first queue of proposed work - briefs and fix proposals sitting in
    `status: proposed`, waiting on a human decision. Nothing has touched

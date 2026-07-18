@@ -19,8 +19,8 @@
   a bundled RankMath REST bridge mu-plugin, on-page audit (credential-free),
   gated apply with snapshot/verify/rollback, gated publish for
   content-engine drafts, and day-7/28 outcome measurement.
-- **content-engine:** the 8-stage content pipeline (research, draft, brand
-  compliance, SEO/authority, editorial QA, production, editor-in-chief)
+- **content-engine:** the six-stage content pipeline (research, draft, brand
+  compliance, SEO/authority, editorial QA, edit) with an optional image step,
   generalized to run off any site's `site-profile.yaml`, plus a featured-
   image skill with a Canva step that degrades to an image brief.
 - **docs:** getting-started, credential guides (Google Ads, GSC/GA4,
