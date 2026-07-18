@@ -29,6 +29,13 @@ description: Use to publish an APPROVED, drafted content item via the CMS adapte
    in the outcome record; a non-200 is recorded, never retried in-run.
 5. If a Canva image brief exists next to the draft (from ce-image), record its
    path in the outcome record for manual upload (media upload is not in v1).
+6. Outcome summary - the approver always hears what happened. Compose ONE
+   message for the whole run and deliver it through the configured
+   approval channel (same channel-neutral delivery as skills/onsite-apply
+   step 4; in-session prints it). One line per item: each published post
+   with its live URL; each post left in draft, held in a PR, or failed,
+   with the reason and what happens next. No per-item message spam. A run
+   that published nothing and failed nothing sends nothing.
 
 ## Git-static sites (cms.type git-static)
 

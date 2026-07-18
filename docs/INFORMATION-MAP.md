@@ -16,6 +16,7 @@ means a human consults this map when the canonical source changes.
 | Install commands | Marketplace and plugin name in `.claude-plugin/marketplace.json` | `README.md`; `plugin/docs/getting-started.md`; `docs/images/install-1-marketplace.svg`; `docs/images/install-2-install.svg` | manual |
 | Brain layout dirs | `DIRS` in `plugin/lib/core/init_site_repo.py` | `plugin/docs/site-repo-contract.md` layout block | manual |
 | CMS adapter contract (`CmsAdapter` surface, `adapter_for`, supported types `wordpress` + `git-static`, `cms:` profile key) | `plugin/lib/onsite/cms.py` | `plugin/docs/site-repo-contract.md` cms key bullet; `plugin/docs/approval-channels.md` pr-merge section; `plugin/docs/getting-started.md` upgrade ladder; `CONTRIBUTING.md` adapter section; `ROADMAP.md` v0.3 | manual |
+| Notification taxonomy (what the operator hears and when) | "What you will hear and when" table in `plugin/docs/approval-channels.md` | `plugin/skills/onsite-apply/SKILL.md` outcome-summary step; `plugin/skills/onsite-publish/SKILL.md` outcome-summary step; `plugin/skills/hoo-daily/SKILL.md` daily-alert section. README FAQ checked 2026-07-19: it does not mention notifications, nothing to sync there | manual |
 
 Check 8 also verifies that every relative markdown link in the repo
 resolves to an existing file, so cross-references never silently rot when

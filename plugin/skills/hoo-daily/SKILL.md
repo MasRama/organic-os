@@ -89,3 +89,22 @@ WP-only, there is no page inventory to snapshot without it.
 No WordPress connection: skip silently, no note needed - unlike the GSC
 sections in the weekly routine, there is no page inventory to have
 skipped pulling.
+
+## Daily alert (actionable only)
+
+After every section above has run, decide whether the operator needs to
+hear anything today. Actionable content is exactly:
+
+- P1 signals created by this run (drift "changed outside the loop",
+  money-page drops from step 4)
+- the no-data nudge from step 3.5
+
+If any exist, send ONE message through the configured approval channel,
+using the same channel-neutral delivery as the step 3.5 nudge (telegram:
+one `sendMessage`; slack: one post; email: one send; in-session: print
+it; pr-merge: log to the signal file and skip delivery). When the
+no-data nudge fires on the same day, it rides inside this one message
+instead of going out separately - never two messages per day. Quiet days
+send NOTHING: no "all quiet" spam. The signal file already records the
+quiet day; silence on the channel means no action needed, never that
+something was hidden.

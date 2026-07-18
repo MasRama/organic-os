@@ -63,6 +63,24 @@ every skill goes through.
 records the same thing (actor, decision, channel, timestamp) into the same
 file. Switching channels later is a one-line edit to `site-profile.yaml`.
 
+## What you will hear and when
+
+Whatever channel you pick, the message taxonomy is the same, and it is
+deliberately short. This table is the canonical definition (see
+docs/INFORMATION-MAP.md in the repo):
+
+| When | What arrives |
+|---|---|
+| A proposal needs you | The item (id, kind, title, target, body excerpt) plus how to approve or reject it |
+| An apply or publish run finishes | ONE outcome summary for the run: applied-and-verified items, partially-applied items with the named human step, failed or rolled-back items with the reason, published posts with their URL |
+| A daily run finds something actionable | ONE alert: P1 signals (drift, money-page drops) or the no-data nudge |
+| Anything else | Nothing. Quiet days are silent - silence means no action needed, never that something was hidden |
+
+The outcome summary exists because approval without feedback breaks the
+loop: whoever said yes hears what happened, whether the change landed,
+half-landed, or failed and was rolled back. Delivery is one message per
+run, never one per item.
+
 ## Approval expiry
 
 An approval is not forever, and expiry is a contract-layer fact: it is

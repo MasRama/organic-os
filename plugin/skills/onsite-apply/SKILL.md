@@ -41,6 +41,20 @@ description: Use to execute APPROVED on-page proposals - "apply the approved fix
       A non-200 is recorded, never retried in-run, and never fails the
       apply. Skipped in dry-run - nothing changed, nothing to submit.
 3. Commit + push the brain repo if git. Summarize: applied / skipped / failed.
+4. Outcome summary - the approver always hears what happened. Compose ONE
+   message for the whole run and deliver it through the configured
+   approval channel (telegram: one `sendMessage` over the same transport
+   `send_item` uses; slack/email: one post/send; in-session: print the
+   summary; pr-merge: no live channel mid-cycle - append the summary to
+   the run report and outcome records instead). Never send per-item
+   messages. Content, one line per item:
+   - applied and verified: item id + what changed
+   - partially-applied: item id + the exact human step from the status
+     note - the approver must know what is waiting on them
+   - failed / rolled back: item id + the reason
+   Silent success is a bug: whoever said yes hears the result, whether it
+   landed, half-landed, or failed. A run that touched nothing sends
+   nothing.
 
 ## Git-static sites (cms.type git-static)
 
