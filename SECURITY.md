@@ -1,0 +1,56 @@
+# Security
+
+## What organic-os touches
+
+- **Your site repo (the brain).** Everything organic-os knows about a site
+  - signals, briefs, proposals, approvals, the skillbook, ADRs - lives in a
+  git repo or local folder you own. organic-os reads and writes it through
+  `lib/core` only.
+- **Your WordPress site, through your own Application Password.** Writes
+  happen over HTTPS via the WordPress REST API, authenticated as a
+  dedicated Editor-role user you create (`docs/credentials/wordpress.md`).
+  organic-os never has Administrator access unless you explicitly grant it,
+  and every write is gated on a recorded approval (`docs/site-repo-contract.md`).
+- **APIs you configured yourself.** GA4, GSC, Notion, Slack, Canva via your
+  own claude.ai connectors or MCP servers; Google Ads via a developer token
+  and OAuth credentials you generate (`docs/credentials/google-ads-token.md`).
+  organic-os calls whichever of these you set up and states plainly which
+  ones it found; it never assumes a credential exists.
+
+## What organic-os never does
+
+- **No SERP or autocomplete scraping.** Ever, by design (see ADR-0006). All
+  ranking and citation data comes from APIs and connectors you authorized.
+- **No telemetry, no phone-home.** Nothing about your site, your usage, or
+  your credentials is sent anywhere outside the APIs you configured.
+- **No secrets stored in any repo.** Credentials live in
+  `~/.config/organic-os/<site>.env` files (chmod 600) or in your platform's
+  own credential storage (claude.ai connectors, plugin userConfig where
+  keychain-backed). A site repo stores only *references* to which
+  credentials exist (`site-profile.yaml connectors:` and `google_ads:
+  status:`), never a value. `scripts/audit.sh` runs a secret-pattern scan
+  on every commit to this repo as a second layer of defense.
+- **No mutation without an approval record.** The executor checks a
+  proposal's status before every write and refuses anything that is not
+  `approved` (or, for post-approval stages like publishing a drafted brief,
+  that lacks an `approved` decision in its lineage). This is enforced in
+  code (`core.contracts.require_approved` /
+  `core.contracts.require_approval_lineage`), not by convention - a
+  hand-edited status field without a matching `approvals:` entry still
+  fails the gate.
+
+## The env-file convention
+
+Every credential organic-os needs is stored as an environment file, one per
+site, at `~/.config/organic-os/<site-slug>.env`, created with `chmod 600`
+so only the owning user can read it. Nothing under that directory is ever
+committed, referenced by path outside your own machine, or printed into a
+transcript by any skill. If you see a skill about to echo a credential
+value, stop it - that is not expected behavior.
+
+## Reporting an issue
+
+Open a GitHub issue at `https://github.com/shalintripathi/organic-os/issues`.
+If the issue involves a credential-handling bug or another sensitive
+finding, say so in the title and keep the actual secret value out of the
+report; describe the pattern instead.
