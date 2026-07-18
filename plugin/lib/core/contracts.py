@@ -106,6 +106,16 @@ def require_approved(path) -> dict:
     return item
 
 
+def require_approval_lineage(path) -> dict:
+    """For post-approval lifecycle stages (e.g. drafted) where require_approved's status check no longer applies; safe because approved -> rejected is an illegal transition, so an approved lineage cannot be revoked."""
+    item = load_item(path)
+    approvals = item["meta"].get("approvals") or []
+    if not any(a.get("decision") == "approved" for a in approvals):
+        raise ContractError(
+            f"MUTATION BLOCKED: {Path(path).name} has no approved decision in its lineage")
+    return item
+
+
 def _atomic_write(path: Path, text: str) -> None:
     tmp = path.with_suffix(path.suffix + ".tmp")
     tmp.write_text(text)

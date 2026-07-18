@@ -111,3 +111,26 @@ def test_failed_status_only_from_approved(root):
     C.set_status(q, "applied", actor="agent")
     with pytest.raises(C.ContractError):
         C.set_status(q, "failed", actor="agent")           # applied -> failed illegal
+
+
+def test_approval_lineage_passes_for_drafted_after_approval(root):
+    p = C.create_item(root, kind="content-brief", slug="lineage-ok", title="t", body="b",
+                      target="", source="s")
+    C.set_status(p, "approved", actor="shivaa", channel="in-session")
+    C.set_status(p, "drafted", actor="agent")
+    C.require_approval_lineage(p)  # no raise: approved decision is in the lineage
+
+
+def test_approval_lineage_rejected_item_raises(root):
+    p = C.create_item(root, kind="content-brief", slug="lineage-rejected", title="t", body="b",
+                      target="", source="s")
+    C.set_status(p, "rejected", actor="shivaa", channel="in-session")
+    with pytest.raises(C.ContractError):
+        C.require_approval_lineage(p)
+
+
+def test_approval_lineage_fresh_proposed_raises(root):
+    p = C.create_item(root, kind="content-brief", slug="lineage-fresh", title="t", body="b",
+                      target="", source="s")
+    with pytest.raises(C.ContractError):
+        C.require_approval_lineage(p)

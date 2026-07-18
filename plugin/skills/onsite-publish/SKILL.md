@@ -7,10 +7,10 @@ description: Use to publish an APPROVED, drafted content item to WordPress - "pu
 
 1. Input: a brief item with status "drafted" whose draft file sits next to it
    (same folder, <brief-name>.draft.md produced by ce-produce).
-2. Gate: call `core.contracts.require_approved(brief)` - the same gate
-   onsite-apply uses - and abort on ContractError. A rejected item must never
-   reach `create_post`. The profile user must also confirm the final draft
-   in-session or via channel.
+2. Gate: the brief's status must be "drafted" (step 1 already checks) AND
+   `core.contracts.require_approval_lineage(brief_path)` must pass; abort on
+   ContractError. A rejected item must never reach `create_post`. The profile
+   user must also confirm the final draft in-session or via channel.
 3. Create the post via wp.py `create_post` (status draft by default; status
    "publish" only when site-profile sets publishing: direct), then
    `update_rankmath` with title/description/focus keyword from the draft's
