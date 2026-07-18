@@ -71,6 +71,23 @@ def test_skillbook_deprecate_not_delete(root):
     assert line.startswith("~~") or "DEPRECATED" in line
 
 
+def test_skillbook_update_deprecated_entry_raises(root):
+    C.skillbook_append(root, "old idea", evidence="anecdotal", source="x")
+    C.skillbook_update(root, "S-001", deprecate=True)
+    before = (root / "skillbook.md").read_text()
+    with pytest.raises(C.ContractError):
+        C.skillbook_update(root, "S-001", helpful=1)
+    assert (root / "skillbook.md").read_text() == before  # line unchanged
+
+
+def test_create_item_rejects_path_escape_slug(root):
+    with pytest.raises(C.ContractError):
+        C.create_item(root, kind="onpage-fix", slug="../../escape", title="t", body="b",
+                      target="", source="s")
+    assert list((root / "proposals").glob("*.md")) == []
+    assert list(root.rglob("escape.md")) == []
+
+
 def test_queue_index_lists_pending(root):
     C.create_item(root, kind="content-brief", slug="guide", title="A guide", body="b",
                   target="", source="s")

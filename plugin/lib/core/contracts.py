@@ -7,6 +7,7 @@ Skillbook: append-only entries with IDs; updates touch single entries only.
 """
 from __future__ import annotations
 import datetime as _dt
+import os
 import re
 from pathlib import Path
 
@@ -34,7 +35,7 @@ def _now() -> str:
 
 def append_signal(root, text: str, date: str | None = None) -> Path:
     root = Path(root)
-    date = date or _dt.date.today().isoformat()
+    date = date or _dt.datetime.now(_dt.timezone.utc).date().isoformat()
     f = root / "signals" / f"{date}.md"
     stamp = _now()
     with f.open("a") as fh:
@@ -52,8 +53,10 @@ def create_item(root, kind: str, slug: str, title: str, body: str,
                 target: str, source: str) -> Path:
     if kind not in KINDS:
         raise ContractError(f"unknown kind {kind!r}")
+    if not re.fullmatch(r"[a-z0-9][a-z0-9-]*", slug):
+        raise ContractError(f"bad slug {slug!r} - use lowercase letters, digits, hyphens")
     root = Path(root)
-    date = _dt.date.today().strftime("%Y%m%d")
+    date = _dt.datetime.now(_dt.timezone.utc).date().strftime("%Y%m%d")
     path = _folder(root, kind) / f"{date}-{slug}.md"
     if path.exists():
         raise ContractError(f"item exists: {path}")
@@ -65,11 +68,18 @@ def create_item(root, kind: str, slug: str, title: str, body: str,
 
 
 def load_item(path) -> dict:
-    raw = Path(path).read_text()
+    try:
+        raw = Path(path).read_text()
+    except FileNotFoundError:
+        raise ContractError(f"no such item: {path}") from None
     m = re.match(r"^---\n(.*?)\n---\n(.*)$", raw, re.S)
     if not m:
         raise ContractError(f"no frontmatter: {path}")
-    return {"meta": yaml.safe_load(m.group(1)), "body": m.group(2)}
+    try:
+        meta = yaml.safe_load(m.group(1))
+    except yaml.YAMLError:
+        raise ContractError(f"bad frontmatter yaml: {path}") from None
+    return {"meta": meta, "body": m.group(2)}
 
 
 def set_status(path, status: str, actor: str, channel: str | None = None) -> None:
@@ -94,15 +104,21 @@ def require_approved(path) -> dict:
     return item
 
 
+def _atomic_write(path: Path, text: str) -> None:
+    tmp = path.with_suffix(path.suffix + ".tmp")
+    tmp.write_text(text)
+    os.replace(tmp, path)
+
+
 def _dump(path: Path, meta: dict, body: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text("---\n" + yaml.safe_dump(meta, sort_keys=False).strip()
-                    + "\n---\n" + body.lstrip("\n"))
+    _atomic_write(path, "---\n" + yaml.safe_dump(meta, sort_keys=False).strip()
+                  + "\n---\n" + body.lstrip("\n"))
 
 
 # -- skillbook ----------------------------------------------------------------
 
-_ENTRY = re.compile(r"^(~~)?(S-\d{3}) \[evidence: (\w+)\] "
+_ENTRY = re.compile(r"^(~~)?(S-\d{3,}) \[evidence: (\w+)\] "
                     r"\[helpful: (\d+), harmful: (\d+), last-confirmed: ([0-9-]+)\] (.*)$")
 
 
@@ -113,7 +129,7 @@ def skillbook_append(root, text: str, evidence: str, source: str) -> str:
     ids = [int(m.group(2)[2:]) for line in book.read_text().splitlines()
            if (m := _ENTRY.match(line))]
     sid = f"S-{(max(ids) + 1 if ids else 1):03d}"
-    today = _dt.date.today().isoformat()
+    today = _dt.datetime.now(_dt.timezone.utc).date().isoformat()
     with book.open("a") as fh:
         fh.write(f"{sid} [evidence: {evidence}] [helpful: 0, harmful: 0, "
                  f"last-confirmed: {today}] {text} ({source})\n")
@@ -127,10 +143,12 @@ def skillbook_update(root, sid: str, helpful: int = 0, harmful: int = 0,
     for line in book.read_text().splitlines():
         m = _ENTRY.match(line)
         if m and m.group(2) == sid:
+            if m.group(1):
+                raise ContractError(f"{sid} is deprecated")
             found = True
             h, x = int(m.group(4)) + helpful, int(m.group(5)) + harmful
             text = edit if edit is not None else m.group(7)
-            today = _dt.date.today().isoformat()
+            today = _dt.datetime.now(_dt.timezone.utc).date().isoformat()
             new = (f"{sid} [evidence: {m.group(3)}] [helpful: {h}, harmful: {x}, "
                    f"last-confirmed: {today}] {text}")
             out.append(f"~~{new}~~ DEPRECATED" if deprecate else new)
@@ -138,7 +156,7 @@ def skillbook_update(root, sid: str, helpful: int = 0, harmful: int = 0,
             out.append(line)
     if not found:
         raise ContractError(f"no skillbook entry {sid}")
-    book.write_text("\n".join(out) + "\n")
+    _atomic_write(book, "\n".join(out) + "\n")
 
 
 # -- approvals queue ----------------------------------------------------------
@@ -148,7 +166,11 @@ def rebuild_queue(root) -> Path:
     rows = []
     for folder in ("briefs", "proposals"):
         for f in sorted((root / folder).glob("*.md")):
-            meta = load_item(f)["meta"]
+            try:
+                meta = load_item(f)["meta"]
+            except ContractError:
+                rows.append(f"- MALFORMED: {folder}/{f.name}")
+                continue
             if meta["status"] == "proposed":
                 rows.append(f"- `{meta['id']}` [{meta['kind']}] {meta['title']} "
                             f"(created {meta['created']}) -> {folder}/{f.name}")

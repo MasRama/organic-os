@@ -23,5 +23,9 @@ def find(root, item_id: str):
 
 
 def record_decision(root, item_id: str, decision: str, actor: str, channel: str) -> None:
-    C.set_status(find(root, item_id), decision, actor=actor, channel=channel)
+    """Records a decision. Replay-tolerant: poll loops may deliver the same decision twice."""
+    path = find(root, item_id)
+    if C.load_item(path)["meta"]["status"] == decision:
+        return
+    C.set_status(path, decision, actor=actor, channel=channel)
     C.rebuild_queue(root)

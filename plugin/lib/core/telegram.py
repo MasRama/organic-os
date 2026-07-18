@@ -7,6 +7,7 @@ Approval grammar in chat: 'approve <item-id>' or 'reject <item-id> [reason]'.
 """
 import json
 import re
+import urllib.error
 import urllib.parse
 import urllib.request
 
@@ -15,16 +16,28 @@ _DECISION = re.compile(r"^(approve|reject)\s+([bp]-[\w-]+)\s*(.*)$", re.I)
 
 
 class UrllibHTTP:
+    # Errors are re-raised with status/reason only: the URL embeds the bot
+    # token and must never surface in a printed exception.
     def post(self, url, payload):
         req = urllib.request.Request(url, data=json.dumps(payload).encode(),
                                      headers={"Content-Type": "application/json"})
-        with urllib.request.urlopen(req, timeout=30) as r:
-            return json.load(r)
+        try:
+            with urllib.request.urlopen(req, timeout=30) as r:
+                return json.load(r)
+        except urllib.error.HTTPError as e:
+            raise RuntimeError(f"telegram api error: HTTP {e.code} {e.reason}") from None
+        except urllib.error.URLError as e:
+            raise RuntimeError(f"telegram api error: {e.reason}") from None
 
     def get(self, url, params):
-        with urllib.request.urlopen(url + "?" + urllib.parse.urlencode(params),
-                                    timeout=30) as r:
-            return json.load(r)
+        try:
+            with urllib.request.urlopen(url + "?" + urllib.parse.urlencode(params),
+                                        timeout=30) as r:
+                return json.load(r)
+        except urllib.error.HTTPError as e:
+            raise RuntimeError(f"telegram api error: HTTP {e.code} {e.reason}") from None
+        except urllib.error.URLError as e:
+            raise RuntimeError(f"telegram api error: {e.reason}") from None
 
 
 def send_item(http, token: str, chat_id, item: dict) -> None:
@@ -45,7 +58,7 @@ def poll_decisions(http, token: str, chat_id, offset: int = 0):
     for u in data.get("result", []):
         last = max(last, u["update_id"])
         msg = u.get("message") or {}
-        if msg.get("chat", {}).get("id") != chat_id:
+        if str(msg.get("chat", {}).get("id")) != str(chat_id):
             continue
         m = _DECISION.match(msg.get("text", "").strip())
         if m:

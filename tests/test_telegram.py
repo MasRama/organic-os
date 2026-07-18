@@ -38,3 +38,12 @@ def test_poll_decisions_parses_both():
     assert decisions == [("p-20260718-fix1", "approved", ""),
                         ("b-20260718-guide", "rejected", "too thin")]
     assert last == 8
+
+
+def test_poll_decisions_chat_id_type_insensitive():
+    # API sends int chat ids; site-profile.yaml stores strings. Both must match.
+    http = FakeHTTP()
+    decisions, last = T.poll_decisions(http, token="t", chat_id="42", offset=0)
+    assert decisions == [("p-20260718-fix1", "approved", ""),
+                        ("b-20260718-guide", "rejected", "too thin")]
+    assert last == 8
