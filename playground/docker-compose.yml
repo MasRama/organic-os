@@ -1,0 +1,54 @@
+services:
+  db:
+    image: mariadb:11.4
+    restart: unless-stopped
+    environment:
+      MARIADB_DATABASE: wordpress
+      MARIADB_USER: wordpress
+      MARIADB_PASSWORD: ${DB_PASSWORD}
+      MARIADB_RANDOM_ROOT_PASSWORD: "1"
+    command: >
+      --innodb-buffer-pool-size=256M
+      --performance-schema=OFF
+      --max-connections=30
+    volumes: [db_data:/var/lib/mysql]
+    mem_limit: 512m
+
+  wordpress:
+    image: wordpress:php8.3-apache
+    restart: unless-stopped
+    depends_on: [db]
+    ports:
+      - "127.0.0.1:8081:80"
+    environment:
+      WORDPRESS_DB_HOST: db
+      WORDPRESS_DB_NAME: wordpress
+      WORDPRESS_DB_USER: wordpress
+      WORDPRESS_DB_PASSWORD: ${DB_PASSWORD}
+      WORDPRESS_CONFIG_EXTRA: |
+        define('WP_HOME', 'https://playground.shivaatripathi.com');
+        define('WP_SITEURL', 'https://playground.shivaatripathi.com');
+        define('DISABLE_WP_CRON', true);
+        define('WP_MEMORY_LIMIT', '256M');
+    volumes:
+      - wp_data:/var/www/html
+      - ./uploads.ini:/usr/local/etc/php/conf.d/uploads.ini:ro
+      - ./wp-extras:/var/www/html/wp-content/mu-plugins:ro
+    mem_limit: 768m
+
+  wp-cli:
+    image: wordpress:cli-php8.3
+    user: "33:33"
+    depends_on: [wordpress, db]
+    volumes: [wp_data:/var/www/html]
+    environment:
+      WORDPRESS_DB_HOST: db
+      WORDPRESS_DB_NAME: wordpress
+      WORDPRESS_DB_USER: wordpress
+      WORDPRESS_DB_PASSWORD: ${DB_PASSWORD}
+    entrypoint: ["wp"]
+    profiles: ["cli"]
+
+volumes:
+  db_data:
+  wp_data:
