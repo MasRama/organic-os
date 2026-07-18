@@ -2,6 +2,51 @@
 
 ## [Unreleased]
 
+## [0.1.10] - 2026-07-19
+
+Approval UX and contract ergonomics - fixes from the first full pipeline
+field run, which continues to set the priorities here.
+
+- **core:** reply-context Telegram approvals. Replying to a proposal
+  message with a bare decision word now works: approve/approved/yes/ok/
+  thumbs-up approve, reject/rejected/no/thumbs-down reject, with the item
+  id resolved from the replied-to text and any trailing words kept as the
+  note. The strict `approve <item-id>` grammar is unchanged and takes
+  precedence when both could apply; a bare word outside a reply, or a
+  reply to a message without an item id, resolves nothing. Proposal
+  messages state the reply format prominently (8 new tests).
+- **core:** contracts CLI. `python3 -m core approve|reject|status
+  <item-path>` is now the only supported write path for item status and
+  approvals - it prints the resulting status line and refuses an illegal
+  transition with a nonzero exit and the reason on stderr. Decisions
+  accept `--note`; telegram reply reasons persist as notes too. Every
+  skill that records decisions or status now invokes the CLI and carries
+  the rule: never edit brain frontmatter directly (9 new tests).
+- **core:** approval-record lint. `rebuild_queue` flags any approvals
+  entry missing its `decision` field - the fingerprint of a hand-edit -
+  as a `MALFORMED-APPROVAL` row in the queue.
+- **core:** `partially-applied` is a first-class state (ADR-0007). When
+  some changes in an approved proposal land and the rest hit a permission
+  or capability wall, the honest state now exists: approved ->
+  partially-applied (with a note naming exactly what a human must
+  finish), then -> applied or -> failed, and nothing else touches it. The
+  queue shows PARTIAL rows with the note inline; the outcome record lists
+  done vs pending (6 new tests).
+- **runtime:** headless resilience. `run-routine.sh` pins the model with
+  `--model "${ANTHROPIC_MODEL:-sonnet}"` (the env override reaches
+  sub-agents unreliably); `plugin/docs/routines.md` documents the known
+  sub-agent dispatch limitation and its inline fallback, watching a live
+  run by tailing the run report, `--output-format stream-json`, and
+  recovering a skill from its on-disk body. The four long skills append a
+  UTC-stamped progress marker to the run report at each stage boundary.
+- **docs:** WordPress capability matrix. Action vs minimum role in
+  `plugin/docs/credentials/wordpress.md`: public reads need no role,
+  REST writes need Editor plus an Application Password, and
+  Administrator-only steps (SEO-plugin cache purges, plugin settings) are
+  never requested - they report pending-human and end the proposal
+  partially-applied. The setup scorecard's WordPress row now names the
+  detected role and what it cannot do.
+
 ## [0.1.9] - 2026-07-19
 
 Cost, dry-run, and IndexNow (v0.2 wave 4) - see ROADMAP.md.

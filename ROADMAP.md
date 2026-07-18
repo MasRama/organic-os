@@ -101,6 +101,9 @@ submission with the status recorded in the outcome) - see CHANGELOG.md.
 - **claude-seo audit import.** They audit, we operate: import a claude-seo
   report as a seed set of findings organic-os can turn into proposals,
   instead of re-deriving what a point-in-time audit already found.
+- **Pipeline parallelism.** Per-page audit fan-out and research prefetch
+  when sub-agent dispatch is reliable in headless runs (upstream
+  dependency).
 
 ## v1.0 - Many sites, many hands
 
