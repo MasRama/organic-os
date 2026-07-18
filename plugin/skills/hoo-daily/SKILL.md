@@ -5,6 +5,9 @@ description: Use for the daily signal pull - "run the daily", scheduled daily ro
 
 # Daily signal pull (Generator role - append only)
 
+Resolve the brain: use registry.get_active() when running interactively;
+scheduled runs receive the brain path from the routine configuration.
+
 1. Read site-profile.yaml. Determine available sources: GSC connector, GA4
    connector, tracked keywords in keywords/tracking.yaml, WordPress endpoint.
 2. Pull, for yesterday (or since the last signal date - read the latest file in

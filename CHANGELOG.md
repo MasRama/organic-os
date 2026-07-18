@@ -2,6 +2,28 @@
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-07-18
+
+- **core:** telegram offset persistence (`approvals/telegram-offset.json`)
+  and tolerant decision processing, so replayed `getUpdates` replies apply
+  once and a bad reply never blocks the rest of a batch; a `notified` flag
+  on items so a routine never re-sends an approval notification it already
+  sent.
+- **core:** canonical plugin-root invocations across every skill - fixed
+  `PYTHONPATH` and docs-link references so `lib/core` resolves the same way
+  regardless of which skill or command triggers it.
+- **core:** sites registry (`~/.config/organic-os/sites.yaml`), mode-aware
+  `/organic-os:setup` (update / add / switch / status), and guided
+  `/organic-os:reset` teardown that never deletes a brain repo or revokes a
+  credential on the user's behalf.
+- **docs:** README v2 - mermaid loop and architecture diagrams, a verified
+  inventory line, three persona-based quickstarts, a respectful comparison
+  table, and a 6-item FAQ.
+- **docs:** CONTRIBUTING.md with an enforced data boundary (audit check 7)
+  and a matching `.github/PULL_REQUEST_TEMPLATE.md`.
+- **docs:** ROADMAP.md - v0.2 hardening, v0.3 CMS/channel adapters, v1.0
+  multi-site and agency mode, plus two revisit triggers tracked separately.
+
 ## [0.1.0] - 2026-07-18
 
 - **core:** file-contract layer for the per-site brain repo - items

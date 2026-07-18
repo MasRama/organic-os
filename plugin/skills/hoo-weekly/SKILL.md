@@ -5,6 +5,9 @@ description: Use for the weekly health check + reflection - "run the weekly", sc
 
 # Weekly check
 
+Resolve the brain: use registry.get_active() when running interactively;
+scheduled runs receive the brain path from the routine configuration.
+
 1. Read profile. Launch analytics-reporting-chief and serp-ai-monitor agents
    (parallel) with the profile path.
 2. Save their reports under runs/YYYYMMDD-weekly/ (01-analytics.md,
