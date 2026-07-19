@@ -228,7 +228,11 @@ external request.
   generalize from.
 - **Read-only MCP surface over the brain repo.** Commercial tools now
   sell MCP access to their data; ours would be thin and optional, because
-  the brain is already plain files in the user's own git repo.
+  the brain is already plain files in the user's own git repo. A richer
+  onboarding card (MCP Apps) would share that same server if it ever
+  ships - a revisit trigger once the MCP Apps surface is stable in both
+  clients, not a promise; the enable form and chip interview carry
+  onboarding until then.
 
 ## Deprioritized, with reasons
 

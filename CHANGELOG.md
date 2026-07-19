@@ -2,6 +2,43 @@
 
 ## [Unreleased]
 
+## [0.4.0-alpha.2] - 2026-07-19
+
+Marketer-grade onboarding: the install form + click-through interview;
+zero-question quick start when the form is filled.
+
+- **feat: install-time configuration form.** `plugin.json` gains a
+  `userConfig` block - six optional fields (site_url, brand_name,
+  approval_channel, telegram_bot_token, wp_app_password, wp_username)
+  rendered as a native form when the plugin is enabled, on Claude Code
+  and Cowork alike. Every field optional, so update installs never
+  force re-entry; `sensitive: true` fields (the bot token, the
+  Application Password) are stored in the OS keychain, never in a
+  file, and reach a session only as `CLAUDE_PLUGIN_OPTION_*` env vars.
+- **feat: setup v4 - form-first, chips for the rest.** A new Step 0.75
+  reads the install form before anything else: anything present is a
+  pre-answered question and is never re-asked, in any mode; an empty,
+  unset, or unsubstituted value falls through to the normal interview,
+  so setup works whether or not the form was rendered or filled.
+  Secrets are referenced, never echoed - "found the WordPress
+  Application Password from the install form" is the whole
+  confirmation, and Credentials writes the site env file straight from
+  the variable without printing it. Every remaining finite-choice
+  question is AskUserQuestion chips (native multiple-choice in both
+  clients) with the recommended option marked: quick-start vs full,
+  approval channel, runtime, brain mode, WordPress, every connector
+  decision. Quick start recalibrated: at most 3 questions, minus form
+  answers - with a filled form it asks zero (URL + channel from the
+  form, confirm chip only). Form filled = one click to a configured
+  site; the start front door says so before handing off.
+- **docs: onboarding walkthrough v2.** README's install walkthrough
+  gains the enable-form step with a fourth SVG terminal frame;
+  getting-started documents the form-first flow and where sensitive
+  values live (keychain, env at runtime, never in chat or the brain);
+  INFORMATION-MAP gains the userConfig field-list row with plugin.json
+  canonical; connectors.md notes that credentials entered at the
+  install form skip the paste-into-terminal step.
+
 ## [0.4.0-alpha.1] - 2026-07-19
 
 The v0.4 train opens with the market-validated roadmap update and the
