@@ -21,7 +21,12 @@ scheduled runs receive the brain path from the routine configuration.
    sections, in this order, and no others:
    - **What moved** - the top 3 metric changes this week. Each line names
      the number and the file it came from (a signal line or an outcome
-     record). When `~/.config/organic-os/cost-ledger-YYYYMM.tsv` exists,
+     record). When the week's signals carry `ai_referrals` lines, add one
+     line for AI referrals - the week's total and the direction against
+     the prior week (the AI-surface list is maintained in hoo-daily's
+     SKILL.md); no `ai_referrals` lines in the window means no AI line,
+     never an invented one. When
+     `~/.config/organic-os/cost-ledger-YYYYMM.tsv` exists,
      close the section with one cost line - runs this week, total
      duration, tokens where the ledger has them; no ledger means no cost
      line, never an invented number.

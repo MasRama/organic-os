@@ -15,8 +15,18 @@ scheduled runs receive the brain path from the routine configuration.
    connector, tracked keywords in keywords/tracking.yaml, WordPress endpoint.
 2. Pull, for yesterday (or since the last signal date - read the latest file in
    signals/): GSC clicks/impressions/CTR/position for top and tracked queries;
-   GA4 sessions + AI-referral sessions (source contains chatgpt/perplexity/
-   gemini/copilot); spot-check 3 tracked keywords in one AI engine, rotating.
+   GA4 sessions; spot-check 3 tracked keywords in one AI engine, rotating.
+2.5. AI-referral segmentation (runs only when GA4 is reachable): segment
+   referral sessions whose source matches a known AI surface and record
+   one `ai_referrals:` line in the daily signal - the session count plus
+   the top landing pages (cap 3, each with its count). The known AI
+   surfaces: chatgpt.com, perplexity.ai, gemini.google.com,
+   copilot.microsoft.com, claude.ai. This list is maintained here, in
+   this skill, and reviewed quarterly - hoo-weekly and hoo-monday-report
+   quote it, never extend it (see docs/INFORMATION-MAP.md in the repo).
+   Zero matching sessions is a real value - write `ai_referrals: 0`. GA4
+   unreachable means no `ai_referrals:` line at all, never a guessed
+   one.
 3. Write one `append_signal` line per notable observation (threshold: any WoW
    move > 10% or position change > 2 or a new AI citation appearing/vanishing).
    Quiet days produce one line: "no notable movement (checked: <sources>)".

@@ -15,7 +15,14 @@ scheduled runs receive the brain path from the routine configuration.
    (parallel) with the profile path.
 2. Save their reports under runs/YYYYMMDD-weekly/ (01-analytics.md,
    02-serp-ai.md, REPORT.md synthesis).
-3. Append the week's headline observations as signals.
+3. Append the week's headline observations as signals. Include the
+   week-over-week `ai_referrals` trend read from the week's daily signal
+   lines (the AI-surface list is maintained in hoo-daily's SKILL.md -
+   quote it, never extend it here); days without an `ai_referrals` line
+   are stated as gaps, never interpolated. A sustained rise on a single
+   landing page (3 or more of the week's daily lines) feeds the citation
+   tracker: name the page in REPORT.md so the next citation run checks
+   whether a new AI citation explains the traffic.
 4. Invoke the organic-os:hoo-reflector skill to propose skillbook deltas from
    this week's signals + outcomes.
 5. Queue any proposed work items; rebuild queue; notify per approval channel.
