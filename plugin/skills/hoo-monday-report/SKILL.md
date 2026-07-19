@@ -25,7 +25,13 @@ scheduled runs receive the brain path from the routine configuration.
      line for AI referrals - the week's total and the direction against
      the prior week (the AI-surface list is maintained in hoo-daily's
      SKILL.md); no `ai_referrals` lines in the window means no AI line,
-     never an invented one. When
+     never an invented one. When the window's weekly run appended
+     keyword-portfolio rows to `keywords/history.tsv`, add one line for
+     the biggest mover - the keyword, position now vs the prior recorded
+     week, labeled honestly as GSC average position, not scraped SERP
+     rank (the rule lives in hoo-weekly's Keyword portfolio section); no
+     new history rows in the window means no keyword line, never an
+     invented one. When
      `~/.config/organic-os/cost-ledger-YYYYMM.tsv` exists,
      close the section with one cost line - runs this week, total
      duration, tokens where the ledger has them; no ledger means no cost

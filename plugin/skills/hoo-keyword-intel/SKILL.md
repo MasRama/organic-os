@@ -39,6 +39,10 @@ offer CSV import.
 Accept a Keyword Planner UI export: `csv_import.load_planner_csv(path)`.
 Auction Insights CSVs: summarize overlap/position trends per competitor.
 
+Tracked-keyword management: add keywords to track by editing
+`keywords/tracking.yaml` or asking in-session; the weekly run records
+their GSC history (skills/hoo-weekly, Keyword portfolio section).
+
 Output in every tier: REPORT.md with the top 20 opportunities, each carrying
 volume (or proxy), difficulty proxy, intent guess, recommended action
 (new page | optimize existing | ignore), and the evidence line.

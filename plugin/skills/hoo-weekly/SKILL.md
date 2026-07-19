@@ -37,6 +37,37 @@ Run cost: wrapper-invoked runs land one row in
 `~/.config/organic-os/cost-ledger-YYYYMM.tsv` (written by the runtime
 wrapper, never by this skill); the Monday report is what surfaces it.
 
+## Keyword portfolio
+
+Runs when the GSC connector is reachable AND keywords/tracking.yaml has
+entries. Either one missing: skip and note it as one line in REPORT.md
+("keyword portfolio: skipped, no GSC connector" / "keyword portfolio:
+skipped, no tracked keywords") instead of guessing.
+
+1. For each tracked keyword, pull the last-28-day GSC average position,
+   clicks, and impressions for queries matching the tracked term.
+2. Append one history line per keyword to `keywords/history.tsv`
+   (create it with its header row if absent): date, keyword, position,
+   clicks, impressions - tab-separated, append-only, never edited (see
+   docs/site-repo-contract.md). A keyword with zero impressions has an
+   unknown position: record the row with clicks and impressions 0 and
+   the position field EMPTY - absent, never guessed.
+3. Report movement vs the previous recorded week in REPORT.md: for each
+   keyword with a prior history line, one line - position now, position
+   then, the delta, and the clicks/impressions direction. First-ever
+   run: state that history starts today; there is no movement to report.
+4. The biggest mover (either direction, by absolute position change)
+   gets one line in the Monday report's What moved section - the Monday
+   report reads it from the history file and this run's REPORT.md (see
+   skills/hoo-monday-report).
+
+THE HONESTY RULE, stated here and repeated in every output that quotes
+these numbers: this is GSC average position for queries matching the
+tracked term - real user impressions, not a scraped SERP snapshot
+(docs/adr/0006 in the repo: no scraping; GSC is the licensed data).
+Positions for keywords with zero impressions are unknown, recorded as
+absent, never guessed.
+
 ## Striking distance
 
 1. Pull GSC queries for the last 28 days for the profile's site.

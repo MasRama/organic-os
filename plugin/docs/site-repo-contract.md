@@ -28,7 +28,8 @@ organic-hq-<site>/
   proposals/                on-page fix proposals, same status lifecycle as briefs
   approvals/queue.md        pending-approval index, rebuilt on every status change
   runs/YYYYMMDD-<skill>/    timestamped run outputs: numbered raw files + REPORT.md
-  keywords/tracking.yaml    tracked keyword set + per-keyword history
+  keywords/tracking.yaml    tracked keyword set
+  keywords/history.tsv      GSC keyword-portfolio history, append-only (additive, see below)
   outcomes/                 post-change measurements linked back to the item that caused them
   drift/baseline.json       on-page snapshot for drift detection, WP-only, lazy (see below)
 ```
@@ -38,6 +39,17 @@ a starter `site-profile.yaml` with the site's URL and name filled in, an
 empty `skillbook.md` with its header, an empty `approvals/queue.md`, and an
 empty `keywords/tracking.yaml`. It never overwrites a file that already
 exists, so re-running setup on an existing brain repo is safe.
+
+`keywords/history.tsv` is additive the same way (`schema_version` stays
+`1`) and does not appear in the scaffold: the weekly routine's Keyword
+portfolio section (skills/hoo-weekly) creates it on its first run with a
+verified GSC connector and a non-empty tracked set. Tab-separated,
+header `date	keyword	position	clicks	impressions`, one appended row per
+tracked keyword per weekly run - append-only, rows never edited or
+removed, the same discipline as `signals/`. The position is GSC average
+position for queries matching the tracked term, never a scraped SERP
+rank; a keyword with zero impressions in the window gets an EMPTY
+position field - unknown is recorded as absent, never guessed.
 
 `drift/` is additive and does not appear in that scaffold: `schema_version`
 stays `1`, and the directory only comes into existence the first time
