@@ -72,7 +72,7 @@ Three bounded modules, one install:
 | **onsite-optimizer** | Audits any public page with no credentials and maps the site's internal-link graph; with a WordPress connection, applies approved on-page fixes and publishes approved drafts, always verified and rollback-capable |
 | **content-engine** | Turns an approved brief (explainer or comparison) into a publish-ready draft - research, brand-voice compliance, SEO/authority pass, editorial QA, a human-review-necessity score for the approver - with an optional featured-image step |
 
-Verified inventory (2026-07-19): **20 skills, 20 slash commands, 14
+Verified inventory (2026-07-19): **21 skills, 21 slash commands, 14
 specialist agents, 235 passing tests.**
 
 ```mermaid
@@ -306,7 +306,7 @@ see `CONTRIBUTING.md` for the full guide and the data boundary CI enforces.
 
 ## Credits and prior art
 
-- [AgriciDaniel/claude-seo](https://github.com/AgriciDaniel/claude-seo) - the point-in-time SEO audit this project's signal-quality bar borrows from directly.
+- [AgriciDaniel/claude-seo](https://github.com/AgriciDaniel/claude-seo) - the point-in-time SEO audit this project's signal-quality bar borrows from directly. `/organic-os:import-audit` now imports its reports as gated proposals: they audit, we operate.
 - [seranking/seo-skills](https://github.com/seranking/seo-skills) - Claude Agent Skills for the SE Ranking MCP server; a reference for how to shape SEO data into finished deliverables as skills.
 - [WordPress/mcp-adapter](https://github.com/WordPress/mcp-adapter) - the official WordPress MCP bridge; not load-bearing in v1 (onsite-optimizer writes over plain REST) but tracked for its 1.0.
 - [Automattic/mcp-wordpress-remote](https://github.com/Automattic/mcp-wordpress-remote) - a reference implementation for remote WordPress MCP auth flows.

@@ -132,6 +132,20 @@ surface as gated proposals, no extra credential beyond GSC. See
 `plugin/docs/routines.md` for the full comparison and setup steps for each
 runtime.
 
+## Using organic-os with claude-seo
+
+Already running [claude-seo](https://github.com/AgriciDaniel/claude-seo)
+audits? Keep them. They audit, we operate: `/organic-os:import-audit`
+takes a claude-seo report or action plan (a file path or pasted text) and
+turns its findings into gated proposals instead of re-deriving what the
+audit already found. Findings keep their original evidence labels and
+their original text verbatim; each one is mapped onto the matching
+organic-os audit dimension where they overlap and marked external-only
+where they do not, and anything the parser cannot recognize is preserved
+as a raw excerpt rather than dropped. Imported proposals are born
+`proposed` and wait in the approval queue like everything else - nothing
+is auto-approved.
+
 ## Updating
 
 `/plugin update organic-os` only ever touches plugin code - your brain
