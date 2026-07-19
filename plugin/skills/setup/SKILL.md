@@ -1,6 +1,6 @@
 ---
 name: setup
-description: Use when the user installs organic-os, says "set up organic-os", "onboard my site", "connect my website", "add another website", "switch site", "organic-os status", or runs /organic-os:setup or /organic-os:sites. Audits the site URL and proposes a pre-filled profile before asking, scaffolds the per-site brain repo, runs the connector wizard with live verification, records credentials one at a time, registers routines for the chosen runtime, ends with a tested postflight scorecard, and manages the multi-site registry (add / update / switch / status).
+description: Use when the user installs organic-os, says "set up organic-os", "onboard my site", "connect my website", "add another website", "switch site", "organic-os status", or runs /organic-os:setup or /organic-os:sites. Reads the enable-time install form first (anything filled there is never re-asked), audits the site URL and proposes a pre-filled profile before asking, scaffolds the per-site brain repo, runs the connector wizard with live verification, records credentials one at a time, registers routines for the chosen runtime, ends with a tested postflight scorecard, and manages the multi-site registry (add / update / switch / status).
 ---
 
 # organic-os setup
@@ -21,6 +21,22 @@ both, but only ends on the second - see Postflight scorecard.
   for the answer, then ask the next one.
 - **Offer a default with every question.** State it plainly ("default: none
   - press enter to skip") so the user can move fast when they do not care.
+- **Choice questions are chips.** Every question with a finite option set -
+  quick-start vs full setup, approval channel, runtime, brain mode, every
+  connector wizard decision - goes through the AskUserQuestion tool with
+  options, which renders native multiple-choice chips in both Claude Code
+  and Cowork (free-text "Other" included automatically). Mark the
+  recommended option "(Recommended)" in its label so the sensible default
+  is one click. Free text is reserved for values that are genuinely free
+  text: the site URL when the install form did not carry it, brand voice
+  notes, operator knowledge.
+- **Install-form answers are pre-answered questions.** Anything Step 0.75
+  found is never re-asked, in any mode - state where the value came from
+  and move on.
+- **Secrets are referenced, never echoed.** Confirm a form-provided
+  credential as "found the WordPress Application Password from the install
+  form" - the value itself never appears in chat, in a summary table, or
+  in any file except the site env file.
 - **Show progress.** Prefix each question with where the user is - e.g.
   "question 3 of roughly 9" for the full setup interview (count whatever
   this run will actually ask: reviewing/editing the proposed profile,
@@ -96,6 +112,54 @@ file, because it changes where almost everything below gets written.
      the wrong identity or permissions, and it proves nothing about
      whether the runtime machine can push on its own.
 
+## Step 0.75: read the install form
+
+Claude Code and Cowork can render a native configuration form when the
+plugin is enabled, declared in `plugin.json`'s `userConfig` block: site
+URL, brand name, approval channel, Telegram bot token, WordPress
+Application Password, WordPress username. Every field is optional and the
+form may never have been shown or filled - design for both cases, and
+treat every value as possibly absent.
+
+Where the values land at runtime:
+
+- **Sensitive fields** (`telegram_bot_token`, `wp_app_password`) are
+  stored in the OS keychain and reach this session only as environment
+  variables: `CLAUDE_PLUGIN_OPTION_TELEGRAM_BOT_TOKEN` and
+  `CLAUDE_PLUGIN_OPTION_WP_APP_PASSWORD`. Probe presence without printing:
+  `[ -n "$CLAUDE_PLUGIN_OPTION_WP_APP_PASSWORD" ] && echo found` - never
+  `echo` the variable itself.
+- **Non-sensitive fields** substitute as `${user_config.site_url}`,
+  `${user_config.brand_name}`, `${user_config.approval_channel}`, and
+  `${user_config.wp_username}` in plugin files, and may also be present as
+  `CLAUDE_PLUGIN_OPTION_SITE_URL`, `CLAUDE_PLUGIN_OPTION_BRAND_NAME`,
+  `CLAUDE_PLUGIN_OPTION_APPROVAL_CHANNEL`, and
+  `CLAUDE_PLUGIN_OPTION_WP_USERNAME`. List names only, never values:
+  `env | grep '^CLAUDE_PLUGIN_OPTION_' | cut -d= -f1`.
+- **Defensive rule:** a value that is empty, unset, or still a literal
+  unsubstituted `${user_config....}` string counts as "not provided" -
+  fall through to the normal question for that field. Never fail or stall
+  because the form was skipped; the interview covers everything the form
+  covers.
+
+What each present value pre-answers (never re-ask any of these):
+
+- `site_url` - the URL question in both modes; the audit starts from it
+  directly.
+- `brand_name` - replaces the domain-label guess.
+- `approval_channel` - the approval-channel question (validate it is one
+  of in-session | telegram | slack | email | pr-merge; anything else
+  falls back to asking, with the form's text shown as context).
+- `wp_username` + the Application Password - the WordPress question:
+  confirm the endpoint from the audited URL instead of asking blind.
+- `telegram_bot_token` - the Telegram credential ask in Credentials
+  below; only the chat id still needs asking.
+
+Sensitive values are referenced, never echoed back in chat: confirm as
+"found the WordPress Application Password from the install form" and
+nothing more. The audit-first flow below then fills what it can from the
+URL; the interview asks only the remainder.
+
 ## Step 1: read the registry, pick a mode
 
 Read `PYTHONPATH="$CLAUDE_PLUGIN_ROOT/lib" python3 -c "..."` calling
@@ -106,8 +170,9 @@ setup session).
 - **Registry empty** (no sites): if the caller (e.g. `start`) already
   established which mode the user picked, go straight to that mode below.
   Otherwise ask first, AskUserQuestion with options:
-  - `Quick start (URL, then 2 more questions, ~2 minutes)` - go to the
-    quick-start interview below.
+  - `Quick start (~2 minutes) (Recommended)` - go to the quick-start
+    interview below. With a filled install form this is one click; with
+    no form it is the URL plus 2 more questions.
   - `Full setup (audit the site, then review the proposal)` - go to the
     full setup interview below.
 - **Sites exist**: ask the user what they want, AskUserQuestion with options:
@@ -186,11 +251,16 @@ answer - this is the "audit-and-propose" model: enter a URL, get a
 pre-filled profile to approve, instead of a wall of questions the plugin
 could have answered itself.
 
-1. **Ask for the site URL.** No default - this is the one thing neither
-   mode can guess. If the brand name is not obviously derivable from the
+1. **Ask for the site URL** - unless Step 0.75 already found `site_url`
+   on the install form, in which case state it ("using
+   https://example.com from the install form") and skip straight to the
+   audit. When asking: no default - this is the one thing neither mode
+   can guess. If the brand name is not obviously derivable from the
    domain label (a generic domain, or one that plainly does not match the
    brand), ask for it in the same turn; otherwise guess it from the domain
-   label and let the user correct it during proposal review.
+   label and let the user correct it during proposal review. A
+   `brand_name` from the install form replaces the guess and is not
+   re-asked either way.
 2. **Audit before asking anything else.** Fetch the homepage and
    `<url>/sitemap.xml` (or whatever sitemap the homepage's `<link
    rel="sitemap">` tag or `robots.txt` points at instead).
@@ -232,20 +302,27 @@ could have answered itself.
 
 ## Quick-start interview (propose + accept-all + defaults, ~2 minutes)
 
-Runs the shared audit above, then asks exactly 3 questions: URL, approval
-channel, confirm. Everything else gets a stated default, not a silent one -
-tell the user what was defaulted (or proposed-and-accepted) in the closing
-summary table so nothing is a surprise later.
+Runs the shared audit above, then asks at most 3 questions: URL, approval
+channel, confirm - minus anything the install form pre-answered (Step
+0.75). **With a filled form, quick start asks ZERO questions:** the URL
+and the channel come from the form, and only the confirm chip in question
+3 remains. Form filled = one click to a configured site. Everything else
+gets a stated default, not a silent one - tell the user what was
+defaulted (or proposed-and-accepted, or read from the form) in the
+closing summary table so nothing is a surprise later.
 
-1. Site URL (+ brand name only if not derivable - see above).
-2. Approval channel: in-session | telegram | slack | email | pr-merge.
-   Default: in-session - no setup required, works immediately.
-3. Confirm: show the proposed profile table (brand voice, audience, geos,
-   keywords, competitors - whatever the audit produced, or its degraded
-   fallback) and ask "does this look right?" - **Accept and continue** or
-   **Switch to full setup to review row by row**. Quick-start does not
-   support per-row editing; a user who wants that is, by definition,
-   choosing full setup.
+1. Site URL (+ brand name only if not derivable - see above). Skipped
+   entirely when the form carried `site_url`.
+2. Approval channel, AskUserQuestion chips: `in-session (Recommended)` |
+   telegram | slack | email | pr-merge. Recommended because it needs no
+   setup and works immediately. Skipped entirely when the form carried a
+   valid `approval_channel`.
+3. Confirm, AskUserQuestion chips: show the proposed profile table (brand
+   voice, audience, geos, keywords, competitors - whatever the audit
+   produced, or its degraded fallback) and ask "does this look right?" -
+   **Accept and continue (Recommended)** or **Switch to full setup to
+   review row by row**. Quick-start does not support per-row editing; a
+   user who wants that is, by definition, choosing full setup.
 
 Defaulted or proposed-and-accepted silently (state each one in the summary
 table, do not ask):
@@ -262,7 +339,11 @@ table, do not ask):
 - **Connectors, Google Ads, WordPress**: left `unknown`/`none`/unconnected.
   Quick-start never runs the Connector wizard and never probes connectors -
   analysis-only is the correct default outcome for a 2-minute setup, even
-  when the audit detected WordPress on the site itself.
+  when the audit detected WordPress on the site itself. If the install
+  form carried a WordPress Application Password or a Telegram bot token,
+  say so ("found the WordPress Application Password from the install
+  form - run /organic-os:setup update mode to connect and verify it") -
+  quick start records nothing it has not probed, and it does not probe.
 - **Runtime**: `manual`. The user runs commands themselves until they choose
   to schedule routines (`$CLAUDE_PLUGIN_ROOT/docs/routines.md`).
 - **Brain path**: `~/organic-hq/<slug>`, same derivation as full setup.
@@ -298,8 +379,8 @@ it could not answer.
 
 1. **Review the proposed profile.** Present the full table from the audit
    (site, brand voice, audience, keywords, competitors, geos, WordPress
-   detection). Ask, AskUserQuestion: **Accept all** / **Edit specific
-   rows** / **Answer manually instead**.
+   detection). Ask, AskUserQuestion chips: **Accept all (Recommended)** /
+   **Edit specific rows** / **Answer manually instead**.
    - *Edit specific rows*: one row at a time, same interview-style rules
      as everything else here - one question, a stated default (the
      audit's proposed value), progress shown.
@@ -330,19 +411,30 @@ it could not answer.
 5. **WordPress**: infra is never guessed, so this stays an explicit
    question even though the audit already looked - if the audit detected
    WordPress, say so and ask to confirm the endpoint URL + username rather
-   than asking blind; otherwise ask whether they have a connected site
-   another CMS runs on. Either way, the Application Password itself goes
-   through **Credentials** below - it mirrors the exact wording of
+   than asking blind; otherwise ask (AskUserQuestion chips: **Yes,
+   WordPress** / **Another CMS** / **No CMS connection (Recommended to
+   start)**) whether they have a connected site another CMS runs on. If
+   Step 0.75 found the Application Password (and `wp_username`), the
+   question collapses to confirming the endpoint URL: "found the
+   WordPress Application Password from the install form" - never echo it.
+   Otherwise the Application Password goes through **Credentials** below -
+   it mirrors the exact wording of
    `plugin/docs/credentials/wordpress.md` step 2.
-6. **Approval channel**: in-session | telegram | slack | email | pr-merge.
-   For telegram: chat id here, bot token through **Credentials** below
-   (same env file, key `TELEGRAM_BOT_TOKEN`). No channel is privileged;
-   default in-session.
-7. **Runtime for routines**: claude-scheduled | local | ci | manual - skip
-   this question if Step 0.5 already answered it; otherwise ask now and
-   carry the answer into Step 0.5's rules for the rest of setup. Explain
-   costs honestly: claude-scheduled and local run on the user's Claude
-   subscription; ci uses an API key billed per token.
+6. **Approval channel**, AskUserQuestion chips: `in-session (Recommended)`
+   | telegram | slack | email | pr-merge. Recommended because it needs no
+   setup and works immediately; no channel is privileged. Skip the
+   question entirely when the form carried a valid `approval_channel` -
+   state the value and move on. For telegram: chat id here, bot token
+   through **Credentials** below (same env file, key
+   `TELEGRAM_BOT_TOKEN`) - or from the install form when present.
+7. **Runtime for routines**, AskUserQuestion chips: `manual (Recommended
+   to start)` | claude-scheduled | local | ci - skip this question if
+   Step 0.5 already answered it; otherwise ask now and carry the answer
+   into Step 0.5's rules for the rest of setup. Manual is recommended
+   first because it costs nothing to change later (`plugin/docs/
+   routines.md`); explain costs honestly: claude-scheduled and local run
+   on the user's Claude subscription; ci uses an API key billed per
+   token.
 8. **Where should the brain live?** Default `~/organic-hq/<slug>` **on the
    runtime machine** (per Step 0.5 - if setup and runtime differ, this
    path is not on the machine setup is currently running in), where
@@ -358,8 +450,9 @@ it could not answer.
    `~/organic-hq/<slug>`. Do not scaffold anything at a path that still has
    open warnings without the user explicitly confirming they want to
    proceed anyway.
-9. **Brain mode**: git repo (recommended; needed for claude-scheduled and
-   ci runtimes and for versioned memory) or local folder. If git and Step
+9. **Brain mode**, AskUserQuestion chips: `git repo (Recommended)`
+   (needed for claude-scheduled and ci runtimes and for versioned
+   memory) or `local folder`. If git and Step
    0.5 flagged a setup/runtime mismatch, `git init` and the first commit
    happen natively on the runtime machine (see Step 0.5's git rule) - do
    not run them through a bridge.
@@ -401,13 +494,16 @@ For each connector, in this order:
    the user's actual surface:
    - claude.ai / Cowork: Settings, then Connectors.
    - Claude Code: `/mcp`, or `claude mcp add <server>` on the command line.
-   Then offer, AskUserQuestion:
+   Then offer, AskUserQuestion chips:
    - **Wait, connect it now** - pause, let the user connect, then re-probe
-     from step 1 once they confirm.
+     from step 1 once they confirm. Marked "(Recommended)" for GSC and
+     GA4, the heartbeat pair.
    - **Skip for now** - `core.contracts.record_connector(profile_path,
      name, "declined", context)`, plus one honest line about what
      degrades, pulled from the matching row of `plugin/docs/
-     connectors.md`'s capability table.
+     connectors.md`'s capability table. Marked "(Recommended)" for the
+     optional three (Notion, Slack, Canva) - they are extras, and
+     skipping keeps setup short.
 
 **GSC/GA4 get a stronger framing than the optional three.** Before offering
 to skip either one, say plainly: "organic-os without GSC/GA4 still runs,
@@ -444,6 +540,18 @@ Applies to every secret this interview or an update touches - the
 WordPress Application Password, the Telegram bot token, the Google Ads
 OAuth client secret.
 
+- **The install form comes first.** If Step 0.75 found the secret
+  (`CLAUDE_PLUGIN_OPTION_WP_APP_PASSWORD` or
+  `CLAUDE_PLUGIN_OPTION_TELEGRAM_BOT_TOKEN`), skip the ask entirely:
+  confirm as "found the ... from the install form", write the site env
+  file directly from the variable without printing it -
+  ```
+  mkdir -p ~/.config/organic-os && printf 'WP_APP_PASSWORD=%s\n' "$CLAUDE_PLUGIN_OPTION_WP_APP_PASSWORD" > ~/.config/organic-os/<site-slug>.env && chmod 600 ~/.config/organic-os/<site-slug>.env
+  ```
+  (same pattern, key `TELEGRAM_BOT_TOKEN`, for the bot token; append with
+  `>>` when the file already exists) - and verify by probe as usual. The
+  form value is keychain-backed; the env file exists so routines outside
+  this session can read it.
 - **One secret per question.** Never present a wall of env-file fields at
   once.
 - **Name it precisely** - the exact field the user is looking at in the

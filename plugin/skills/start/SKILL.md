@@ -50,6 +50,11 @@ Offer two paths, AskUserQuestion with options:
   Google Ads, WordPress, approval channel, runtime, brain location and
   mode.
 
+Mention the install form once, before handing off: if you filled the
+configuration form when you enabled the plugin, setup will use it -
+nothing is asked twice, and a filled form makes quick start a single
+confirmation click.
+
 Then invoke the `setup` skill in the chosen mode - quick-start mode or the
 full setup interview - and let it run to completion (scaffold, register,
 summary). Do not duplicate its questions here.
