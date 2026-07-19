@@ -57,7 +57,7 @@ stays `1`, and the directory only comes into existence the first time
 connector (`onsite.drift.save_baseline` creates it on demand). A brain
 repo with no WordPress connection never gets a `drift/` directory at all.
 
-Eight optional `site-profile.yaml` keys are additive the same way
+Nine optional `site-profile.yaml` keys are additive the same way
 (`schema_version` stays `1`; absence means off, or the stated default):
 
 - `brand: {readability_target: "grade 9-10"}` - the readability target
@@ -90,6 +90,14 @@ Eight optional `site-profile.yaml` keys are additive the same way
   absence means 40. The noise floor (a median below 10 skips the
   metric) and the minimum baseline (4 prior daily signals) are fixed in
   the skill, not configurable here.
+- `citations: {engines: [...]}` - the AI answer engines the citation
+  tracker (skills/hoo-citation-tracker) samples. Absence means the
+  default set, canonical in that skill. Each listed engine is checked
+  only when it is reachable from the session running the tracker -
+  unreachable engines are named as unreachable in the report, never
+  silently skipped. Adding an engine is one more list entry, through
+  the same connector-or-WebSearch path - no tiers, no per-engine
+  pricing.
 - `onsite: {dry_run: true}` - `onsite-apply` and `onsite-publish` run
   their full gated flow against a dry-run client that records every
   intended write instead of performing it; the outcome record is marked
