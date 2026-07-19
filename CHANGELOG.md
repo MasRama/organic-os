@@ -2,6 +2,44 @@
 
 ## [Unreleased]
 
+## [0.3.0-alpha.8] - 2026-07-19
+
+They audit, we operate: the claude-seo import lands. A point-in-time
+audit report becomes gated organic-os proposals instead of a re-derived
+audit.
+
+- **feat(hoo): external-audit import parser.** `hoo.audit_import`
+  (stdlib only, TDD, 16 tests) parses a claude-seo style markdown
+  audit report or action plan best-effort: severity-tier headings
+  (emoji or plain), bold-lead bullets, and numbered findings lists,
+  with evidence labels ([Measured]/[Inference]/[Unverified]) and
+  effort tags captured when present. The format belongs to the
+  external tool and may vary between versions, so parsing is
+  defensive - whatever matches no item pattern is preserved in
+  `unparsed` as a raw excerpt, never dropped. `to_proposals` ranks
+  findings (critical > high > medium > low > unlabeled, ties by
+  document order), derives contract-valid slugs, and shapes each into
+  a `create_item` body carrying the original finding verbatim
+  (quoted), its evidence label, the source attribution, and a
+  dimension-mapping note from the new `DIMENSION_HINTS` map: an
+  overlap names the onsite-audit dimension, an llms.txt finding gets
+  the deliberate-skip note per `plugin/docs/evidence.md`, and no
+  overlap is marked external-only.
+- **feat: /organic-os:import-audit skill + command.** hoo-import-audit
+  takes a file path or pasted report text, creates each proposal via
+  `create_item` (born `proposed` on the normal gate, never
+  auto-approved), presents a summary table (imported items with
+  severity + dimension mapping, skipped items with reason, unparsed
+  excerpt count), routes the approval notification through the
+  configured channel like any propose run, and appends one signal
+  recording the import (source date + counts). Policy, stated in the
+  skill: the import trusts but attributes - findings keep their
+  original evidence labels, and anything our own audit dimensions
+  would dispute is flagged for the human, not silently rewritten.
+  getting-started gains a using-organic-os-with-claude-seo section,
+  the README claude-seo credit notes the import path, and
+  INFORMATION-MAP gains the `DIMENSION_HINTS` row.
+
 ## [0.3.0-alpha.7] - 2026-07-19
 
 The content batch: three v0.3 roadmap items land together - the pipeline

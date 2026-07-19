@@ -122,7 +122,22 @@ deindexation,
 [source](https://www.rankability.com/data/does-google-penalize-ai-content/)).
 The `editorial:` profile section has begun with its first key,
 `editorial.oversight_threshold`; the full editorial-policy item below
-stays open. See CHANGELOG.md.
+stays open. See CHANGELOG.md. Also landed early, in v0.3.0-alpha.8:
+the claude-seo audit import - "they audit, we operate".
+`/organic-os:import-audit` parses a claude-seo report or action plan
+defensively (`hoo.audit_import`, stdlib only; the format is theirs and
+may vary between versions, so whatever cannot be parsed is preserved
+as a raw excerpt, never dropped), keeps every finding's original
+evidence label and text verbatim, maps findings onto our onsite-audit
+dimensions where they overlap and marks the rest external-only
+(llms.txt findings carry the deliberate-skip note per
+`plugin/docs/evidence.md`), and creates at most five ranked proposals
+via `create_item` - born `proposed` on the normal gate, never
+auto-approved. See CHANGELOG.md. Still open in v0.3, itemized below:
+the analytics adapter slot, the image-generation adapter slot, the
+gated image and alt-text fix workflow, and the full editorial-policy
+section; the Shopify adapter stays deprioritized (below) and pipeline
+parallelism stays upstream-gated.
 
 - **Analytics adapter slot.** GA4 is the first adapter; Microsoft Clarity
   and Matomo are welcome contributions.
@@ -139,9 +154,6 @@ stays open. See CHANGELOG.md.
   is the section's first key. Regulated-industry review stages (for
   example a compliance reviewer before publish) belong to v1.0's
   multi-approver work.
-- **claude-seo audit import.** They audit, we operate: import a claude-seo
-  report as a seed set of findings organic-os can turn into proposals,
-  instead of re-deriving what a point-in-time audit already found.
 - **Pipeline parallelism.** Per-page audit fan-out and research prefetch
   when sub-agent dispatch is reliable in headless runs (upstream
   dependency).
