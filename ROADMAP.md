@@ -152,6 +152,12 @@ stays upstream-gated.
 
 ## v0.4 - Adapter breadth and editorial depth
 
+**Status (2026-07-19): the v0.4 queue is COMPLETE except two items** -
+the Shopify adapter (deprioritized below, waiting on the first external
+demand) and pipeline parallelism (gated on an upstream dependency, not
+on this project). Everything else landed early across v0.4.0-alpha.1
+through v0.4.0-alpha.5, as itemized per bullet.
+
 The five report-and-tracking items below were added after a market review
 of commercial AI-visibility and SEO tooling (2026-07, owner-approved):
 each one is a capability users demonstrably pay for elsewhere, rebuilt on
@@ -177,16 +183,31 @@ this project's terms - evidence-tiered, BYO-credential, no scraping.
   local-generator adapter; contributions are welcome against that
   contract.
 - **Gated image and alt-text fix workflow.** The audit already finds the
-  gaps; close the loop with proposals the apply path executes.
+  gaps; close the loop with proposals the apply path executes. **Landed
+  early** in v0.4.0-alpha.5: the CMS adapter contract grows `get_media`
+  and `update_media_alt` with a per-adapter `media_alt` capability mode
+  (WordPress writes the media library's alt_text; git-static rewrites
+  the alt inside the content file, delivered as a PR), and the image-fix
+  action type runs the normal gate - proposed alt text grounded in the
+  surrounding content and never keyword-stuffed, missing images routed
+  through the ce-image brief with the apply path only ever placing an
+  existing file, and anything beyond the adapter's declared mode ending
+  partially-applied with the human step named. See CHANGELOG.md.
 - **Editorial policy in the site profile.** An additive `editorial:`
   section turning an organization's written conventions (minimum internal
   links, external-link limits, image requirements, sourcing rules) into
   hard QA checks, the way the answer capsule and readability target are
   enforced today. Free-text rulebook prose keeps working; this makes it
   enforceable. Begun in v0.3.0-alpha.7: `editorial.oversight_threshold`
-  is the section's first key. Regulated-industry review stages (for
-  example a compliance reviewer before publish) belong to v1.0's
-  multi-approver work.
+  was the section's first key. **Landed early** in v0.4.0-alpha.5, the
+  section complete: `core.contracts.editorial_policy` resolves the
+  section over canonical defaults, and ce-qa enforces internal-link
+  minimum, external-link cap, image minimum, sourcing mode, and a
+  required reviewer note as return-to-writer hard checks - the policy
+  keys are the enforceable floor, the rulebook prose stays the voice.
+  See CHANGELOG.md. Regulated-industry review stages (for example a
+  compliance reviewer before publish) belong to v1.0's multi-approver
+  work, as planned.
 - **Pipeline parallelism.** Per-page audit fan-out and research prefetch
   when sub-agent dispatch is reliable in headless runs (upstream
   dependency).

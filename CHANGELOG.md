@@ -2,6 +2,60 @@
 
 ## [Unreleased]
 
+## [0.4.0-alpha.5] - 2026-07-19
+
+The last two open v0.4 queue items land: image findings become gated
+fixes, and an organization's editorial conventions become hard QA
+checks.
+
+- **feat(onsite): gated image and alt-text workflow.** The audit
+  already found the gaps; the loop now closes with proposals the apply
+  path executes. The CMS adapter contract grows `get_media` (the
+  images referenced in a post plus their alt text) and
+  `update_media_alt`, with a `media_alt` capability key per adapter.
+  WordPress (`media_alt: True`): get_media parses the rendered
+  content's img tags - the src and the alt that actually renders - and
+  fetches library alt_text for wp-image-stamped attachments only; an
+  unstamped image carries media_id None, never a guess.
+  update_media_alt writes alt_text to /wp/v2/media/<id>, dry-run
+  aware. Git-static (`media_alt: "in-content"`): alt text lives in the
+  content file, so the fix is a content rewrite -
+  `<post-ref>::<src>` for a body image (markdown and img-tag forms),
+  `<post-ref>::frontmatter` for ce-image's featured alt field -
+  delivered on the normal branch/PR flow. The new image-fix action
+  type: onsite-propose grounds each proposed alt in the surrounding
+  content (accessibility text first, never keyword-stuffed) and routes
+  missing in-content images through the ce-image brief; onsite-apply
+  consults the media_alt mode first, records prior alts for rollback,
+  verifies by reading the alt back, only ever PLACES an existing
+  generated file (nothing in the apply path generates an image), and
+  ends anything beyond the adapter's declared mode partially-applied
+  with the human step named. The gate is unchanged.
+- **feat(ce): the editorial policy section, complete.** Begun in
+  v0.3.0-alpha.7 with `editorial.oversight_threshold`; the full
+  section now ships. `core.contracts.editorial_policy(root)` resolves
+  the additive `editorial:` profile section over canonical defaults -
+  oversight_threshold 7, internal_links_min 0, external_links_max
+  none, images_min 0, sourcing key-claims, require_reviewer_note
+  false - with absent keys meaning defaults, unknown keys ignored, and
+  an invalid value refusing with the key named. ce-qa's hard-check
+  list becomes policy-driven: internal-link minimum, external-link
+  cap, image minimum (image briefs attached before pass), sourcing
+  mode (every-claim: all factual claims need sources; key-claims:
+  statistics and comparative claims do), and the required human
+  reviewer note - each a return to the writer on failure, alongside
+  the unchanged capsule and readability checks. Free-text brand
+  rulebook prose still applies on top: the policy keys are the
+  enforceable floor, the prose is the voice. Setup's full-mode
+  interview gains the Editorial rules chip question (defaults, set
+  now, or later via update mode), update mode edits the section, the
+  site-profile template documents the block, and updating.md's
+  "planned on the roadmap" sentence now points at the shipped section
+  (regulated-industry review stages stay v1.0 multi-approver work).
+- Tests 263 -> 292. With this release the v0.4 queue is complete
+  except the Shopify adapter (deprioritized, demand-gated) and
+  pipeline parallelism (upstream-gated) - see ROADMAP.md.
+
 ## [0.4.0-alpha.4] - 2026-07-19
 
 Citation tracking gains depth, and two capability slots get the
