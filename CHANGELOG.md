@@ -2,6 +2,54 @@
 
 ## [Unreleased]
 
+## [0.3.0-alpha.6] - 2026-07-19
+
+Three observe-side v0.3 roadmap items land together, all at the skill
+layer - no lib changes, no new gates: the loop learns to see brand
+mentions, entity drift across public properties, and the AI-referral
+traffic its work earns.
+
+- **feat(hoo): digital-PR mention signals.** hoo-weekly gains the
+  Mention opportunities section, after the query detectors: a capped
+  WebSearch sample of where the brand and its top 2 competitors appear
+  across public surfaces (industry roundups, comparison posts,
+  community threads) for the profile's top 3 topics - the
+  ADR-0006-sanctioned mechanism, same as the citation tracker.
+  Competitor-only surfaces become P3 signals in falsifiable form; at
+  most one outreach proposal per run, gated as kind=strategy, and a
+  human executes it - the skill never contacts anyone. Rationale
+  carried in the report: brand mentions correlate roughly 3x more
+  strongly with AI visibility than backlinks do (Ahrefs'
+  75,000-brand study). Honest sampling caveat, and no web access
+  degrades to a one-line skip note.
+- **feat(hoo): entity-consistency audit.** hoo-monthly-audit gains the
+  Entity consistency section: fetch the brand's public presences the
+  profile names - own homepage/about plus the new optional
+  `brand.properties:` list (additive, `schema_version` stays 1,
+  documented in site-repo-contract.md; only profile-listed URLs, never
+  guessed handles) - and compare core brand facts: name, one-line
+  description, founding/location claims where stated, logo reference,
+  sameAs cross-links. Each mismatch is a P2 signal per fact naming
+  what differs, where, and which version the profile says is
+  canonical. Own-site fixes route to gated proposals; third-party
+  fixes are named human steps - the skill never writes off-site. The
+  check joins entity-schema-engineer's method list.
+- **feat(hoo): AI-referral traffic segmentation.** hoo-daily segments
+  referral sessions from known AI surfaces when GA4 is reachable and
+  records an `ai_referrals` line in the daily signal - count plus top
+  landing pages. The surface list (chatgpt.com, perplexity.ai,
+  gemini.google.com, copilot.microsoft.com, claude.ai) is maintained
+  in hoo-daily's SKILL.md and reviewed quarterly; a new
+  INFORMATION-MAP row pins it as canonical there. hoo-weekly reads the
+  week-over-week trend into the health check and flags a sustained
+  one-page rise to the citation tracker's next movement check; the
+  Monday report includes AI referrals in What moved only when the
+  signals carry them, never invented when absent.
+
+Tests stay at 215 (skill-level changes only). Roadmap: "Digital-PR
+mention signals", "Entity-consistency audit", and "AI-referral traffic
+segmentation" move to landed. Audit and verify-gates green throughout.
+
 ## [0.3.0-alpha.5] - 2026-07-19
 
 Two v0.3 roadmap items land together because they are one loop: the

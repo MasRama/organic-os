@@ -85,7 +85,23 @@ striking-distance pages, redirect chains) and the gated redirect and
 the adapter's `capabilities()['redirects']` mode - wordpress
 `needs-plugin`, git-static `config-file` via the additive
 `cms.redirect_file` key - with anything beyond the declared mode ending
-partially-applied and the human step named). See CHANGELOG.md.
+partially-applied and the human step named). See CHANGELOG.md. Also
+landed early, in v0.3.0-alpha.6: the three observe-side items -
+digital-PR mention signals (hoo-weekly samples where the brand and its
+competitors are mentioned across public surfaces; competitor-only
+surfaces become P3 signals, at most one gated outreach proposal per
+run, and a human executes it - brand mentions correlate roughly 3x
+more strongly with AI visibility than backlinks do, per Ahrefs'
+75,000-brand study,
+[source](https://ahrefs.com/blog/ai-brand-visibility-correlations/)),
+the entity-consistency audit (hoo-monthly-audit compares core brand
+facts across the site and the profile-listed properties in the
+additive `brand.properties:` key; consistency across authoritative
+sources drives inclusion in AI answers,
+[source](https://www.useomnia.com/blog/how-to-improve-brand-visibility-chatgpt)),
+and AI-referral traffic segmentation in the daily observe
+([source](https://www.semrush.com/blog/the-operational-gap-ai-seo-study/)).
+See CHANGELOG.md.
 
 - **Analytics adapter slot.** GA4 is the first adapter; Microsoft Clarity
   and Matomo are welcome contributions.
@@ -93,14 +109,6 @@ partially-applied and the human step named). See CHANGELOG.md.
   and local generators fit the same slot.
 - **Gated image and alt-text fix workflow.** The audit already finds the
   gaps; close the loop with proposals the apply path executes.
-- **Digital-PR mention signals.** Proposes outreach targets; a human
-  executes. Brand mentions correlate roughly 3x more strongly with AI
-  visibility than backlinks do, per Ahrefs' 75,000-brand study
-  ([source](https://ahrefs.com/blog/ai-brand-visibility-correlations/)).
-- **Entity-consistency audit.** Checks the same brand facts across site,
-  LinkedIn, GitHub, and directories. Consistency across authoritative
-  sources drives inclusion in AI answers
-  ([source](https://www.useomnia.com/blog/how-to-improve-brand-visibility-chatgpt)).
 - **Comparison-content brief type in content-engine.** Listicles and
   X-vs-Y pages are the most-cited content shapes in AI search
   ([source](https://www.position.digital/blog/digital-pr-tactics/)).
@@ -108,8 +116,6 @@ partially-applied and the human step named). See CHANGELOG.md.
   feeding brief generation. (Pattern credit:
   [claude-seo](https://github.com/AgriciDaniel/claude-seo)'s SERP
   clustering; ours consumes keyword-intel output.)
-- **AI-referral traffic segmentation in the daily observe.**
-  ([source](https://www.semrush.com/blog/the-operational-gap-ai-seo-study/)).
 - **Editorial-oversight scoring before publish.** A human-review-required
   gate, scored per draft. Scaled, unedited AI content correlates with
   deindexation
