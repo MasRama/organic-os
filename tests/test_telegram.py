@@ -172,3 +172,101 @@ def test_send_item_states_reply_format():
     _, payload = http.sent[0]
     assert "Reply to this message" in payload["text"]
     assert "approve p-2" in payload["text"]  # strict form still shown
+
+
+# -- document delivery --------------------------------------------------------
+
+class FakeMultipartHTTP:
+    def __init__(self):
+        self.calls = []
+
+    def post_multipart(self, url, fields, file_field, file_name, file_bytes):
+        self.calls.append({"url": url, "fields": fields,
+                           "file_field": file_field, "file_name": file_name,
+                           "file_bytes": file_bytes})
+        return {"ok": True, "result": {"message_id": 5}}
+
+
+def test_send_document_posts_file_with_caption(tmp_path):
+    doc = tmp_path / "report.pdf"
+    doc.write_bytes(b"%PDF-1.4 fake")
+    http = FakeMultipartHTTP()
+    T.send_document("tok", 42, doc, caption="Week of 2026-07-13\n2 shipped",
+                    transport=http)
+    call = http.calls[0]
+    assert "sendDocument" in call["url"]
+    assert call["fields"]["chat_id"] == "42"
+    assert call["fields"]["caption"] == "Week of 2026-07-13\n2 shipped"
+    assert call["file_field"] == "document"
+    assert call["file_name"] == "report.pdf"
+    assert call["file_bytes"] == b"%PDF-1.4 fake"
+
+
+def test_send_document_caption_optional(tmp_path):
+    doc = tmp_path / "report.html"
+    doc.write_bytes(b"<p>hi</p>")
+    http = FakeMultipartHTTP()
+    T.send_document("tok", 42, doc, transport=http)
+    assert "caption" not in http.calls[0]["fields"]
+
+
+def test_urllibhttp_post_multipart_encodes_fields_and_file(monkeypatch):
+    captured = {}
+
+    class FakeResponse:
+        def __enter__(self):
+            return self
+        def __exit__(self, *a):
+            return False
+        def read(self):
+            return b'{"ok": true}'
+
+    def fake_urlopen(req, timeout=None):
+        captured["req"] = req
+        return FakeResponse()
+
+    monkeypatch.setattr(T.urllib.request, "urlopen", fake_urlopen)
+    http = T.UrllibHTTP()
+    out = http.post_multipart("https://api.example/sendDocument",
+                              {"chat_id": "42", "caption": "two lines"},
+                              "document", "r.pdf", b"BYTES\x00\xffHERE")
+    assert out == {"ok": True}
+    req = captured["req"]
+    ctype = req.headers["Content-type"]
+    assert ctype.startswith("multipart/form-data; boundary=")
+    boundary = ctype.split("boundary=", 1)[1]
+    body = req.data
+    assert boundary.encode() in body
+    assert b'name="chat_id"' in body and b"42" in body
+    assert b'name="caption"' in body and b"two lines" in body
+    assert b'name="document"; filename="r.pdf"' in body
+    assert b"BYTES\x00\xffHERE" in body
+    assert body.rstrip().endswith(b"--" + boundary.encode() + b"--")
+
+
+def test_urllibhttp_post_multipart_sanitizes_errors(monkeypatch):
+    import urllib.error
+
+    def fake_urlopen(req, timeout=None):
+        raise urllib.error.HTTPError(
+            "https://api.telegram.org/botSECRET-TOKEN/sendDocument",
+            413, "Payload Too Large", None, None)
+
+    monkeypatch.setattr(T.urllib.request, "urlopen", fake_urlopen)
+    http = T.UrllibHTTP()
+    try:
+        http.post_multipart("https://api.telegram.org/botSECRET-TOKEN/sendDocument",
+                            {"chat_id": "1"}, "document", "r.pdf", b"x")
+    except RuntimeError as e:
+        assert "SECRET-TOKEN" not in str(e)
+        assert "413" in str(e)
+    else:
+        raise AssertionError("post_multipart did not raise on HTTPError")
+
+
+def test_send_document_empty_caption_omitted(tmp_path):
+    doc = tmp_path / "r.html"
+    doc.write_bytes(b"<p>x</p>")
+    http = FakeMultipartHTTP()
+    T.send_document("tok", 42, doc, caption="", transport=http)
+    assert "caption" not in http.calls[0]["fields"]

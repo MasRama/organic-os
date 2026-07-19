@@ -19,6 +19,8 @@ import re
 import urllib.error
 import urllib.parse
 import urllib.request
+import uuid
+from pathlib import Path
 
 API = "https://api.telegram.org/bot{token}/{method}"
 _DECISION = re.compile(r"^(approve|reject)\s+([bp]-[\w-]+)\s*(.*)$", re.I)
@@ -76,6 +78,31 @@ class UrllibHTTP:
         except urllib.error.URLError as e:
             raise RuntimeError(f"telegram api error: {e.reason}") from None
 
+    def post_multipart(self, url, fields, file_field, file_name, file_bytes):
+        boundary = "organic-os-" + uuid.uuid4().hex
+        parts = []
+        for name, value in fields.items():
+            parts.append((f"--{boundary}\r\n"
+                          f'Content-Disposition: form-data; name="{name}"\r\n'
+                          f"\r\n{value}\r\n").encode())
+        parts.append((f"--{boundary}\r\n"
+                      f'Content-Disposition: form-data; name="{file_field}"; '
+                      f'filename="{file_name}"\r\n'
+                      f"Content-Type: application/octet-stream\r\n\r\n").encode()
+                     + file_bytes + b"\r\n")
+        parts.append(f"--{boundary}--\r\n".encode())
+        body = b"".join(parts)
+        req = urllib.request.Request(
+            url, data=body,
+            headers={"Content-Type": f"multipart/form-data; boundary={boundary}"})
+        try:
+            with urllib.request.urlopen(req, timeout=60) as r:
+                return json.load(r)
+        except urllib.error.HTTPError as e:
+            raise RuntimeError(f"telegram api error: HTTP {e.code} {e.reason}") from None
+        except urllib.error.URLError as e:
+            raise RuntimeError(f"telegram api error: {e.reason}") from None
+
 
 def send_item(http, token: str, chat_id, item: dict) -> None:
     m = item["meta"]
@@ -88,6 +115,21 @@ def send_item(http, token: str, chat_id, item: dict) -> None:
             f"Or send: approve {m['id']}  |  reject {m['id']} <reason>")
     http.post(API.format(token=token, method="sendMessage"),
               {"chat_id": chat_id, "text": text})
+
+
+def send_document(token: str, chat_id, file_path, caption=None, transport=None):
+    """Deliver a file (the weekly report as HTML or PDF) via sendDocument.
+
+    Multipart is built by the transport so tests capture the payload
+    without touching the network; the default transport is the real one.
+    """
+    http = transport if transport is not None else UrllibHTTP()
+    path = Path(file_path)
+    fields = {"chat_id": str(chat_id)}
+    if caption:
+        fields["caption"] = caption
+    return http.post_multipart(API.format(token=token, method="sendDocument"),
+                               fields, "document", path.name, path.read_bytes())
 
 
 def poll_decisions(http, token: str, chat_id, offset: int = 0):

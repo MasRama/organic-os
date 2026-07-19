@@ -1,0 +1,177 @@
+"""Render a markdown report as a self-contained HTML page, optionally PDF.
+
+Dependency-free by design: the renderer covers exactly the markdown subset
+the Monday report uses (headings, bold, links, lists, tables, paragraphs),
+not general markdown. The page carries its whole style inline - no external
+CSS, fonts, or scripts - so the file reads the same on a phone, in print,
+and inside a chat client's document preview.
+
+PDF is best-effort: find_pdf_converter() probes PATH for a known converter,
+to_pdf() invokes it and returns None on any failure. Callers always have
+the HTML to fall back on, so nothing here ever raises to them.
+"""
+import html as _html
+import re
+import shutil
+import subprocess
+from pathlib import Path
+
+# Probe order: best HTML fidelity first. Names, not paths - resolution is
+# PATH-based at call time, same as invoking them from a shell.
+CONVERTERS = ("pandoc", "wkhtmltopdf", "weasyprint", "soffice")
+
+_HEADING = re.compile(r"^(#{1,6})\s+(.*)$")
+_LIST_ITEM = re.compile(r"^\s*[-*]\s+(.*)$")
+_TABLE_SEP = re.compile(r"^\|?[\s:|-]+\|?$")
+_LINK = re.compile(r"\[([^\]]+)\]\(([^)\s]+)\)")
+_BOLD = re.compile(r"\*\*([^*]+)\*\*")
+
+_CSS = """
+:root { color-scheme: light; }
+body { margin: 0; background: #ffffff; color: #1c1c1c;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    Helvetica, Arial, sans-serif;
+  line-height: 1.55; font-size: 16px; }
+main { max-width: 42em; margin: 0 auto; padding: 24px 20px 48px; }
+header.site { border-bottom: 2px solid #1c1c1c; padding-bottom: 8px;
+  margin-bottom: 24px; }
+header.site .name { font-weight: 600; letter-spacing: 0.02em; }
+h1 { font-size: 1.6em; margin: 0.8em 0 0.4em; }
+h2 { font-size: 1.2em; margin: 1.4em 0 0.4em;
+  border-bottom: 1px solid #d9d9d9; padding-bottom: 4px; }
+h3, h4, h5, h6 { font-size: 1em; margin: 1.2em 0 0.3em; }
+p { margin: 0.6em 0; }
+ul, ol { margin: 0.6em 0; padding-left: 1.4em; }
+li { margin: 0.25em 0; }
+a { color: #0b57d0; text-decoration: underline; }
+table { border-collapse: collapse; width: 100%; margin: 0.8em 0;
+  font-size: 0.95em; }
+th, td { border: 1px solid #c9c9c9; padding: 6px 9px; text-align: left;
+  vertical-align: top; }
+th { background: #f2f2f2; }
+@media (max-width: 480px) {
+  body { font-size: 15px; }
+  main { padding: 16px 12px 32px; }
+  table { display: block; overflow-x: auto; }
+}
+@media print {
+  body { font-size: 12pt; }
+  main { max-width: none; padding: 0; }
+  a { color: inherit; }
+}
+"""
+
+
+def _inline(text: str) -> str:
+    text = _html.escape(text, quote=False)
+    text = _LINK.sub(r'<a href="\2">\1</a>', text)
+    text = _BOLD.sub(r"<strong>\1</strong>", text)
+    return text
+
+
+def _flush_paragraph(buf, out):
+    if buf:
+        out.append("<p>" + _inline(" ".join(buf)) + "</p>")
+        buf.clear()
+
+
+def _table_cells(line: str):
+    return [c.strip() for c in line.strip().strip("|").split("|")]
+
+
+def _render_body(markdown_text: str) -> str:
+    lines = markdown_text.splitlines()
+    out, para, i = [], [], 0
+    while i < len(lines):
+        line = lines[i]
+        m = _HEADING.match(line)
+        if m:
+            _flush_paragraph(para, out)
+            level = len(m.group(1))
+            out.append(f"<h{level}>{_inline(m.group(2).strip())}</h{level}>")
+            i += 1
+            continue
+        if (line.lstrip().startswith("|") and i + 1 < len(lines)
+                and _TABLE_SEP.match(lines[i + 1].strip())
+                and "|" in lines[i + 1]):
+            _flush_paragraph(para, out)
+            head = _table_cells(line)
+            i += 2
+            rows = []
+            while i < len(lines) and lines[i].lstrip().startswith("|"):
+                rows.append(_table_cells(lines[i]))
+                i += 1
+            out.append("<table>")
+            out.append("<thead><tr>"
+                       + "".join(f"<th>{_inline(c)}</th>" for c in head)
+                       + "</tr></thead>")
+            out.append("<tbody>")
+            for row in rows:
+                out.append("<tr>"
+                           + "".join(f"<td>{_inline(c)}</td>" for c in row)
+                           + "</tr>")
+            out.append("</tbody></table>")
+            continue
+        if _LIST_ITEM.match(line):
+            _flush_paragraph(para, out)
+            out.append("<ul>")
+            while i < len(lines):
+                m = _LIST_ITEM.match(lines[i])
+                if not m:
+                    break
+                out.append(f"<li>{_inline(m.group(1).strip())}</li>")
+                i += 1
+            out.append("</ul>")
+            continue
+        if not line.strip():
+            _flush_paragraph(para, out)
+            i += 1
+            continue
+        para.append(line.strip())
+        i += 1
+    _flush_paragraph(para, out)
+    return "\n".join(out)
+
+
+def render_html(markdown_text: str, title: str, site_name: str) -> str:
+    """The markdown report as one self-contained, phone-and-print-ready page."""
+    return ("<!doctype html>\n"
+            '<html lang="en">\n<head>\n<meta charset="utf-8">\n'
+            '<meta name="viewport" content="width=device-width, initial-scale=1">\n'
+            f"<title>{_html.escape(title, quote=False)}</title>\n"
+            f"<style>{_CSS}</style>\n</head>\n<body>\n<main>\n"
+            '<header class="site"><span class="name">'
+            f"{_html.escape(site_name, quote=False)}</span></header>\n"
+            f"{_render_body(markdown_text)}\n"
+            "</main>\n</body>\n</html>\n")
+
+
+def find_pdf_converter():
+    """The first known HTML-to-PDF converter on PATH, or None."""
+    for name in CONVERTERS:
+        if shutil.which(name):
+            return name
+    return None
+
+
+def to_pdf(html_path, converter):
+    """Convert the rendered HTML to PDF next to it. None on any failure."""
+    html_path = Path(html_path)
+    pdf_path = html_path.with_suffix(".pdf")
+    commands = {
+        "pandoc": ["pandoc", str(html_path), "-o", str(pdf_path)],
+        "wkhtmltopdf": ["wkhtmltopdf", str(html_path), str(pdf_path)],
+        "weasyprint": ["weasyprint", str(html_path), str(pdf_path)],
+        "soffice": ["soffice", "--headless", "--convert-to", "pdf",
+                    "--outdir", str(html_path.parent), str(html_path)],
+    }
+    cmd = commands.get(converter)
+    if cmd is None:
+        return None
+    try:
+        result = subprocess.run(cmd, capture_output=True, timeout=120)
+    except (OSError, subprocess.SubprocessError):
+        return None
+    if result.returncode == 0 and pdf_path.exists():
+        return pdf_path
+    return None
