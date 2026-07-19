@@ -11,6 +11,10 @@ brand:
   # readability_target: "grade 9-10"  # optional; ce-qa's readability hard check target (absence = grade 9-10)
   # properties: []       # optional; exact public property URLs (GitHub org/repo, LinkedIn page) the
   #                      # monthly entity-consistency audit compares - never guessed (absence = own site only)
+# editorial:              # optional; first key of the future editorial: section (ROADMAP:
+#   oversight_threshold: 7  # editorial policy in the profile). ce-editor's human-review-necessity
+#                           # score at or above this recommends a human line-edit before publish;
+#                           # onsite-publish surfaces it in the approval message (absence = 7)
 audience:
   segments: []           # ICP segments
   geos: []               # e.g. ["IN", "US"]

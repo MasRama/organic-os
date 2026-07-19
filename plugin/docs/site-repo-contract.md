@@ -45,7 +45,7 @@ stays `1`, and the directory only comes into existence the first time
 connector (`onsite.drift.save_baseline` creates it on demand). A brain
 repo with no WordPress connection never gets a `drift/` directory at all.
 
-Six optional `site-profile.yaml` keys are additive the same way
+Seven optional `site-profile.yaml` keys are additive the same way
 (`schema_version` stays `1`; absence means off, or the stated default):
 
 - `brand: {readability_target: "grade 9-10"}` - the readability target
@@ -60,6 +60,17 @@ Six optional `site-profile.yaml` keys are additive the same way
   Absence means the check covers the site's own pages only. Fixes the
   check proposes stay gated and on-site; anything on a third-party
   property is a named human step.
+
+- `editorial: {oversight_threshold: 7}` - the human-review-necessity
+  score (0-10, built by ce-editor's final pass from named factors:
+  claims density, YMYL adjacency, competitor mentions, legal/compliance
+  surface, verbatim research survival) at or above which the draft
+  notes recommend a human line-edit before publish and onsite-publish
+  surfaces that recommendation prominently in the approval-channel
+  message. Absence means 7. The score informs the approver; publishing
+  stays gated by the same single approval either way. This is the first
+  key of the future `editorial:` section (see ROADMAP: editorial policy
+  in the site profile).
 
 - `onsite: {dry_run: true}` - `onsite-apply` and `onsite-publish` run
   their full gated flow against a dry-run client that records every

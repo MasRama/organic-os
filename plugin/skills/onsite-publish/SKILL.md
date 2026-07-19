@@ -14,6 +14,14 @@ description: Use to publish an APPROVED, drafted content item via the CMS adapte
    Refuse a draft whose frontmatter lacks `capsule: verified` (ce-produce's
    handoff note) - the human can override in-session, and the override is
    recorded in the outcome record.
+   Read ce-editor's oversight block from the draft notes: a score at or
+   above the profile's `editorial.oversight_threshold` (default 7) adds
+   a prominent line to the approval-channel message - "editor recommends
+   a human line-edit: <top factor>". Publishing remains gated by the
+   same approval either way: the score informs the human, it does not
+   add a second gate. Rationale: scaled, unedited AI content correlates
+   with deindexation
+   (https://www.rankability.com/data/does-google-penalize-ai-content/).
 3. Create the post via the CMS adapter (`onsite.cms.adapter_for`;
    wordpress or git-static per `cms.type` - the git-static branch below
    replaces steps 3-4): `create_post` (status draft by default; status
