@@ -76,22 +76,23 @@ sites, writes markdown/MDX frontmatter in a local clone of the site
 repo, and delivers every approved change as a pull request, so the human
 merge is the final act - the natural pair for the pr-merge approval
 channel, serving the early-adopter persona directly. See CHANGELOG.md.
-The Shopify adapter (deprioritized) remains open.
+The Shopify adapter (deprioritized) remains open. Also landed early, in
+v0.3.0-alpha.5: internal-link graph analysis (`onsite.linkgraph` - a
+capped, sitemap-seeded, own-site-only crawl feeding onsite-audit's
+link-health dimension: broken links, orphans, hubs, shallow
+striking-distance pages, redirect chains) and the gated redirect and
+404 fix workflow (the redirect action type in onsite-apply, decided by
+the adapter's `capabilities()['redirects']` mode - wordpress
+`needs-plugin`, git-static `config-file` via the additive
+`cms.redirect_file` key - with anything beyond the declared mode ending
+partially-applied and the human step named). See CHANGELOG.md.
 
 - **Analytics adapter slot.** GA4 is the first adapter; Microsoft Clarity
   and Matomo are welcome contributions.
 - **Image-generation adapter slot.** Canva is the first adapter; Gemini
   and local generators fit the same slot.
-- **Gated redirect and 404 fix workflow.** `onsite-audit` already finds
-  broken links and missing redirects; this closes the loop with an apply
-  path instead of leaving the finding as a report line.
 - **Gated image and alt-text fix workflow.** The audit already finds the
   gaps; close the loop with proposals the apply path executes.
-- **Internal-link graph analysis.** A site-wide crawl that maps internal
-  links and flags orphaned or under-linked money pages, feeding
-  `link-authority-strategist`. The most-cited gap in commercial content
-  tools
-  ([source](https://slatehq.com/blog/clearscope-vs-marketmuse)).
 - **Digital-PR mention signals.** Proposes outreach targets; a human
   executes. Brand mentions correlate roughly 3x more strongly with AI
   visibility than backlinks do, per Ahrefs' 75,000-brand study

@@ -2,6 +2,52 @@
 
 ## [Unreleased]
 
+## [0.3.0-alpha.5] - 2026-07-19
+
+Two v0.3 roadmap items land together because they are one loop: the
+internal-link graph finds the broken links and the link gaps, and the
+gated redirect workflow is the apply path that closes them - findings
+become gated proposals, never report lines.
+
+- **feat(onsite): link graph builder.** `onsite.linkgraph` - stdlib
+  only, injectable fetcher per wp.py's session pattern, observe-side
+  (nothing here mutates). `crawl(base_url, fetch, max_pages=100,
+  seed_urls=None)` is a capped same-host BFS that never follows an
+  off-host link: ADR-0006 bans scraping third parties, and your own
+  property is yours to crawl - the own-site rule is enforced in code.
+  Sitemap-style `seed_urls` join the frontier so a page nothing links
+  to still enters the graph (what makes orphan detection possible).
+  Graph keys strip fragments and query strings; `out_raw` keeps the
+  as-written links. `analyze(graph)` returns broken links with their
+  source page, orphans, top-10 hubs by inbound, shallow pages (fewer
+  than 2 inbound), and redirect chains for 3xx targets; a target the
+  cap left uncrawled appears in no finding rather than being guessed
+  at. The default `stdlib_fetch` never follows redirects - a 3xx is
+  graph data, not a hop.
+- **feat(hoo+onsite): internal-link dimension + gated redirect/404
+  workflow.** onsite-audit gains the link-health dimension (step 4):
+  one capped sitemap-seeded crawl per run; broken internal links are
+  P2 signals feeding ONE gated fix proposal per run (rewrite the
+  source link, or a redirect where the target moved), orphans are P3
+  signals recommending links from the top hubs, and a shallow page
+  that is also on the weekly striking-distance list is a P2 with its
+  falsifiability line - the highest-leverage internal-link play.
+  hoo-monthly-audit runs the dimension site-wide (ADR-0010).
+  onsite-apply gains the redirect action type, decided by the
+  adapter's new `capabilities()['redirects']` mode: wordpress declares
+  `needs-plugin` (core WP has no redirect REST surface; the skill
+  probes Rank Math / Redirection surfaces at run time, verifies by
+  fetching the old URL for a 301, and otherwise ends the item
+  partially-applied naming the SEO-plugin redirections screen);
+  git-static declares `config-file` (an additive append to the
+  profile's new `cms.redirect_file` - `_redirects`, `netlify.toml`,
+  `vercel.json` - on the normal branch/PR flow). `native` is reserved.
+  Link rewrites stay on the plain `update_post` path, gates unchanged.
+
+18 new tests bring the suite to 215. Roadmap: "Internal-link graph
+analysis" and "Gated redirect and 404 fix workflow" move to landed.
+Audit and verify-gates green throughout.
+
 ## [0.3.0-alpha.4] - 2026-07-19
 
 The page-essentials wave: a third-party audit of a live deployment
