@@ -42,3 +42,35 @@ Auction Insights CSVs: summarize overlap/position trends per competitor.
 Output in every tier: REPORT.md with the top 20 opportunities, each carrying
 volume (or proxy), difficulty proxy, intent guess, recommended action
 (new page | optimize existing | ignore), and the evidence line.
+
+## Cluster the ideas
+
+Runs when the pull above produced 30 or more ideas (any tier). Fewer than
+30: skip silently - too few ideas cluster into noise, and a skip note
+would only add chrome.
+
+1. Group the ideas by intent + lexical family into named clusters
+   (shared head term, shared modifiers, same question family).
+2. For each cluster: pick the hub - the highest-volume informational head
+   term - and list the spokes (the remaining ideas that belong to it).
+3. Check existing coverage: map each cluster against the site's published
+   pages via the sitemap and, when the GSC connector is available, the
+   pages already earning impressions for the cluster's queries. A cluster
+   whose hub and spokes are already covered is reported as covered, not
+   re-proposed.
+4. Per UNCOVERED cluster, write ONE architecture signal (append_signal):
+   the hub topic, 3-5 spoke topics, and the internal-linking rule - every
+   spoke links the hub, the hub links every spoke. This is the build-time
+   complement of the link-graph dimension's shallow striking-distance
+   play (skills/onsite-audit step 4): pages born inside a cluster never
+   start with fewer than 2 inbound internal links.
+5. At most ONE cluster per run becomes a gated brief: for the best
+   uncovered cluster, `create_item(kind="content-brief", ...)` targeting
+   the hub, `brief_type` per the hub's intent (comparison-intent hub ->
+   `brief_type="comparison"`; absence means explainer). Gated through the
+   approval queue like every other proposal; the remaining clusters stay
+   signals until a future run.
+
+Pattern credit: claude-seo's SERP clustering
+(https://github.com/AgriciDaniel/claude-seo), adapted here to consume
+keyword-intel output instead of running its own SERP pulls.
