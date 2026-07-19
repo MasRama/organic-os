@@ -25,6 +25,27 @@ description: Use to turn audit findings or signals into concrete gated change pr
    - pr-merge: commit the proposal file on a branch, open a PR (gh pr create)
    - slack/email: post/send a summary via the available connector; approval
      happens in-session or by channel reply read at the next run
+4b. Image and alt-text fixes (action type: image-fix). Audit findings
+   from the images checks - a missing or empty alt (skills/onsite-audit
+   step 2), an imageless 500+ word explainer (step 3.3) - become one
+   `onpage-fix` proposal per page whose body declares `action:
+   image-fix` and carries one line per image:
+   - Missing alt text: the image's src and media id (from the CMS
+     adapter's `get_media`), the current alt (empty), and the proposed
+     alt text. Ground the proposed alt in the surrounding content:
+     describe what the image shows for someone who cannot see it, in
+     one sentence. Never keyword-stuffed - alt text is accessibility
+     text first, and a keyword appears only when the image is genuinely
+     about it.
+   - Missing in-content image: reference the ce-image brief path
+     (skills/ce-image writes `<slug>-image-brief.md`) as the creation
+     route, and name where in the post the image belongs. Creation
+     happens through that brief, outside the apply path: apply only
+     places a file that already exists (see the image-fix section in
+     skills/onsite-apply), so the proposal must be executable once the
+     asset exists, and honest about waiting until it does.
+   Same gate as every proposal: born proposed via `create_item`,
+   approved by a human, executed by onsite-apply.
 5. Record any in-session decisions immediately via the contract CLI:
    `PYTHONPATH="$CLAUDE_PLUGIN_ROOT/lib" python3 -m core approve <item-path>
    --actor <user> --channel in-session` (or `reject`, with `--note` for any

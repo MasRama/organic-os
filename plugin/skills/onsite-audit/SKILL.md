@@ -35,8 +35,10 @@ description: Use to audit on-page SEO for a URL or a whole site section - "audit
       first H2. Missing -> P2 signal + a content-refresh proposal.
    3. In-content images: zero images in a 500+ word explainer -> P3
       signal referencing the image-brief path (skills/ce-image writes
-      `<slug>-image-brief.md`). The audit only surfaces the gap
-      honestly; the full in-content image workflow remains roadmapped.
+      `<slug>-image-brief.md`). Image findings - this gap and step 2's
+      missing alts - now feed image-fix proposals (the image-fix action
+      type in skills/onsite-propose, executed gated by
+      skills/onsite-apply).
    4. Meta description length: lives in step 2's meta checks (extended
       there with the ~155-char flag) - listed here for completeness,
       never duplicated as a second check.

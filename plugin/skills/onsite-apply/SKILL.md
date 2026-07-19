@@ -189,6 +189,47 @@ write path the adapter does not declare:
   first-class through the adapter itself; no shipped adapter declares it
   today.
 
+## Image and alt-text fixes (action type: image-fix)
+
+Approved image-fix proposals carry per-image items (see the image-fix
+section in skills/onsite-propose): missing alt text with the proposed
+alt, and missing in-content images referencing a ce-image brief. The
+gate is unchanged - `require_approved` runs before any write, per item.
+Consult the adapter's `capabilities()['media_alt']` mode FIRST, the same
+honesty rule as redirects:
+
+- `True` (the WordPress adapter): before writing, record each target
+  image's current alt (`get_media(post_id)`) in the item's rollback
+  file - rollback for an alt fix is rewriting the old value (empty
+  included). Then `update_media_alt(media_id, alt_text)` per item.
+  An image `get_media` reports with `media_id: None` has no attachment
+  to write to - its alt is hard-coded in the post content, so fix it
+  via `update_post` on the content (snapshot and verify as usual); if
+  the markup is theme- or builder-owned and `update_post` cannot reach
+  it, the item ends partially-applied naming the step ("set the alt on
+  <src> in the theme/page builder").
+- `"in-content"` (the git-static adapter): `update_media_alt` rewrites
+  the alt inside the content file - media_id `<post-ref>::<src>` for a
+  body image, `<post-ref>::frontmatter` for the featured image's `alt:`
+  field. The change rides the normal git-static flow above unchanged:
+  gate first, `snapshot()` of the file, branch, PR, partially-applied
+  until the human merge.
+- Missing in-content image items PLACE, never generate: apply inserts a
+  reference to an image file that already exists (the ce-image output
+  named in the proposal, or a human-produced asset at that path), with
+  the proposal's alt text. Nothing in the apply path generates an
+  image. No file at the named path -> partially-applied with the step
+  named ("produce the image per <slug>-image-brief.md, then re-run
+  apply").
+
+Verify step reads the result back: after the writes, `get_media` on the
+target must show the new alt (and the placed image, for insertion
+items); on WordPress also confirm via the rendered content where
+available. A mismatch rolls back from the recorded prior values and
+marks the item failed, per the hard rules. Anything the adapter cannot
+do ends partially-applied with the named human step - never faked as
+done.
+
 ## Partial application
 
 When some changes in a proposal succeed and others hit a permission or

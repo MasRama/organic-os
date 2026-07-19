@@ -14,8 +14,10 @@ from tests.test_wp import FakeSession  # noqa: E402
 CONTRACT_CALLS = [
     ("get_post", (42,), {}),
     ("get_rendered_head", ("https://play.example/page",), {}),
+    ("get_media", (42,), {}),
     ("update_post", (42,), {"title": "T"}),
     ("update_seo_meta", (42,), {"title": "T"}),
+    ("update_media_alt", (7, "Alt text"), {}),
     ("create_post", ("T", "C", "t"), {}),
     ("snapshot", (42, ["title"]), {}),
     ("rollback", ({"post_id": 42},), {}),
@@ -48,6 +50,7 @@ def test_wpclient_capabilities_shape():
     assert caps["schema_injection"] is True
     assert caps["rendered_head_verify"] is True
     assert caps["author_profile_fields"] is True
+    assert caps["media_alt"] is True
     # Honest: core WP has no redirect REST surface; the apply skill
     # probes known plugin surfaces at run time.
     assert caps["redirects"] == "needs-plugin"

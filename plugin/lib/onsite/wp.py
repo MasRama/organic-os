@@ -19,12 +19,18 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
+import re
+
 from .cms import CmsAdapter
 
 RANKMATH_KEYS = {"title": "rank_math_title", "description": "rank_math_description",
                  "canonical": "rank_math_canonical_url",
                  "focus_keyword": "rank_math_focus_keyword",
                  "schema_jsonld": "agent_jsonld"}
+_IMG_TAG = re.compile(r"<img\b[^>]*>", re.I)
+_ATTR = {name: re.compile(rf'{name}\s*=\s*["\']([^"\']*)["\']', re.I)
+         for name in ("src", "alt", "class")}
+_WP_IMAGE_CLASS = re.compile(r"\bwp-image-(\d+)\b")
 
 
 class StdlibSession:
@@ -93,6 +99,41 @@ class WPClient(CmsAdapter):
         quoted = urllib.parse.quote(page_url, safe="")
         return self._call("GET", f"/rankmath/v1/getHead?url={quoted}")
 
+    def get_media(self, post_id: int) -> list:
+        """Images referenced in the post's content, with their alt text.
+
+        What is reliably readable, and what this returns per image:
+        - `src` and `alt`: parsed from the post's RENDERED content <img>
+          tags - the alt attribute the visitor's browser actually gets.
+          A missing alt attribute reads as "" (that is the finding).
+        - `media_id` + `library_alt`: WordPress stamps inserted
+          attachments with a `wp-image-<id>` class; for those, the media
+          endpoint's `alt_text` field (what WP re-inserts at insertion
+          time) is fetched from /wp/v2/media/<id>. An image without the
+          class stamp (hot-linked, theme-built, page-builder markup) has
+          media_id None and library_alt None - the attachment is never
+          guessed at, and only update_post can fix its in-content alt.
+        """
+        post = self.get_post(post_id)
+        content = (post.get("content") or {})
+        html = content.get("rendered") or content.get("raw") or ""
+        media = []
+        for tag in _IMG_TAG.findall(html):
+            attrs = {name: (m.group(1) if (m := rx.search(tag)) else None)
+                     for name, rx in _ATTR.items()}
+            stamp = _WP_IMAGE_CLASS.search(attrs.get("class") or "")
+            media_id = int(stamp.group(1)) if stamp else None
+            library_alt = None
+            if media_id is not None:
+                record = self._call("GET", f"/wp/v2/media/{media_id}")
+                library_alt = record.get("alt_text", "")
+            media.append({"media_id": media_id,
+                          "src": attrs.get("src") or "",
+                          "alt": attrs.get("alt") if attrs.get("alt")
+                          is not None else "",
+                          "library_alt": library_alt})
+        return media
+
     # -- writes (callers MUST hold an approved item; enforced in skills) --
     def update_post(self, post_id: int, **fields) -> dict:
         if self.dry_run:
@@ -117,6 +158,19 @@ class WPClient(CmsAdapter):
                                      "fields": fields, "user_id": user_id})
             return {"dry_run": True, "id": user_id, **fields}
         return self._call("POST", f"/wp/v2/users/{user_id}", fields)
+
+    def update_media_alt(self, media_id: int, alt_text: str) -> dict:
+        """Set an attachment's library alt text via /wp/v2/media/<id>.
+        Fixes the alt WP inserts going forward AND the rendered alt for
+        images whose markup echoes the attachment field; a hard-coded
+        in-content alt (media_id None in get_media) needs update_post."""
+        if self.dry_run:
+            self.dry_run_log.append({"method": "update_media_alt",
+                                     "fields": {"alt_text": alt_text},
+                                     "media_id": media_id})
+            return {"dry_run": True, "id": media_id, "alt_text": alt_text}
+        return self._call("POST", f"/wp/v2/media/{media_id}",
+                          {"alt_text": alt_text})
 
     def create_post(self, title: str, content: str, slug: str,
                     status: str = "draft", excerpt: str = "") -> dict:
@@ -169,6 +223,7 @@ class WPClient(CmsAdapter):
             "schema_injection": True,       # agent_jsonld via the bridge
             "rendered_head_verify": True,   # RankMath Headless getHead
             "author_profile_fields": True,  # update_user via /wp/v2/users
+            "media_alt": True,              # update_media_alt via /wp/v2/media
             # Core WordPress exposes no redirect REST surface; redirects
             # need an SEO plugin's module (Rank Math redirections, the
             # Redirection plugin). The apply skill probes those surfaces

@@ -86,7 +86,79 @@ def test_get_head_percent_encodes_url():
     assert "&" not in url.split("url=", 1)[1]   # the page URL is fully encoded
 
 
+# -- media: get_media / update_media_alt --------------------------------------
+
+RENDERED_WITH_IMAGES = (
+    '<p>Intro.</p>\n'
+    '<img class="size-full wp-image-7" '
+    'src="https://play.example/wp-content/uploads/chart.png" alt="A chart"/>\n'
+    '<img class="wp-image-9" '
+    'src="https://play.example/wp-content/uploads/photo.jpg" alt=""/>\n'
+    '<img src="https://cdn.example/hotlinked.png" alt="External"/>\n'
+)
+
+
+def _image_post_session():
+    s = FakeSession()
+    base = "https://play.example/wp-json"
+    s.responses[("GET", f"{base}/wp/v2/posts/42?context=edit")] = {
+        "id": 42, "title": {"raw": "Old"},
+        "content": {"raw": "raw", "rendered": RENDERED_WITH_IMAGES}}
+    s.responses[("GET", f"{base}/wp/v2/media/7")] = {
+        "id": 7, "alt_text": "Library alt"}
+    s.responses[("GET", f"{base}/wp/v2/media/9")] = {
+        "id": 9, "alt_text": ""}
+    return s
+
+
+def test_get_media_lists_images_with_in_content_and_library_alt():
+    # Reliably readable: the rendered content's <img> tags (src + the alt
+    # attribute that actually renders) and, for attachments carrying the
+    # wp-image-<id> class stamp, the media library's alt_text field.
+    s = _image_post_session(); c = make_client(s)
+    media = c.get_media(42)
+    assert len(media) == 3
+    assert media[0] == {"media_id": 7,
+                        "src": "https://play.example/wp-content/uploads/chart.png",
+                        "alt": "A chart", "library_alt": "Library alt"}
+    assert media[1]["media_id"] == 9
+    assert media[1]["alt"] == ""            # missing alt read honestly as empty
+    assert media[1]["library_alt"] == ""
+    # An image without a wp-image class has no media id; the library is
+    # never guessed at.
+    assert media[2]["media_id"] is None
+    assert media[2]["library_alt"] is None
+
+
+def test_get_media_fetches_only_stamped_attachments():
+    s = _image_post_session(); c = make_client(s)
+    c.get_media(42)
+    media_calls = [u for m, u, p in s.calls if "/wp/v2/media/" in u]
+    assert sorted(media_calls) == [
+        "https://play.example/wp-json/wp/v2/media/7",
+        "https://play.example/wp-json/wp/v2/media/9"]
+
+
+def test_update_media_alt_posts_alt_text():
+    s = FakeSession(); c = make_client(s)
+    c.update_media_alt(7, "A bar chart of weekly clicks")
+    method, url, payload = s.calls[-1]
+    assert method == "POST" and url.endswith("/wp/v2/media/7")
+    assert payload == {"alt_text": "A bar chart of weekly clicks"}
+
+
 # -- dry-run mode -------------------------------------------------------------
+
+def test_dry_run_update_media_alt_zero_session_calls_logs_intent():
+    s = FakeSession(); c = make_dry_client(s)
+    out = c.update_media_alt(7, "New alt")
+    assert s.calls == []                        # the session was never touched
+    assert out["dry_run"] is True
+    entry = c.dry_run_log[-1]
+    assert entry["method"] == "update_media_alt"
+    assert entry["media_id"] == 7
+    assert entry["fields"]["alt_text"] == "New alt"
+
 
 def test_update_user_writes_profile_fields():
     # Site-level author-entity fix: the onsite-audit page-essentials

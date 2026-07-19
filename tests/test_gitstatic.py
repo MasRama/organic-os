@@ -59,8 +59,9 @@ def read_parts(path):
 
 # -- contract conformance ------------------------------------------------------
 
-CONTRACT_SURFACE = ["get_post", "get_rendered_head", "update_post",
-                    "update_seo_meta", "create_post", "snapshot", "rollback",
+CONTRACT_SURFACE = ["get_post", "get_rendered_head", "get_media",
+                    "update_post", "update_seo_meta", "update_media_alt",
+                    "create_post", "snapshot", "rollback",
                     "capabilities", "adapter_name"]
 
 
@@ -92,6 +93,9 @@ def test_capabilities_declare_the_honest_gaps(repo):
     # Redirects land in the platform's config file (_redirects,
     # netlify.toml, vercel.json - the profile's cms.redirect_file key).
     assert caps["redirects"] == "config-file"
+    # Alt text lives in the content file itself (markdown image syntax or
+    # frontmatter), not a media database - the mode string says so.
+    assert caps["media_alt"] == "in-content"
     assert caps["needs_human"] == ["merge-pr", "deploy"]
 
 
@@ -229,6 +233,89 @@ def test_create_post_existing_file_raises(repo):
     with pytest.raises(RuntimeError) as exc:
         make_client(repo).create_post("old-post", "Clash", "B")
     assert "old-post" in str(exc.value)
+
+
+# -- media: get_media / update_media_alt ---------------------------------------
+
+IMAGE_POST = (
+    "---\n"
+    "title: With Images\n"
+    "alt: Featured card alt\n"
+    "draft: false\n"
+    "---\n"
+    "\n"
+    "Intro paragraph.\n"
+    "\n"
+    "![Old chart alt](/images/chart.png)\n"
+    "\n"
+    '<img src="/images/photo.jpg" alt="Photo alt">\n'
+    "\n"
+    "![](/images/no-alt.png)\n"
+)
+
+
+@pytest.fixture
+def image_repo(repo):
+    (repo / "src" / "content" / "with-images.md").write_text(IMAGE_POST)
+    return repo
+
+
+def test_get_media_lists_markdown_and_html_images(image_repo):
+    media = make_client(image_repo).get_media("with-images")
+    assert [(m["src"], m["alt"]) for m in media] == [
+        ("/images/chart.png", "Old chart alt"),
+        ("/images/photo.jpg", "Photo alt"),
+        ("/images/no-alt.png", "")]
+    # media_id is post-ref-scoped so update_media_alt can act on it alone.
+    assert media[0]["media_id"] == "with-images::/images/chart.png"
+
+
+def test_update_media_alt_rewrites_markdown_alt_round_trip(image_repo):
+    c = make_client(image_repo)
+    c.update_media_alt("with-images::/images/chart.png", "New chart alt")
+    media = c.get_media("with-images")
+    assert media[0]["alt"] == "New chart alt"
+    fm, body = read_parts(image_repo / "src" / "content" / "with-images.md")
+    assert "![New chart alt](/images/chart.png)" in body
+    assert "Old chart alt" not in body
+    assert '<img src="/images/photo.jpg" alt="Photo alt">' in body  # untouched
+    assert fm["title"] == "With Images"
+
+
+def test_update_media_alt_rewrites_html_and_empty_alts(image_repo):
+    c = make_client(image_repo)
+    c.update_media_alt("with-images::/images/photo.jpg", "A better photo alt")
+    c.update_media_alt("with-images::/images/no-alt.png", "Filled alt")
+    _, body = read_parts(image_repo / "src" / "content" / "with-images.md")
+    assert 'alt="A better photo alt"' in body
+    assert "![Filled alt](/images/no-alt.png)" in body
+
+
+def test_update_media_alt_frontmatter_target_writes_alt_field(image_repo):
+    # ce-image's convention: the featured image's alt lives in frontmatter.
+    c = make_client(image_repo)
+    c.update_media_alt("with-images::frontmatter", "New featured alt")
+    fm, body = read_parts(image_repo / "src" / "content" / "with-images.md")
+    assert fm["alt"] == "New featured alt"
+    assert "Old chart alt" in body              # body untouched
+
+
+def test_update_media_alt_unknown_src_raises_naming_it(image_repo):
+    with pytest.raises(RuntimeError) as exc:
+        make_client(image_repo).update_media_alt(
+            "with-images::/images/nope.png", "x")
+    assert "/images/nope.png" in str(exc.value)
+
+
+def test_dry_run_update_media_alt_zero_writes_logs_intent(image_repo):
+    c = make_client(image_repo, dry_run=True)
+    out = c.update_media_alt("with-images::/images/chart.png", "Dry alt")
+    assert (image_repo / "src" / "content" / "with-images.md"
+            ).read_text() == IMAGE_POST
+    assert out["dry_run"] is True
+    entry = c.dry_run_log[-1]
+    assert entry["method"] == "update_media_alt"
+    assert entry["fields"]["alt_text"] == "Dry alt"
 
 
 # -- snapshot / rollback -------------------------------------------------------

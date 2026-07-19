@@ -45,6 +45,10 @@ DEFAULT_FIELDS = {"title": "title", "description": "description",
 SEO_KEYS = ("title", "description", "canonical", "schema_jsonld")
 EXTENSIONS = (".md", ".mdx")
 _FRONTMATTER = re.compile(r"^---\n(.*?)\n---\n(.*)$", re.S)
+_MD_IMAGE = re.compile(r"!\[([^\]]*)\]\(\s*(<[^>]*>|[^)\s]+)[^)]*\)")
+_HTML_IMAGE = re.compile(r"<img\b[^>]*>", re.I)
+_SRC_ATTR = re.compile(r'src\s*=\s*["\']([^"\']*)["\']', re.I)
+_ALT_ATTR = re.compile(r'alt\s*=\s*["\']([^"\']*)["\']', re.I)
 
 
 class GitStaticClient(CmsAdapter):
@@ -143,6 +147,32 @@ class GitStaticClient(CmsAdapter):
             "(capabilities()['rendered_head_verify'] is False). Verify "
             f"post-deploy against the live URL instead: {page_url}")
 
+    @staticmethod
+    def _iter_images(body: str) -> list:
+        """(position-ordered) [(src, alt), ...] across markdown image
+        syntax and inline <img> tags in a content body."""
+        found = []
+        for m in _MD_IMAGE.finditer(body):
+            found.append((m.start(), m.group(2).strip("<>"), m.group(1)))
+        for m in _HTML_IMAGE.finditer(body):
+            tag = m.group(0)
+            src = (s.group(1) if (s := _SRC_ATTR.search(tag)) else "")
+            alt = (a.group(1) if (a := _ALT_ATTR.search(tag)) else "")
+            found.append((m.start(), src, alt))
+        return [(src, alt) for _, src, alt in sorted(found)]
+
+    def get_media(self, post_id) -> list:
+        """Images referenced in the content file's body, with their alt
+        text: markdown image syntax and inline <img> tags, in body order.
+        media_id is '<post-ref>::<src>' so update_media_alt() can act on
+        it alone; the frontmatter featured-image alt (ce-image's `alt:`
+        field) addresses as '<post-ref>::frontmatter' and is not listed
+        here - it belongs to the featured image, not the body."""
+        path = self._resolve(post_id)
+        _, body = self._parse(path)
+        return [{"media_id": f"{post_id}::{src}", "src": src, "alt": alt}
+                for src, alt in self._iter_images(body)]
+
     # -- writes (callers MUST hold an approved item; enforced in skills) -------
 
     def update_post(self, post_id, **fields) -> dict:
@@ -173,6 +203,60 @@ class GitStaticClient(CmsAdapter):
                              post_id)
         self._write(path, fm, body)
         return self._record(path, post_id, fm, body)
+
+    def update_media_alt(self, media_id, alt_text: str) -> dict:
+        """Alt text lives in the content itself (capabilities()
+        declares media_alt: 'in-content'), so this is a content rewrite:
+        '<post-ref>::<src>' rewrites that image's alt in the body
+        (markdown and <img> forms both); '<post-ref>::frontmatter' sets
+        the featured image's `alt:` frontmatter field (ce-image's
+        convention). Delivery rides the same branch/PR flow as any other
+        git-static content change."""
+        ref, sep, src = str(media_id).partition("::")
+        if not sep:
+            raise RuntimeError(
+                "git-static: media_id must be '<post-ref>::<src>' or "
+                f"'<post-ref>::frontmatter', got {media_id!r}")
+        path = self._resolve(ref)
+        fm, body = self._parse(path)
+        if src == "frontmatter":
+            if self.dry_run:
+                return self._dry("update_media_alt",
+                                 {"alt_text": alt_text}, media_id)
+            fm["alt"] = alt_text
+            self._write(path, fm, body)
+            return self._record(path, ref, fm, body)
+
+        changed = 0
+
+        def _md(m):
+            nonlocal changed
+            if m.group(2).strip("<>") != src:
+                return m.group(0)
+            changed += 1
+            return "![" + alt_text + m.group(0)[2 + len(m.group(1)):]
+
+        def _html(m):
+            nonlocal changed
+            tag = m.group(0)
+            s = _SRC_ATTR.search(tag)
+            if not s or s.group(1) != src:
+                return tag
+            changed += 1
+            if _ALT_ATTR.search(tag):
+                return _ALT_ATTR.sub(f'alt="{alt_text}"', tag)
+            end = "/>" if tag.rstrip().endswith("/>") else ">"
+            return tag[:-len(end)].rstrip() + f' alt="{alt_text}"' + end
+
+        new_body = _HTML_IMAGE.sub(_html, _MD_IMAGE.sub(_md, body))
+        if not changed:
+            raise RuntimeError(f"git-static: no image with src {src!r} in "
+                               f"{self._rel(path)}")
+        if self.dry_run:
+            return self._dry("update_media_alt", {"alt_text": alt_text},
+                             media_id)
+        self._write(path, fm, new_body)
+        return self._record(path, ref, fm, new_body)
 
     def create_post(self, slug: str, title: str, content: str,
                     status: str = "draft", excerpt: str = "",
@@ -237,6 +321,12 @@ class GitStaticClient(CmsAdapter):
             # (_redirects, netlify.toml, vercel.json) on the same
             # branch/PR flow as every other git-static change.
             "redirects": "config-file",
+            # Alt text lives in the content file itself (markdown image
+            # syntax or the featured image's frontmatter alt field);
+            # update_media_alt rewrites it there, and the change is
+            # delivered like any other content change - branch, PR,
+            # human merge.
+            "media_alt": "in-content",
             # Publishing is a human's merge, then the site's own deploy;
             # such steps end the item partially-applied with a note, never
             # faked as done.

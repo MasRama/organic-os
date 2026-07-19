@@ -52,6 +52,15 @@ class CmsAdapter:
         capabilities()['rendered_head_verify'] is True."""
         raise NotImplementedError
 
+    def get_media(self, post_id) -> list:
+        """The images referenced in one content unit, with their alt text:
+        a list of {'media_id', 'src', 'alt', ...} dicts. media_id is
+        adapter-defined (a WordPress attachment id, a git-static
+        post-scoped ref) and must be usable as update_media_alt()'s
+        target; an image whose backing record the adapter cannot identify
+        carries media_id None, never a guess."""
+        raise NotImplementedError
+
     # -- writes (callers MUST hold an approved item; gates stay in core) --
     def update_post(self, post_id, **fields) -> dict:
         """Update core content fields (title, content, slug, excerpt,
@@ -64,6 +73,15 @@ class CmsAdapter:
         focus_keyword, schema_jsonld. Adapters map these generic keys to
         their backend's own field names; unknown keys are dropped, never
         an error."""
+        raise NotImplementedError
+
+    def update_media_alt(self, media_id, alt_text: str) -> dict:
+        """Set one image's alt text. media_id is whatever get_media()
+        returned for that image. Only meaningful when
+        capabilities()['media_alt'] is truthy; the mode string
+        'in-content' means alt text lives inside the content file itself
+        (markdown image syntax or frontmatter), so the write is a content
+        rewrite delivered the same way update_post changes are."""
         raise NotImplementedError
 
     def create_post(self, title: str, content: str, slug: str,
@@ -87,7 +105,12 @@ class CmsAdapter:
         {'seo_meta_fields': bool, 'schema_injection': bool or a mode
          string (e.g. 'frontmatter-field'), 'rendered_head_verify': bool,
          'redirects': 'native' | 'config-file' | 'needs-plugin',
+         'media_alt': bool or 'in-content',
          'needs_human': [action types the adapter cannot perform]}.
+        The media_alt mode: True means the backend stores alt text on a
+        media record the adapter writes directly (WordPress); 'in-content'
+        means alt text lives inside the content file and the fix is a
+        content rewrite riding the adapter's normal delivery path.
         The redirects mode: 'native' means the backend writes redirects
         first-class through this adapter; 'config-file' means the skill
         layer appends to a platform config file the site profile names;
