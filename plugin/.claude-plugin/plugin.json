@@ -1,8 +1,42 @@
 {
   "name": "organic-os",
   "version": "0.4.0-alpha.1",
-  "description": "Agentic organic growth for any website: analytics-driven signals, keyword intelligence, AI-citation tracking, gated on-page execution on WordPress, and a learning loop that compounds in a per-site git repo.",
+  "description": "Agentic organic growth for any website: analytics-driven signals, keyword intelligence, AI-citation tracking, gated on-page execution on WordPress, and a learning loop that compounds in a per-site git repo. An optional configuration form appears when you enable the plugin; setup reads it so nothing is asked twice.",
   "author": { "name": "Shivaa Tripathi", "url": "https://shivaatripathi.com" },
   "homepage": "https://github.com/shalintripathi/organic-os",
-  "license": "MIT"
+  "license": "MIT",
+  "userConfig": {
+    "site_url": {
+      "type": "string",
+      "required": false,
+      "description": "Your website address (e.g. https://example.com). You can add or change sites later."
+    },
+    "brand_name": {
+      "type": "string",
+      "required": false,
+      "description": "Your brand or company name."
+    },
+    "approval_channel": {
+      "type": "string",
+      "required": false,
+      "description": "Where you want to approve changes: in-session, telegram, slack, email, or pr-merge. Default: in-session."
+    },
+    "telegram_bot_token": {
+      "type": "string",
+      "required": false,
+      "sensitive": true,
+      "description": "Optional: your Telegram bot token (from @BotFather) if you chose telegram."
+    },
+    "wp_app_password": {
+      "type": "string",
+      "required": false,
+      "sensitive": true,
+      "description": "Optional: your WordPress Application Password (Users > Profile > Application Passwords). Never your login password."
+    },
+    "wp_username": {
+      "type": "string",
+      "required": false,
+      "description": "Optional: the WordPress user the Application Password belongs to."
+    }
+  }
 }
