@@ -152,6 +152,11 @@ stays upstream-gated.
 
 ## v0.4 - Adapter breadth and editorial depth
 
+The five report-and-tracking items below were added after a market review
+of commercial AI-visibility and SEO tooling (2026-07, owner-approved):
+each one is a capability users demonstrably pay for elsewhere, rebuilt on
+this project's terms - evidence-tiered, BYO-credential, no scraping.
+
 - **Analytics adapter slot.** GA4 is the first adapter; Microsoft Clarity
   and Matomo are welcome contributions.
 - **Image-generation adapter slot.** Canva is the first adapter; Gemini
@@ -170,6 +175,27 @@ stays upstream-gated.
 - **Pipeline parallelism.** Per-page audit fan-out and research prefetch
   when sub-agent dispatch is reliable in headless runs (upstream
   dependency).
+- **Report delivery to channels.** The Monday report arrives as a styled
+  HTML document, and as PDF when a local converter is present, through
+  the configured approval channel. Source: agencies pay 20 to 69 dollars
+  per client per month for report automation alone, and PDF plus link in
+  one chat message is the documented winning delivery pattern.
+- **Anomaly alerts through approval channels.** Sharp metric breaks
+  surface as one alert on the channel the operator already watches.
+  Source: alerting is the retention feature of every commercial monitor;
+  ours rides the existing channel taxonomy instead of adding a dashboard.
+- **Keyword-portfolio tracking from GSC.** A tracked keyword set with
+  position over time, honestly labeled: GSC average position, not scraped
+  SERP rank. Source: rank tracking is the most-requested gap left by
+  ADR-0006; GSC is the licensed data that closes most of it.
+- **CSV export from the brain for BI tools.** Signals, outcomes, and
+  tracking flatten to CSV on demand. Source: commercial tools gate export
+  behind top tiers; our data is the user's own files, so export is a
+  right, not an upsell.
+- **Citation-tracker depth.** More engines via BYO credentials, plus
+  sentiment and position within answers, not just cited-or-not. Source:
+  per-answer position and sentiment are the paid tiers of every
+  AI-visibility product; BYO credentials keep it inside ADR-0006.
 
 The Shopify adapter does not move here: it stays parked under
 "Deprioritized, with reasons" below, still demand-gated on the first
@@ -197,6 +223,9 @@ external request.
 - **Adapter contribution guide.** A how-to for the CMS/channel adapter
   pattern established in v0.3, once there are enough real adapters to
   generalize from.
+- **Read-only MCP surface over the brain repo.** Commercial tools now
+  sell MCP access to their data; ours would be thin and optional, because
+  the brain is already plain files in the user's own git repo.
 
 ## Deprioritized, with reasons
 
@@ -232,6 +261,27 @@ general marketing suite.
 - **Conversion optimization beyond reporting.** On-site conversion work is
   a different discipline (CRO) from earning and keeping organic and AI
   visibility.
+
+## What we will not build
+
+The same market review that produced the v0.4 additions above also
+produced this list. These are not gaps waiting for engineering time; they
+are commercial-tool patterns rejected on principle, each with the reason
+stated so the rejection survives a re-litigation.
+
+- **Scraped SERP rank tracking.** ToS-violating scraping; ADR-0006 rules
+  it out, and the GSC-position tracking above is the honest substitute.
+- **Proprietary crawl or keyword databases.** BYO adapters exist; we will
+  not fake a data moat we do not have.
+- **Opaque 0-100 content scores.** A single score implies causation
+  without evidence; we ship named checks with evidence tiers instead.
+- **Pooled customer benchmarks.** Requires telemetry we refuse to
+  collect.
+- **Export gating and data-hostage patterns.** The brain is your git
+  repo; leaving must always be trivial.
+- **Aggregate visibility indexes without published methodology.** A
+  number nobody outside the vendor can recompute is marketing, not
+  measurement.
 
 ## Revisit triggers (not versioned)
 
