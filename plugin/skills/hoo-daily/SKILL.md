@@ -27,6 +27,40 @@ scheduled runs receive the brain path from the routine configuration.
    Zero matching sessions is a real value - write `ai_referrals: 0`. GA4
    unreachable means no `ai_referrals:` line at all, never a guessed
    one.
+2.6. Headline metrics line: record what steps 2 and 2.5 actually pulled as
+   ONE structured signal line so later runs can parse it - the exact
+   tokens `clicks: N`, `impressions: N`, `sessions: N` on a single line
+   (site-wide daily totals; a source that was not pulled omits its token,
+   never writes 0). Together with step 2.5's `ai_referrals: N` these are
+   the daily's structured metric forms; the anomaly check below parses
+   exactly these tokens across days.
+2.7. Anomaly check: for each headline metric this run actually has - GSC
+   clicks, GSC impressions, GA4 sessions, ai_referrals - collect the same
+   metric's values from the trailing 7 daily signal files (parse the
+   structured lines from steps 2.5 and 2.6; days without the metric are
+   gaps, never zeros) and compare today's value to the median of those
+   trailing values.
+   - Baseline discipline: fewer than 4 prior daily signals carrying the
+     metric -> skip that metric with a one-line note in today's signal
+     ("anomaly check: skipped <metric>, no baseline yet") - no baseline,
+     no alert.
+   - Noise floor: a trailing median below 10 -> skip the metric; percent
+     swings on single-digit medians are noise, not signals.
+   - Threshold: today deviating from the median by more than 40 percent
+     in either direction flags the metric. The default is
+     profile-configurable via the additive `alerts: {threshold_pct: 40}`
+     key in site-profile.yaml (absence means 40; see
+     docs/site-repo-contract.md).
+   Each flagged metric -> one P1 signal in falsifiable form: the metric,
+   today's value, the 7-day median, the direction, a one-line
+   likely-cause hypothesis (a weekend, a deploy, a tracking change, a
+   SERP feature shift - whichever the data points to), and the honest
+   caveat stated in the signal itself: weekends and seasonality can trip
+   this check. These P1 signals JOIN the daily alert below - never a
+   separate message.
+   Rationale: alerting is the retention feature of every commercial
+   monitor; ours rides the existing channel taxonomy instead of adding a
+   dashboard (ROADMAP, v0.4).
 3. Write one `append_signal` line per notable observation (threshold: any WoW
    move > 10% or position change > 2 or a new AI citation appearing/vanishing).
    Quiet days produce one line: "no notable movement (checked: <sources>)".
@@ -119,8 +153,9 @@ skipped pulling.
 After every section above has run, decide whether the operator needs to
 hear anything today. Actionable content is exactly:
 
-- P1 signals created by this run (drift "changed outside the loop",
-  money-page drops from step 4, failed re-verifications from step 5.5)
+- P1 signals created by this run (anomaly flags from step 2.7, drift
+  "changed outside the loop", money-page drops from step 4, failed
+  re-verifications from step 5.5)
 - the no-data nudge from step 3.5
 
 If any exist, send ONE message through the configured approval channel,

@@ -45,7 +45,7 @@ stays `1`, and the directory only comes into existence the first time
 connector (`onsite.drift.save_baseline` creates it on demand). A brain
 repo with no WordPress connection never gets a `drift/` directory at all.
 
-Seven optional `site-profile.yaml` keys are additive the same way
+Eight optional `site-profile.yaml` keys are additive the same way
 (`schema_version` stays `1`; absence means off, or the stated default):
 
 - `brand: {readability_target: "grade 9-10"}` - the readability target
@@ -72,6 +72,12 @@ Seven optional `site-profile.yaml` keys are additive the same way
   key of the future `editorial:` section (see ROADMAP: editorial policy
   in the site profile).
 
+- `alerts: {threshold_pct: 40}` - the deviation percent at which the
+  daily anomaly check (skills/hoo-daily step 2.7) flags a headline
+  metric against its trailing 7-day median and joins the daily alert;
+  absence means 40. The noise floor (a median below 10 skips the
+  metric) and the minimum baseline (4 prior daily signals) are fixed in
+  the skill, not configurable here.
 - `onsite: {dry_run: true}` - `onsite-apply` and `onsite-publish` run
   their full gated flow against a dry-run client that records every
   intended write instead of performing it; the outcome record is marked
