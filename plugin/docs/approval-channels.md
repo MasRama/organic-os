@@ -74,7 +74,12 @@ docs/INFORMATION-MAP.md in the repo):
 | A proposal needs you | The item (id, kind, title, target, body excerpt) plus how to approve or reject it |
 | An apply or publish run finishes | ONE outcome summary for the run: applied-and-verified items, partially-applied items with the named human step, failed or rolled-back items with the reason, published posts with their URL |
 | A daily run finds something actionable | ONE alert: P1 signals (drift, money-page drops, a failed re-verification of an applied change) or the no-data nudge |
+| The Monday report is ready | The weekly report as ONE document (PDF when the runtime has a converter, else styled HTML) with a two-line caption; the markdown in `runs/` stays the canonical record |
 | Anything else | Nothing. Quiet days are silent - silence means no action needed, never that something was hidden |
+
+Document delivery is a channel capability, not a Telegram feature
+(ADR-0009): each adapter declares whether it can carry a file, and a
+channel that cannot delivers the caption plus the file path instead.
 
 The outcome summary exists because approval without feedback breaks the
 loop: whoever said yes hears what happened, whether the change landed,

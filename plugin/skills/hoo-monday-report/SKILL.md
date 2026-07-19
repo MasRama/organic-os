@@ -51,4 +51,34 @@ scheduled runs receive the brain path from the routine configuration.
 5. Sparse week (few or no signals, outcomes, or shipped items): the report
    gets shorter, not padded - state plainly what did not happen ("no
    proposals shipped this week; two are still waiting on your review").
-6. Commit "monday-report: YYYY-MM-DD" if git.
+6. Deliver the report as a document through the configured approval
+   channel. Document delivery is a channel capability, not a Telegram
+   feature (ADR-0009 in the repo): each adapter declares whether it can
+   carry a file, and a channel that cannot reports the file path instead.
+   The markdown REPORT.md stays in `runs/` as the canonical record either
+   way - the document is a delivery format, never the source of truth.
+   a. Render HTML next to the markdown:
+      `PYTHONPATH="$CLAUDE_PLUGIN_ROOT/lib" python3 -c` snippet calling
+      `core.report_render.render_html(markdown_text, title, site_name)`
+      (title "Monday report YYYY-MM-DD", site_name from the profile) and
+      writing `runs/YYYYMMDD-monday-report/REPORT.html`.
+   b. Probe for a PDF converter with `core.report_render.find_pdf_converter()`
+      (the probe list is canonical in `report_render.py`). If one is
+      found, `core.report_render.to_pdf(html_path, converter)`; a None
+      return means fall back to the HTML file, no error.
+   c. Compose a two-line caption from the report itself: line 1 the week
+      ("Monday report, week of YYYY-MM-DD - <site name>"), line 2 the
+      single strongest What-moved line plus the count of items waiting
+      ("3 waiting on you" / "nothing waiting"). No invented numbers here
+      either - both lines quote the report.
+   d. Send per channel: telegram - `core.telegram.send_document(token,
+      chat_id, path, caption=...)` with the PDF if produced, else the
+      HTML. in-session - save the file where step 2 wrote it and tell
+      the user the exact path (attach it if the session surface can).
+      slack/email - the adapter sends the file where the connector
+      supports attachments; where it does not, deliver the caption plus
+      the file path. pr-merge - the report is already in the brain repo;
+      the caption plus the file path is the message.
+   e. A failed send never fails the run: note it in one line at the end
+      of REPORT.md and continue.
+7. Commit "monday-report: YYYY-MM-DD" if git.

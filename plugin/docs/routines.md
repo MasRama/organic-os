@@ -40,6 +40,11 @@ ledger row unless you route the run through the wrapper. The Monday report
 cost summary to its "What moved" section; when the ledger is absent, the
 report simply carries no cost line.
 
+The setup postflight scorecard reports which PDF converter (if any) the
+runtime has - the probe order is canonical in
+`plugin/lib/core/report_render.py`; with none present, the Monday report
+document arrives as styled HTML instead of PDF.
+
 This page was rewritten after a first real local-runtime install surfaced
 five failure modes that the original version did not warn about (headless
 auth, model aliases, slash-command expansion, TCC file permissions, and the

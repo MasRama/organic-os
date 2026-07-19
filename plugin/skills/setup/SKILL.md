@@ -587,7 +587,16 @@ Checks, in order:
    - A 404 on the model: fail, fix "see the Model-404 recovery box in
      `plugin/docs/routines.md` - list models via curl, pin
      `ANTHROPIC_MODEL`/`ANTHROPIC_SMALL_FAST_MODEL`."
-8. **One real scheduled run** (local runtime only) - kick the actual
+8. **PDF converter detection** - run
+   `PYTHONPATH="$CLAUDE_PLUGIN_ROOT/lib" python3 -c "from core.report_render
+   import find_pdf_converter; print(find_pdf_converter())"` in the runtime
+   context (the probe order is canonical in
+   `plugin/lib/core/report_render.py`). A converter found: pass, detail
+   names it ("Monday report will arrive as PDF via <name>"). None found:
+   degraded, detail "Monday report will arrive as styled HTML", fix "install
+   pandoc or wkhtmltopdf if you want PDF - HTML delivery works without
+   either." Never fail on this row; HTML is a full-fidelity fallback.
+9. **One real scheduled run** (local runtime only) - kick the actual
    scheduler (`launchctl kickstart -k gui/$(id -u)/com.organic-os.daily`,
    or the systemd/cron equivalent already registered) and confirm via
    `git log -1 --format='%h %s'` in the brain repo that a fresh commit
