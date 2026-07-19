@@ -2,6 +2,65 @@
 
 ## [Unreleased]
 
+## [0.3.0-alpha.7] - 2026-07-19
+
+The content batch: three v0.3 roadmap items land together - the pipeline
+learns the content shape AI search cites most, the keyword layer learns
+to propose content architecture instead of loose ideas, and every draft
+now tells the approver how badly it needs human eyes.
+
+- **feat(ce): comparison-content brief type.** Brief items gain an
+  optional, additive `brief_type` frontmatter field: absence means
+  explainer, `comparison` marks an X-vs-Y brief. Written only through
+  `create_item` (new optional param - content-brief kind only, unknown
+  values refuse), so the single write path stays the single write path.
+  ce-produce layers comparison-specific stage guidance: ce-researcher
+  fetch-verifies every third-party claim against the product's live
+  public pages with a checked-on date (pricing and features change),
+  ce-writer produces the X-vs-Y structure (the honest one-line
+  difference in the capsule, a table with only verified rows, a fair
+  "who should pick which"), and ce-qa adds two hard checks - no
+  unverifiable competitor claims (drop the row, never guess) and no
+  disparagement (factual differences only, no adjectives about
+  competitors). hoo-weekly and hoo-orchestrator set the field when
+  comparison-intent queries (vs / alternative / best-X-for) produced
+  the brief. Rationale: X-vs-Y and listicle shapes are the most-cited
+  content shapes in AI search
+  (https://www.position.digital/blog/digital-pr-tactics/).
+- **feat(hoo): topic clustering for content architecture.**
+  hoo-keyword-intel gains the "Cluster the ideas" section, running when
+  a keyword pull produced 30+ ideas (fewer skips silently): ideas group
+  by intent + lexical family into named clusters, each with a hub (the
+  highest-volume informational head term) and spokes; coverage is
+  checked against the site's published pages via sitemap and GSC; each
+  uncovered cluster becomes ONE architecture signal naming the hub,
+  3-5 spokes, and the internal-linking rule (spokes link the hub, the
+  hub links every spoke) - the build-time complement of the link-graph
+  dimension's shallow striking-distance play. At most one cluster per
+  run becomes a gated brief targeting the hub, brief_type per the hub's
+  intent. Pattern credit: claude-seo's SERP clustering
+  (https://github.com/AgriciDaniel/claude-seo), adapted to consume
+  keyword-intel output.
+- **feat(ce): editorial-oversight scoring before publish.** ce-editor's
+  final pass produces an oversight block in the draft notes: a 0-10
+  human-review-necessity score from named factors (claims density, YMYL
+  adjacency, competitor mentions, legal/compliance surface, verbatim
+  research survival), each factor one line with its contribution. At or
+  above the profile's `editorial.oversight_threshold` (default 7, a new
+  optional additive key - the first key of the future `editorial:`
+  section) the notes recommend a human line-edit and name the top
+  factor, and onsite-publish surfaces that recommendation prominently
+  in the approval-channel message. Publishing stays gated by the same
+  single approval either way: the score informs the human, it never
+  adds a second gate. Rationale: scaled, unedited AI content correlates
+  with deindexation
+  (https://www.rankability.com/data/does-google-penalize-ai-content/).
+
+Tests 215 -> 219 (the `brief_type` contract addition, TDD). Roadmap:
+"Comparison-content brief type", "Topic clustering", and
+"Editorial-oversight scoring" move to landed early; the full editorial-
+policy item stays open. Audit and verify-gates green throughout.
+
 ## [0.3.0-alpha.6] - 2026-07-19
 
 Three observe-side v0.3 roadmap items land together, all at the skill

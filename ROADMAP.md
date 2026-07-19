@@ -101,7 +101,28 @@ sources drives inclusion in AI answers,
 [source](https://www.useomnia.com/blog/how-to-improve-brand-visibility-chatgpt)),
 and AI-referral traffic segmentation in the daily observe
 ([source](https://www.semrush.com/blog/the-operational-gap-ai-seo-study/)).
-See CHANGELOG.md.
+See CHANGELOG.md. Also landed early, in v0.3.0-alpha.7: the content
+batch - the comparison-content brief type (an additive `brief_type`
+frontmatter field on brief items; ce-produce layers fetch-verified
+competitor research, the X-vs-Y draft structure, and two QA hard
+checks - X-vs-Y and listicle shapes are the most-cited content shapes
+in AI search,
+[source](https://www.position.digital/blog/digital-pr-tactics/)),
+topic clustering for content architecture (hoo-keyword-intel groups
+30+ ideas into hub-and-spoke clusters, writes one architecture signal
+per uncovered cluster, and gates at most one hub brief per run;
+pattern credit
+[claude-seo](https://github.com/AgriciDaniel/claude-seo)'s SERP
+clustering, ours consumes keyword-intel output), and
+editorial-oversight scoring before publish (ce-editor scores
+human-review necessity 0-10 from named factors; onsite-publish
+surfaces the recommendation in the approval message without adding a
+second gate - scaled, unedited AI content correlates with
+deindexation,
+[source](https://www.rankability.com/data/does-google-penalize-ai-content/)).
+The `editorial:` profile section has begun with its first key,
+`editorial.oversight_threshold`; the full editorial-policy item below
+stays open. See CHANGELOG.md.
 
 - **Analytics adapter slot.** GA4 is the first adapter; Microsoft Clarity
   and Matomo are welcome contributions.
@@ -109,24 +130,15 @@ See CHANGELOG.md.
   and local generators fit the same slot.
 - **Gated image and alt-text fix workflow.** The audit already finds the
   gaps; close the loop with proposals the apply path executes.
-- **Comparison-content brief type in content-engine.** Listicles and
-  X-vs-Y pages are the most-cited content shapes in AI search
-  ([source](https://www.position.digital/blog/digital-pr-tactics/)).
-- **Topic clustering for content architecture.** Hub-and-spoke clusters
-  feeding brief generation. (Pattern credit:
-  [claude-seo](https://github.com/AgriciDaniel/claude-seo)'s SERP
-  clustering; ours consumes keyword-intel output.)
-- **Editorial-oversight scoring before publish.** A human-review-required
-  gate, scored per draft. Scaled, unedited AI content correlates with
-  deindexation
-  ([source](https://www.rankability.com/data/does-google-penalize-ai-content/)).
 - **Editorial policy in the site profile.** An additive `editorial:`
   section turning an organization's written conventions (minimum internal
   links, external-link limits, image requirements, sourcing rules) into
   hard QA checks, the way the answer capsule and readability target are
   enforced today. Free-text rulebook prose keeps working; this makes it
-  enforceable. Regulated-industry review stages (for example a compliance
-  reviewer before publish) belong to v1.0's multi-approver work.
+  enforceable. Begun in v0.3.0-alpha.7: `editorial.oversight_threshold`
+  is the section's first key. Regulated-industry review stages (for
+  example a compliance reviewer before publish) belong to v1.0's
+  multi-approver work.
 - **claude-seo audit import.** They audit, we operate: import a claude-seo
   report as a seed set of findings organic-os can turn into proposals,
   instead of re-deriving what a point-in-time audit already found.

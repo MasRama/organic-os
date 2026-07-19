@@ -5,7 +5,7 @@ Claude plugin. The loop is the product.
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Tests](https://img.shields.io/badge/tests-219%20passing-brightgreen.svg)
-![Version](https://img.shields.io/badge/version-0.3.0-alpha.6-blue.svg)
+![Version](https://img.shields.io/badge/version-0.3.0-alpha.7-blue.svg)
 ![Works with](https://img.shields.io/badge/works%20with-Claude%20Code%20%2B%20Cowork-6f42c1.svg)
 
 ## The loop
@@ -68,9 +68,9 @@ Three bounded modules, one install:
 
 | Module | Does |
 |---|---|
-| **head-of-organic** | Observes (GA4, GSC, Google Ads keyword intel, AI-citation and AI-referral tracking, competitor content, brand-mention gaps, entity consistency, striking-distance/cannibalization/decay queries, on-page drift) and decides: emits signals and work items with falsifiable reasoning behind each one |
+| **head-of-organic** | Observes (GA4, GSC, Google Ads keyword intel with hub-and-spoke topic clustering, AI-citation and AI-referral tracking, competitor content, brand-mention gaps, entity consistency, striking-distance/cannibalization/decay queries, on-page drift) and decides: emits signals and work items with falsifiable reasoning behind each one |
 | **onsite-optimizer** | Audits any public page with no credentials and maps the site's internal-link graph; with a WordPress connection, applies approved on-page fixes and publishes approved drafts, always verified and rollback-capable |
-| **content-engine** | Turns an approved brief into a publish-ready draft - research, brand-voice compliance, SEO/authority pass, editorial QA - with an optional featured-image step |
+| **content-engine** | Turns an approved brief (explainer or comparison) into a publish-ready draft - research, brand-voice compliance, SEO/authority pass, editorial QA, a human-review-necessity score for the approver - with an optional featured-image step |
 
 Verified inventory (2026-07-19): **20 skills, 20 slash commands, 14
 specialist agents, 219 passing tests.**
