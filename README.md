@@ -4,7 +4,7 @@ An agentic organic-growth operating system for any website, as a single
 Claude plugin. The loop is the product.
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
-![Tests](https://img.shields.io/badge/tests-251%20passing-brightgreen.svg)
+![Tests](https://img.shields.io/badge/tests-263%20passing-brightgreen.svg)
 ![Version](https://img.shields.io/badge/version-0.4.0-alpha.2-blue.svg)
 ![Works with](https://img.shields.io/badge/works%20with-Claude%20Code%20%2B%20Cowork-6f42c1.svg)
 
@@ -72,8 +72,8 @@ Three bounded modules, one install:
 | **onsite-optimizer** | Audits any public page with no credentials and maps the site's internal-link graph; with a WordPress connection, applies approved on-page fixes and publishes approved drafts, always verified and rollback-capable |
 | **content-engine** | Turns an approved brief (explainer or comparison) into a publish-ready draft - research, brand-voice compliance, SEO/authority pass, editorial QA, a human-review-necessity score for the approver - with an optional featured-image step |
 
-Verified inventory (2026-07-19): **21 skills, 21 slash commands, 14
-specialist agents, 251 passing tests.**
+Verified inventory (2026-07-19): **22 skills, 22 slash commands, 14
+specialist agents, 263 passing tests.**
 
 ```mermaid
 flowchart TB

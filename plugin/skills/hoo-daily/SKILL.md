@@ -32,8 +32,9 @@ scheduled runs receive the brain path from the routine configuration.
    tokens `clicks: N`, `impressions: N`, `sessions: N` on a single line
    (site-wide daily totals; a source that was not pulled omits its token,
    never writes 0). Together with step 2.5's `ai_referrals: N` these are
-   the daily's structured metric forms; the anomaly check below parses
-   exactly these tokens across days.
+   the daily's structured metric forms; the anomaly check below and the
+   CSV export (skills/hoo-export, `core.export`) parse exactly these
+   tokens.
 2.7. Anomaly check: for each headline metric this run actually has - GSC
    clicks, GSC impressions, GA4 sessions, ai_referrals - collect the same
    metric's values from the trailing 7 daily signal files (parse the

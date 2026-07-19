@@ -144,6 +144,20 @@ Eight optional `site-profile.yaml` keys are additive the same way
   time and otherwise ends the item partially-applied naming the manual
   step). See the redirect-fixes section in skills/onsite-apply.
 
+## The export run dir (additive)
+
+`runs/<UTCdate>-export/` is written by `core.export.export_all` (the
+hoo-export skill, `/organic-os:export`): `signals.csv` (date, metric,
+value - parsed from the daily's structured metric tokens `clicks:`,
+`impressions:`, `sessions:`, `ai_referrals:`; a line whose metric value
+does not parse is skipped and counted, never guessed), `keywords.csv`
+(`keywords/history.tsv` columns verbatim), and `outcomes.csv` (date,
+item, action, status, verified - best-effort key parse; absent keys stay
+empty). A source the brain does not have yet produces no file. Like
+every `runs/` folder it is a timestamped output, not state: re-running
+on the same UTC date overwrites that date's CSVs with a fresh flatten of
+the same append-only sources.
+
 ## Items: briefs and proposals
 
 An item is a markdown file with YAML frontmatter, living in `briefs/`
