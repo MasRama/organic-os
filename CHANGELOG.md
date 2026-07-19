@@ -2,6 +2,48 @@
 
 ## [Unreleased]
 
+## [0.4.0-alpha.1] - 2026-07-19
+
+The v0.4 train opens with the market-validated roadmap update and the
+first item off it: the Monday report arrives as a document in the chat
+channel that already carries approvals.
+
+- **docs: roadmap - market-validated v0.4 additions + what we will not
+  build.** Five owner-approved v0.4 items from a commercial-tool market
+  review (report delivery to channels, anomaly alerts through approval
+  channels, keyword-portfolio tracking from GSC, CSV export from the
+  brain, citation-tracker depth), one v1.0 line (a read-only MCP surface
+  over the brain repo), and a new "What we will not build" section
+  naming six rejected commercial patterns with the reason each stays
+  rejected - scraped SERP rank tracking, proprietary data moats, opaque
+  0-100 scores, pooled benchmarks, export gating, unaudited visibility
+  indexes.
+- **feat(core): channel document delivery.** `core.telegram` gains
+  `send_document` (Telegram sendDocument via stdlib-built
+  multipart/form-data; the injectable transport gains `post_multipart`
+  with the same sanitized errors as the existing methods - no token in
+  any raised message). New `core.report_render` (stdlib only, TDD):
+  `render_html` renders the Monday report's markdown subset (headings,
+  bold, links, lists, tables, paragraphs) into one self-contained
+  styled page - inline CSS, print-friendly, phone-readable, no external
+  assets; `find_pdf_converter` probes PATH for pandoc, wkhtmltopdf,
+  weasyprint, soffice in that order; `to_pdf` invokes the found
+  converter and returns None on any failure, never raising to the
+  caller. 16 new tests; suite at 251.
+- **feat(hoo): the Monday report arrives as a document.**
+  `hoo-monday-report` renders REPORT.md to HTML, produces PDF when the
+  runtime has a converter, and sends the document with a two-line
+  caption through the configured approval channel - telegram via
+  `send_document`, in-session by saving the file and naming the path,
+  slack/email where the connector supports attachments, pr-merge as
+  caption plus path. Document delivery is a channel capability per
+  ADR-0009, declared per adapter, never Telegram-bound; the markdown in
+  `runs/` stays the canonical record. The approval-channels taxonomy
+  gains its weekly-document row, the setup postflight scorecard gains
+  converter detection (HTML fallback is degraded-not-failed), and the
+  information map tracks the converter probe list with
+  `report_render.py` as canonical.
+
 ## [0.3.0] - 2026-07-19
 
 This finalizes the alpha train - v0.3.0-alpha.1 through v0.3.0-alpha.8,

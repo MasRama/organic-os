@@ -179,7 +179,10 @@ this project's terms - evidence-tiered, BYO-credential, no scraping.
   HTML document, and as PDF when a local converter is present, through
   the configured approval channel. Source: agencies pay 20 to 69 dollars
   per client per month for report automation alone, and PDF plus link in
-  one chat message is the documented winning delivery pattern.
+  one chat message is the documented winning delivery pattern. **Landed
+  early** in v0.4.0-alpha.1: `core.report_render` (HTML + best-effort
+  PDF), `core.telegram.send_document`, and the hoo-monday-report
+  delivery step, channel-neutral per ADR-0009 - see CHANGELOG.md.
 - **Anomaly alerts through approval channels.** Sharp metric breaks
   surface as one alert on the channel the operator already watches.
   Source: alerting is the retention feature of every commercial monitor;
