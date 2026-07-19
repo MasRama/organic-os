@@ -8,7 +8,7 @@ say() { printf '%s\n' "$*"; }
 EXCLUDES='--exclude-dir=.git --exclude-dir=__pycache__ --exclude-dir=.venv'
 
 # 1. Personal/employer data must never appear (spec §15). Case-insensitive.
-# docs/specs + docs/plans quote the blocklist verbatim; audit.sh defines it.
+# docs/specs quotes the blocklist verbatim; audit.sh defines it.
 PERSONAL='exotel|ameyo|wsofi|78382|32X|29X MROI|4\.2M|5-FTE|MQL to SQL|CAC reduction'
 hits=$(grep -rniE "$PERSONAL" $EXCLUDES --exclude-dir=specs --exclude-dir=plans --exclude=audit.sh . || true)
 [ -n "$hits" ] && { say "FAIL personal/employer data:"; say "$hits"; fail=1; }
@@ -23,7 +23,7 @@ hits=$(grep -rn "$(printf '\xe2\x80\x94')" $EXCLUDES --exclude=audit.sh . || tru
 [ -n "$hits" ] && { say "FAIL em-dash found:"; say "$hits"; fail=1; }
 
 # 4. Banned phrases in shipped copy (plugin/, docs/, README).
-# docs/specs + docs/plans are engineering meta-docs that quote the rules.
+# docs/specs is an engineering meta-doc that quotes the rules.
 BANNED='seamless|robust(ly)?|delve|dive into|in today.s fast-paced|transform(ative|ing)?|unlock|unleash|supercharge|game-chang|cutting-edge|world-class|best-in-class|synergy|holistic|revolutionary'
 hits=$(grep -rniE "$BANNED" $EXCLUDES --exclude-dir=specs --exclude-dir=plans --exclude=audit.sh plugin docs README.md SECURITY.md CONTRIBUTING.md ROADMAP.md CHANGELOG.md 2>/dev/null || true)
 [ -n "$hits" ] && { say "FAIL banned phrase:"; say "$hits"; fail=1; }
