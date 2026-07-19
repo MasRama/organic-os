@@ -2,6 +2,35 @@
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-07-19
+
+This finalizes the alpha train - v0.4.0-alpha.1 through v0.4.0-alpha.5,
+each itemized in its own entry below - closing the v0.4 phase with no
+new capability beyond alpha.5.
+
+**v0.4 in aggregate.** The phase shipped entirely across the five alpha
+releases above: the Monday report arriving as a styled document (HTML,
+and PDF where a local converter exists) through the configured approval
+channel; marketer-grade onboarding (the install-time configuration form
+plus the click-through chip interview, so a filled form is one click to
+a configured site); anomaly alerts riding the daily observe's
+actionable-only alert; keyword-portfolio tracking from GSC, honestly
+labeled as average position rather than a scraped SERP rank; CSV export
+of signals, keywords, and outcomes with no tier gate; citation-tracker
+depth (per-answer position and sentiment with its evidence quote, plus a
+BYO engine set via the additive `citations: {engines: [...]}` key); the
+analytics and image-generation adapter slots formalized as contribution
+contracts per ADR-0009; the gated image and alt-text fix workflow
+(`get_media` / `update_media_alt` on the CMS adapter with a per-adapter
+`media_alt` mode); and the editorial-policy section completed
+(`core.contracts.editorial_policy` resolving the additive `editorial:`
+block, with ce-qa enforcing the policy keys as return-to-writer hard
+checks).
+
+Two items carry forward: the Shopify adapter (deprioritized, demand-gated
+on the first external request) and pipeline parallelism (gated on an
+upstream sub-agent-dispatch dependency) - see ROADMAP.md.
+
 ## [0.4.0-alpha.5] - 2026-07-19
 
 The last two open v0.4 queue items land: image findings become gated

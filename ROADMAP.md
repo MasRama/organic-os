@@ -150,13 +150,21 @@ editorial-policy section; the Shopify adapter stays deprioritized
 (below, under "Deprioritized, with reasons") and pipeline parallelism
 stays upstream-gated.
 
-## v0.4 - Adapter breadth and editorial depth
+## v0.4 - Adapter breadth and editorial depth - COMPLETE
 
-**Status (2026-07-19): the v0.4 queue is COMPLETE except two items** -
-the Shopify adapter (deprioritized below, waiting on the first external
-demand) and pipeline parallelism (gated on an upstream dependency, not
-on this project). Everything else landed early across v0.4.0-alpha.1
-through v0.4.0-alpha.5, as itemized per bullet.
+Closed by the v0.4.0 release (2026-07-19), which finalizes the alpha
+train rather than shipping new capability: the phase landed the Monday
+report as a channel-delivered document, marketer-grade onboarding (the
+install form plus the click-through chip interview), anomaly alerts,
+keyword-portfolio tracking from GSC, CSV export, citation-tracker depth
+with a BYO engine set, the formalized analytics and image-generation
+adapter slots, the gated image and alt-text fix workflow, and the
+complete editorial-policy section. Everything landed early across
+v0.4.0-alpha.1 through v0.4.0-alpha.5, as itemized per bullet below. Two
+items carry forward: the Shopify adapter (deprioritized below, still
+demand-gated on the first external request) and pipeline parallelism
+(gated on an upstream sub-agent-dispatch dependency, not on this
+project).
 
 The five report-and-tracking items below were added after a market review
 of commercial AI-visibility and SEO tooling (2026-07, owner-approved):
