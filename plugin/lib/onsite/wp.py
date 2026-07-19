@@ -169,6 +169,12 @@ class WPClient(CmsAdapter):
             "schema_injection": True,       # agent_jsonld via the bridge
             "rendered_head_verify": True,   # RankMath Headless getHead
             "author_profile_fields": True,  # update_user via /wp/v2/users
+            # Core WordPress exposes no redirect REST surface; redirects
+            # need an SEO plugin's module (Rank Math redirections, the
+            # Redirection plugin). The apply skill probes those surfaces
+            # at run time; absent or role-blocked, the item ends
+            # partially-applied naming the manual step.
+            "redirects": "needs-plugin",
             # The Editor role cannot do these (see the capability matrix in
             # plugin/docs/credentials/wordpress.md); such steps end the item
             # partially-applied with a note, never faked as done.

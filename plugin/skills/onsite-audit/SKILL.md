@@ -51,13 +51,48 @@ description: Use to audit on-page SEO for a URL or a whole site section - "audit
       hour absent from the sitemap -> P2 signal ("likely regeneration
       lag or cache; if the SEO plugin's cache purge needs admin, this
       ends partially-applied").
-4. If CMS credentials exist: pull the post via the CMS adapter (WordPress
+4. Link health and internal-link graph dimension - site-wide, one capped
+   crawl per run. Own-site rule, stated because it matters: this crawl
+   touches ONLY the profile's own site. ADR-0006's no-scraping decision
+   bans scraping third parties; your own property is yours to crawl, and
+   `onsite.linkgraph.crawl` enforces it - it never follows an off-host
+   link. Run `crawl(base_url, stdlib_fetch, max_pages=100,
+   seed_urls=<the profile sitemap's URLs>)` (seeding with the sitemap is
+   what lets a page nothing links to enter the graph at all; no sitemap
+   means orphan detection is skipped and noted, never guessed), then
+   `analyze(graph)`. Checks, each in the standard falsifiable signal
+   form:
+   1. Broken internal links (`analyze()['broken']`): a linked target
+      answering 4xx or unreachable -> P2 signal naming the source page,
+      the target, and the status. From the clearest case, ONE gated fix
+      proposal per run via onsite-propose: rewrite the source link to
+      the correct target, or a redirect where the target moved (the
+      redirect action type in skills/onsite-apply). Links resolving
+      through a 3xx hop (`redirect_chains`) ride along as evidence in
+      the same signal lane; rewriting the link to the final target is
+      the usual fix.
+   2. Orphan pages (`analyze()['orphans']`): in the sitemap seed but
+      zero inbound internal links -> P3 signal recommending internal
+      links from the top hubs (`analyze()['hubs']` names them). Where an
+      orphan also sits on the latest weekly striking-distance list
+      (skills/hoo-weekly), note the linkage in the signal - the two
+      findings share one fix.
+   3. Shallow striking-distance pages: fewer than 2 inbound links AND on
+      the latest weekly striking-distance list -> P2 signal. This is the
+      highest-leverage internal-link play: the query already sits at
+      position 4-15 and links from the hubs are the one lever fully in
+      our hands. Falsifiability line, verbatim in the signal: "we are
+      wrong if 2+ new hub links do not move the query's position within
+      28 days."
+5. If CMS credentials exist: pull the post via the CMS adapter (WordPress
    today) with `get_post` + `get_rendered_head` for the rendered truth;
    list the SEO meta field values (RankMath fields on WordPress).
-5. Launch technical-seo-auditor for site-level context when auditing > 3 URLs.
-6. Output: per-URL scorecard table + prioritized issue list. File signals for
-   P0/P1 issues, plus the page-essentials signals from step 3, if a brain
-   repo exists. Propose nothing here; that is onsite-propose's job.
+6. Launch technical-seo-auditor for site-level context when auditing > 3 URLs.
+7. Output: per-URL scorecard table + prioritized issue list. File signals for
+   P0/P1 issues, plus the page-essentials signals from step 3 and the
+   link-health signals from step 4, if a brain repo exists. Propose nothing
+   here; that is onsite-propose's job (the one broken-link fix in step 4
+   included - the audit only names it).
 
 At each stage boundary, append a one-line progress marker with a UTC
 timestamp to the run report file before starting the stage - headless runs

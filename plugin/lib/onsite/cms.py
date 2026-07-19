@@ -86,8 +86,14 @@ class CmsAdapter:
         """What this adapter can and cannot do:
         {'seo_meta_fields': bool, 'schema_injection': bool or a mode
          string (e.g. 'frontmatter-field'), 'rendered_head_verify': bool,
-         'needs_human': [action types the adapter cannot perform]}. The
-        honesty rule: declare the gaps; never fake success around them."""
+         'redirects': 'native' | 'config-file' | 'needs-plugin',
+         'needs_human': [action types the adapter cannot perform]}.
+        The redirects mode: 'native' means the backend writes redirects
+        first-class through this adapter; 'config-file' means the skill
+        layer appends to a platform config file the site profile names;
+        'needs-plugin' means the backend has no built-in surface and the
+        skill probes known plugin surfaces at run time. The honesty
+        rule: declare the gaps; never fake success around them."""
         raise NotImplementedError
 
     def adapter_name(self) -> str:

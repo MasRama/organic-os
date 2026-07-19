@@ -15,7 +15,11 @@ description: Use for the monthly deep audit - "run the monthly audit", /organic-
    entity, answer capsule, in-content images, social image shape,
    publisher schema shape, sitemap membership) site-wide across the
    audited page set, not only on newly flagged pages - the checklist is
-   the product's eyes, and a check that does not run cannot fire.
+   the product's eyes, and a check that does not run cannot fire. The
+   internal-link health line above runs as skills/onsite-audit step 4:
+   one capped own-site crawl (`onsite.linkgraph`, sitemap-seeded) for
+   broken links, orphans, hubs, shallow striking-distance pages, and
+   redirect chains - same signal severities, same one-proposal cap.
 3. Compare with last month's runs/ artifacts; the report leads with deltas.
 4. File signals, briefs, and fixes through core contracts; rebuild queue;
    notify per approval channel. Only send items where `is_notified(item)` is

@@ -232,6 +232,11 @@ class GitStaticClient(CmsAdapter):
             # No user database: author bios live in site content/config a
             # human edits, so author-entity fixes end partially-applied.
             "author_profile_fields": False,
+            # Redirects are platform config: the apply skill appends to
+            # the file the profile's cms.redirect_file key names
+            # (_redirects, netlify.toml, vercel.json) on the same
+            # branch/PR flow as every other git-static change.
+            "redirects": "config-file",
             # Publishing is a human's merge, then the site's own deploy;
             # such steps end the item partially-applied with a note, never
             # faked as done.

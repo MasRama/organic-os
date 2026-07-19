@@ -89,6 +89,9 @@ def test_capabilities_declare_the_honest_gaps(repo):
     assert caps["schema_injection"] == "frontmatter-field"
     assert caps["rendered_head_verify"] is False
     assert caps["author_profile_fields"] is False
+    # Redirects land in the platform's config file (_redirects,
+    # netlify.toml, vercel.json - the profile's cms.redirect_file key).
+    assert caps["redirects"] == "config-file"
     assert caps["needs_human"] == ["merge-pr", "deploy"]
 
 

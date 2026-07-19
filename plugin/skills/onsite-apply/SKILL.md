@@ -149,6 +149,46 @@ post id, and fields. Skip the drift-baseline refresh (2f) and the
 `reverify` keys; the page did not change, so there is nothing to
 re-check.
 
+## Redirect fixes (action type: redirect)
+
+Some approved onpage-fix proposals prescribe a redirect - a moved target
+behind broken internal links (skills/onsite-audit's link-health
+dimension), or a cannibalization consolidation (skills/hoo-weekly). A
+plain link REWRITE is not this action type: it edits the source page's
+content and rides the normal `update_post` path above, gate, snapshot,
+verify and all.
+
+Redirects are a CMS capability, not a universal write. Consult the
+adapter's `capabilities()['redirects']` mode FIRST and never fake a
+write path the adapter does not declare:
+
+- `needs-plugin` (the WordPress adapter): core WordPress has no redirect
+  REST surface. Probe the known plugin surfaces at run time with the
+  connected role - Rank Math's redirections module, the Redirection
+  plugin's REST route. A surface is writable: create the 301, record its
+  id in the outcome record (rollback for a redirect is deleting it),
+  then verify by fetching the old URL and asserting a 301 status
+  pointing at the new target. A failed verify deletes the redirect and
+  marks the item failed, per the hard rules. No writable surface (module
+  absent, or it needs an admin role the connected user lacks): set the
+  item partially-applied with the exact manual step, e.g. "add a 301
+  from /old-path to /new-path in the SEO plugin's redirections screen
+  (Rank Math -> Redirections)". Never faked as done.
+- `config-file` (the git-static adapter): write the platform's redirect
+  file - the profile's additive `cms.redirect_file` key names it
+  (`_redirects`, `netlify.toml`, or `vercel.json`; see
+  site-repo-contract.md). The write is ADDITIVE: append or merge the one
+  new rule, never a rewrite of existing rules. Everything else follows
+  the git-static flow above unchanged: gate first, `snapshot()` of the
+  redirect file, branch, PR, partially-applied until the human merge,
+  best-effort post-deploy check of the old URL when `cms.deploy_url` is
+  set. No `redirect_file` key in the profile: partially-applied naming
+  the step ("set cms.redirect_file in site-profile.yaml, or add the
+  redirect to the platform config by hand").
+- `native`: reserved for an adapter whose backend writes redirects
+  first-class through the adapter itself; no shipped adapter declares it
+  today.
+
 ## Partial application
 
 When some changes in a proposal succeed and others hit a permission or

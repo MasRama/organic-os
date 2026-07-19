@@ -48,6 +48,9 @@ def test_wpclient_capabilities_shape():
     assert caps["schema_injection"] is True
     assert caps["rendered_head_verify"] is True
     assert caps["author_profile_fields"] is True
+    # Honest: core WP has no redirect REST surface; the apply skill
+    # probes known plugin surfaces at run time.
+    assert caps["redirects"] == "needs-plugin"
     assert caps["needs_human"] == ["seo-plugin-cache-purge", "plugin-settings"]
 
 

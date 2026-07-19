@@ -81,6 +81,7 @@ Five optional `site-profile.yaml` keys are additive the same way
     repo_root: /path/to/local/clone   # required; the runtime clones/pulls
     content_dir: src/content          # optional; this is the default
     deploy_url: https://site.example  # optional; best-effort post-merge check
+    redirect_file: _redirects         # optional; where redirect fixes land
     fields:                           # optional; remap generic -> frontmatter
       description: excerpt
   ```
@@ -94,6 +95,17 @@ Five optional `site-profile.yaml` keys are additive the same way
   site's layout must render into the head; rendered-head verification is
   a declared capability gap (`rendered_head_verify: False` - static sites
   verify post-deploy, best-effort, against `deploy_url` when set).
+
+  `redirect_file` is additive the same way (`schema_version` stays `1`):
+  it names the platform redirect config the gated redirect workflow
+  appends to - `_redirects` (Cloudflare/Netlify style), `netlify.toml`,
+  or `vercel.json`. Adapters declare their redirect mode in
+  `capabilities()['redirects']`: git-static is `config-file` (the skill
+  layer appends the rule and delivers it on the normal branch/PR flow);
+  wordpress is `needs-plugin` (core WordPress has no redirect REST
+  surface, so the apply skill probes known SEO-plugin surfaces at run
+  time and otherwise ends the item partially-applied naming the manual
+  step). See the redirect-fixes section in skills/onsite-apply.
 
 ## Items: briefs and proposals
 
