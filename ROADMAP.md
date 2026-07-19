@@ -227,6 +227,13 @@ this project's terms - evidence-tiered, BYO-credential, no scraping.
   sentiment and position within answers, not just cited-or-not. Source:
   per-answer position and sentiment are the paid tiers of every
   AI-visibility product; BYO credentials keep it inside ADR-0006.
+  **Landed early** in v0.4.0-alpha.4: hoo-citation-tracker records a
+  4-value position ordinal when cited and a sentiment label with its
+  evidence quote when mentioned, both joining the baseline movement
+  report (old baselines compare on presence only, stated), and the
+  engine set is profile-configurable via the additive
+  `citations: {engines: [...]}` key - each engine checked only if
+  reachable, no tiers, no per-engine pricing - see CHANGELOG.md.
 
 The Shopify adapter does not move here: it stays parked under
 "Deprioritized, with reasons" below, still demand-gated on the first

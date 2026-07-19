@@ -5,7 +5,7 @@ Claude plugin. The loop is the product.
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Tests](https://img.shields.io/badge/tests-263%20passing-brightgreen.svg)
-![Version](https://img.shields.io/badge/version-0.4.0-alpha.3-blue.svg)
+![Version](https://img.shields.io/badge/version-0.4.0-alpha.4-blue.svg)
 ![Works with](https://img.shields.io/badge/works%20with-Claude%20Code%20%2B%20Cowork-6f42c1.svg)
 
 ## The loop

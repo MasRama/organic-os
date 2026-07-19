@@ -2,6 +2,47 @@
 
 ## [Unreleased]
 
+## [0.4.0-alpha.4] - 2026-07-19
+
+Citation tracking gains depth, and two capability slots get the
+contribution contracts ADR-0009 promised.
+
+- **feat(hoo): citation depth - sentiment and position, honestly
+  sampled.** hoo-citation-tracker extends each query check beyond
+  appears/absent. Position within the answer, recorded only when cited:
+  a 4-value ordinal defined in the skill (lead-answer,
+  supporting-mention, listed-among-others, footnote-link). Sentiment of
+  the mention: positive / neutral / mixed-negative, judged from the
+  answer text with the exact quoted phrase recorded as evidence - never
+  a bare label without the quote. Both join the baseline comparison:
+  movement reports now cover presence, position shifts by name ("cited,
+  and moved from listed-among-others to lead answer"), and sentiment
+  shifts with the new quote attached; the baseline REPORT.md format
+  extends additively, and old baselines without the fields compare on
+  presence only, stated in the movement section. The engine set becomes
+  BYO via the additive `citations: {engines: [...]}` profile key
+  (absence means the default set, canonical in the skill and mapped in
+  docs/INFORMATION-MAP.md): each engine is checked only if reachable
+  from the session, adding one is one more list entry - no tiers, no
+  per-engine pricing - and the honesty rules stay restated in the
+  skill: sampling not measurement, reachable engines always listed,
+  sentiment labeled as a judgment call with the quote as the check.
+- **docs: analytics and image-generation slots formalized.**
+  CONTRIBUTING.md gains "Contributing an analytics adapter" (the slot's
+  job is the daily/weekly read-side pulls; GA4 via the user's connector
+  is adapter one; a Clarity or Matomo adapter is a skill-readable doc -
+  query surface, connector/credential path, graceful degradation - with
+  no lib contract yet, deliberately, because analytics is read-only
+  through connectors) and "Contributing an image-generation adapter"
+  (the slot's job is ce-image's featured-image step; Canva is adapter
+  one; Gemini or local generators follow the same shape - how to
+  invoke, what to return, an image file or the image-brief fallback,
+  and the no-fake-success rule). hoo-daily and ce-image each name
+  their slot and point at the CONTRIBUTING section. The ROADMAP moves
+  both slot items to Landed early, phrased honestly: the contracts are
+  formalized; no Clarity or Gemini adapter was built, first alternative
+  adapters are community-welcome.
+
 ## [0.4.0-alpha.3] - 2026-07-19
 
 Three more market-validated v0.4 items land: sharp metric breaks reach
