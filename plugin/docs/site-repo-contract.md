@@ -45,13 +45,21 @@ stays `1`, and the directory only comes into existence the first time
 connector (`onsite.drift.save_baseline` creates it on demand). A brain
 repo with no WordPress connection never gets a `drift/` directory at all.
 
-Five optional `site-profile.yaml` keys are additive the same way
+Six optional `site-profile.yaml` keys are additive the same way
 (`schema_version` stays `1`; absence means off, or the stated default):
 
 - `brand: {readability_target: "grade 9-10"}` - the readability target
   ce-qa's hard check holds drafts to (sentence-length stats; a draft
   over target is returned for splitting). Absence means the default of
   "grade 9-10".
+- `brand: {properties: [...]}` - exact URLs of the brand's public
+  properties (a GitHub org or repo, a LinkedIn page) that
+  `hoo-monthly-audit`'s entity-consistency section fetches and compares
+  against the site's own brand facts. Only URLs listed here are ever
+  fetched - the audit never guesses a handle from the brand name.
+  Absence means the check covers the site's own pages only. Fixes the
+  check proposes stay gated and on-site; anything on a third-party
+  property is a named human step.
 
 - `onsite: {dry_run: true}` - `onsite-apply` and `onsite-publish` run
   their full gated flow against a dry-run client that records every

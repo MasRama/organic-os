@@ -9,6 +9,8 @@ brand:
   banned_phrases: []     # phrases the drafts must never use
   rulebook: ""           # free text: brand and editorial rules
   # readability_target: "grade 9-10"  # optional; ce-qa's readability hard check target (absence = grade 9-10)
+  # properties: []       # optional; exact public property URLs (GitHub org/repo, LinkedIn page) the
+  #                      # monthly entity-consistency audit compares - never guessed (absence = own site only)
 audience:
   segments: []           # ICP segments
   geos: []               # e.g. ["IN", "US"]

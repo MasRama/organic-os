@@ -21,6 +21,10 @@ Method:
 5. Never claim schema markup drives AI citations - the evidence for that link
    is weak. State schema's proven value (rich results, entity clarity) and
    flag citation-driving claims as unproven if raised.
+6. When the prompt lists profile-provided brand properties, compare the core
+   brand facts (name, description, founding/location, logo, sameAs) across
+   them; mismatches are findings, and off-site fixes are named human steps -
+   never fetch a property the profile does not list, never write off-site.
 
 Output contract (return exactly this shape):
 ## Findings
