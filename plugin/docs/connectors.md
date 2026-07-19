@@ -18,6 +18,12 @@ process, so it has no server-side identity to authenticate anything on its
 own behalf. Every credential above is yours, connected by you, on your
 terms.
 
+Credentials entered at the plugin's enable-time install form (the
+Telegram bot token, the WordPress Application Password) skip the
+paste-into-terminal step: setup finds them keychain-backed as
+`CLAUDE_PLUGIN_OPTION_*` env vars and verifies them by probe like any
+other credential.
+
 ## What happens instead of a prompt
 
 Nothing in organic-os pops an OAuth window. `/organic-os:start` and

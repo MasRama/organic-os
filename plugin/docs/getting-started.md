@@ -25,6 +25,30 @@ Every organic-os command is namespaced by the plugin name -
 collision with another plugin's `/setup` or `/daily` command in the same
 session.
 
+## The enable form
+
+When the plugin is enabled, Claude Code and Cowork can render a short
+native configuration form, declared in the `userConfig` block of
+`plugin/.claude-plugin/plugin.json`: site URL, brand name, approval
+channel, and optional credentials (a Telegram bot token, a WordPress
+Application Password and the username it belongs to). Every field is
+optional, and updating the plugin never forces re-entry.
+
+Whatever you fill becomes a pre-answered setup question. `/organic-os:setup`
+reads the form's values first and asks only for what is missing, so a
+filled form makes quick start a single confirmation click, and a skipped
+form costs nothing - the interview covers everything the form covers.
+
+Where sensitive values live: the bot token and the Application Password
+are stored in your OS keychain, not in any file, and reach a session only
+as environment variables (`CLAUDE_PLUGIN_OPTION_TELEGRAM_BOT_TOKEN`,
+`CLAUDE_PLUGIN_OPTION_WP_APP_PASSWORD`). Setup references them without
+printing them - in chat they appear only as "found the WordPress
+Application Password from the install form" - and they are never written
+into the brain repo. The one file copy is the runtime env file under
+`~/.config/organic-os/`, which setup creates (mode 600) so scheduled
+routines outside the session can read it.
+
 ## Run setup
 
 Not sure where to start? `/organic-os:start` health-checks the environment

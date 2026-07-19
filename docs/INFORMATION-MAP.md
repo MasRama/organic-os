@@ -8,7 +8,7 @@ means a human consults this map when the canonical source changes.
 
 | Fact | Canonical source | Quoted in | Checked by |
 |---|---|---|---|
-| Plugin version | `version` in `plugin/.claude-plugin/plugin.json` | `README.md` version badge; `.claude-plugin/marketplace.json` plugin entry; `CHANGELOG.md` release heading; `docs/images/install-2-install.svg` | audit-8 (badge, marketplace); manual (CHANGELOG, SVG) |
+| Plugin version | `version` in `plugin/.claude-plugin/plugin.json` | `README.md` version badge; `.claude-plugin/marketplace.json` plugin entry; `CHANGELOG.md` release heading; `docs/images/install-2-install.svg`; `docs/images/install-4-form.svg` | audit-8 (badge, marketplace); manual (CHANGELOG, SVGs) |
 | Test count | `python3 -m pytest --collect-only -q tests` | `README.md` tests badge; `README.md` inventory line | audit-8 |
 | Skill / command / agent counts | Filesystem: dirs holding a `SKILL.md` under `plugin/skills/`; `plugin/commands/*.md`; `plugin/agents/*.md` | `README.md` inventory line; `docs/images/install-2-install.svg` | audit-8 (README); manual (SVG) |
 | Approval TTL default (30 days) | `approval_ttl_days` in `plugin/lib/core/contracts.py` | `plugin/docs/approval-channels.md`; `README.md` human-gates paragraph; `docs/adr/0008-approval-expiry.md`; `plugin/docs/site-repo-contract.md` | manual |
@@ -23,6 +23,7 @@ means a human consults this map when the canonical source changes.
 | Brief types (`explainer` via field absence, `comparison`) | `BRIEF_TYPES` in `plugin/lib/core/contracts.py` | `plugin/docs/site-repo-contract.md` items section; `plugin/skills/ce-produce/SKILL.md` comparison section; `plugin/skills/hoo-weekly/SKILL.md`; `plugin/skills/hoo-orchestrator/SKILL.md` step 4; `plugin/skills/hoo-keyword-intel/SKILL.md` cluster section | manual |
 | Dimension-hints map (external audit finding keyword -> onsite-audit dimension; llms.txt -> deliberate-skip per `plugin/docs/evidence.md`) | `DIMENSION_HINTS` in `plugin/lib/hoo/audit_import.py` | `plugin/skills/hoo-import-audit/SKILL.md` create step; `plugin/docs/getting-started.md` claude-seo section | manual |
 | PDF-converter probe list and order (pandoc, wkhtmltopdf, weasyprint, soffice) | `CONVERTERS` in `plugin/lib/core/report_render.py` | `plugin/skills/hoo-monday-report/SKILL.md` delivery step; `plugin/skills/setup/SKILL.md` scorecard check 8; `plugin/docs/routines.md` scorecard line | manual |
+| userConfig field list (site_url, brand_name, approval_channel, telegram_bot_token, wp_app_password, wp_username; sensitive fields keychain-backed, env names `CLAUDE_PLUGIN_OPTION_<KEY_UPPERCASE>`) | `userConfig` in `plugin/.claude-plugin/plugin.json` | `README.md` install step 3; `plugin/docs/getting-started.md` enable-form section; `plugin/skills/setup/SKILL.md` Step 0.75; `plugin/docs/connectors.md` install-form line; `docs/images/install-4-form.svg` | manual |
 
 Check 8 also verifies that every relative markdown link in the repo
 resolves to an existing file, so cross-references never silently rot when

@@ -122,7 +122,16 @@ pyyaml`). Nothing to host.
 
    ![Terminal: installing the organic-os plugin](docs/images/install-2-install.svg)
 
-3. First run: `/organic-os:start` walks you through everything else -
+3. Optional: fill the configuration form that appears when the plugin is
+   enabled - site URL, brand name, approval channel, and optional
+   credentials (a Telegram bot token, a WordPress Application Password
+   plus username), every field skippable, sensitive fields stored in your
+   OS keychain. Setup reads whatever you filled and asks nothing twice;
+   a filled form makes quick start a single confirmation click.
+
+   ![Terminal: the organic-os enable-time configuration form](docs/images/install-4-form.svg)
+
+4. First run: `/organic-os:start` walks you through everything else -
    health check, then quick-start or full setup.
 
    ![Terminal: running the organic-os guided start](docs/images/install-3-start.svg)
