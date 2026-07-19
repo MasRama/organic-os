@@ -91,3 +91,43 @@ No GSC connector: skip this section and note it as one line in REPORT.md
 
 No GSC connector: skip this section and note it as one line in REPORT.md
 ("content decay: skipped, no GSC connector") instead of guessing.
+
+## Mention opportunities
+
+Runs after the detectors above, capped at roughly 10 minutes of work per
+run - this is a sample, not a census.
+
+1. From the profile take the top 3 topics (keywords.targets, file order)
+   and the top 2 competitors (competitors, file order).
+2. Via WebSearch, sample where the brand and those competitors are
+   mentioned across public surfaces for those topics - industry
+   roundups, comparison posts, community threads. Record per surface:
+   URL, does the brand appear, does each competitor appear.
+   WebSearch/WebFetch of public pages within the session is the
+   sanctioned mechanism (docs/adr/0006 in the repo, same as the
+   citation tracker); never scrape engines or third-party tools.
+3. For each surface where a competitor appears and the brand does not,
+   write one P3 signal in falsifiable form: the surface | why it
+   matters (one line: what the surface answers and for whom) | the
+   falsifiability check - "if a mention landed here does not show up in
+   AI answers or referral traffic within 90 days, this surface mattered
+   less than it looked."
+4. At most ONE outreach proposal per run: for the single best-fit gap,
+   `create_item(kind="strategy", ...)` naming the target surface, the
+   angle (why that editor or thread would plausibly include the brand),
+   and the existing asset to reference (a page, a tool, a data point
+   already published - never one to be invented). Gated through the
+   approval queue like every other proposal; a human executes the
+   outreach. This skill NEVER contacts anyone - no emails, no form
+   fills, no posts, no DMs.
+5. Rationale line, carried next to this section's output in REPORT.md:
+   brand mentions correlate roughly 3x more strongly with AI visibility
+   than backlinks do, per Ahrefs' 75,000-brand study
+   (https://ahrefs.com/blog/ai-brand-visibility-correlations/).
+6. Sampling caveat, same discipline as the AI-visibility baseline:
+   state which surfaces this session actually reached, and never let
+   the report imply broader coverage than that.
+
+No web access this session: skip this section and note it as one line
+in REPORT.md ("mention opportunities: skipped, no web access") instead
+of guessing.
