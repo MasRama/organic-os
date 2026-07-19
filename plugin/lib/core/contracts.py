@@ -128,6 +128,66 @@ def _require_fresh_approval(path, item) -> None:
             "--actor <you> --channel <channel>")
 
 
+# -- editorial policy ----------------------------------------------------------
+
+# The enforceable editorial floor: ce-qa reads this policy and enforces it
+# as hard checks; free-text brand rulebook prose still applies on top (the
+# policy keys are the floor, the prose is the voice). These defaults are
+# canonical - the site-profile template, docs/site-repo-contract.md, and
+# plugin/agents/ce-qa.md quote them (docs/INFORMATION-MAP.md).
+EDITORIAL_DEFAULTS = {
+    "oversight_threshold": 7,      # ce-editor score at/above -> recommend human line-edit
+    "internal_links_min": 0,       # min same-site links per draft; 0 = off
+    "external_links_max": None,    # cap on external links; None = no cap
+    "images_min": 0,               # min in-content images (or attached briefs); 0 = off
+    "sourcing": "key-claims",      # "key-claims" | "every-claim"
+    "require_reviewer_note": False,  # True: draft notes must name a human reviewer
+}
+SOURCING_MODES = ("key-claims", "every-claim")
+
+
+def _editorial_count(policy: dict, key: str, hi: int | None = None) -> None:
+    v = policy[key]
+    bounds = f"0-{hi}" if hi is not None else "0 or more"
+    if not isinstance(v, int) or isinstance(v, bool) or v < 0 \
+            or (hi is not None and v > hi):
+        raise ContractError(
+            f"editorial.{key} must be an integer ({bounds}), got {v!r}")
+
+
+def editorial_policy(root) -> dict:
+    """The site's editorial policy: the `editorial:` site-profile section
+    merged over EDITORIAL_DEFAULTS. Absent keys (or a missing section, or
+    a missing profile) mean the defaults - the section is additive,
+    schema_version stays 1. Unknown keys are ignored (a newer plugin's
+    additive key never breaks an older reader); an invalid value raises
+    ContractError naming the key."""
+    path = Path(root) / "site-profile.yaml"
+    data = yaml.safe_load(path.read_text()) if path.exists() else {}
+    section = (data or {}).get("editorial")
+    if section is None:
+        section = {}
+    if not isinstance(section, dict):
+        raise ContractError(
+            f"editorial: must be a mapping of policy keys, got {section!r}")
+    policy = dict(EDITORIAL_DEFAULTS)
+    policy.update({k: v for k, v in section.items() if k in EDITORIAL_DEFAULTS})
+    _editorial_count(policy, "oversight_threshold", hi=10)
+    _editorial_count(policy, "internal_links_min")
+    _editorial_count(policy, "images_min")
+    if policy["external_links_max"] is not None:
+        _editorial_count(policy, "external_links_max")
+    if policy["sourcing"] not in SOURCING_MODES:
+        raise ContractError(
+            f"editorial.sourcing must be one of {list(SOURCING_MODES)}, "
+            f"got {policy['sourcing']!r}")
+    if not isinstance(policy["require_reviewer_note"], bool):
+        raise ContractError(
+            "editorial.require_reviewer_note must be true or false, "
+            f"got {policy['require_reviewer_note']!r}")
+    return policy
+
+
 # -- signals ------------------------------------------------------------------
 
 def append_signal(root, text: str, date: str | None = None) -> Path:

@@ -545,3 +545,84 @@ def test_write_scorecard_table_has_fix_only_for_non_pass_rows(root):
     pass_line_idx = text.index("brain scaffold")
     fixes_idx = text.index("claude mcp add ga4")
     assert pass_line_idx < fixes_idx
+
+
+# -- editorial policy ----------------------------------------------------------
+
+def _set_editorial(root, section):
+    p = root / "site-profile.yaml"
+    data = yaml.safe_load(p.read_text()) or {}
+    data["editorial"] = section
+    p.write_text(yaml.safe_dump(data))
+
+
+def test_editorial_policy_defaults_on_profile_without_section(root):
+    assert C.editorial_policy(root) == {
+        "oversight_threshold": 7,
+        "internal_links_min": 0,
+        "external_links_max": None,
+        "images_min": 0,
+        "sourcing": "key-claims",
+        "require_reviewer_note": False,
+    }
+
+
+def test_editorial_policy_defaults_when_profile_missing(tmp_path):
+    # A bare directory with no site-profile.yaml still answers with the
+    # defaults - policy enforcement never crashes a profile-less caller.
+    assert C.editorial_policy(tmp_path)["sourcing"] == "key-claims"
+
+
+def test_editorial_policy_partial_override_keeps_other_defaults(root):
+    _set_editorial(root, {"internal_links_min": 3, "sourcing": "every-claim"})
+    policy = C.editorial_policy(root)
+    assert policy["internal_links_min"] == 3
+    assert policy["sourcing"] == "every-claim"
+    assert policy["oversight_threshold"] == 7          # untouched defaults
+    assert policy["external_links_max"] is None
+    assert policy["images_min"] == 0
+    assert policy["require_reviewer_note"] is False
+
+
+def test_editorial_policy_full_override(root):
+    _set_editorial(root, {"oversight_threshold": 9, "internal_links_min": 2,
+                          "external_links_max": 5, "images_min": 1,
+                          "sourcing": "every-claim",
+                          "require_reviewer_note": True})
+    policy = C.editorial_policy(root)
+    assert policy["external_links_max"] == 5
+    assert policy["images_min"] == 1
+    assert policy["require_reviewer_note"] is True
+
+
+@pytest.mark.parametrize("key,bad", [
+    ("oversight_threshold", 12),
+    ("oversight_threshold", "high"),
+    ("internal_links_min", -1),
+    ("internal_links_min", True),      # a bool is not a count
+    ("external_links_max", -2),
+    ("external_links_max", "none"),
+    ("images_min", -1),
+    ("sourcing", "all-claims"),
+    ("require_reviewer_note", "yes"),
+])
+def test_editorial_policy_invalid_value_raises_naming_the_key(root, key, bad):
+    _set_editorial(root, {key: bad})
+    with pytest.raises(C.ContractError) as exc:
+        C.editorial_policy(root)
+    assert f"editorial.{key}" in str(exc.value)
+
+
+def test_editorial_policy_section_not_a_mapping_raises(root):
+    _set_editorial(root, "strict")
+    with pytest.raises(C.ContractError) as exc:
+        C.editorial_policy(root)
+    assert "editorial" in str(exc.value)
+
+
+def test_editorial_policy_ignores_unknown_keys_additively(root):
+    # A newer plugin's additive key must not break an older reader.
+    _set_editorial(root, {"internal_links_min": 1, "future_key": "x"})
+    policy = C.editorial_policy(root)
+    assert policy["internal_links_min"] == 1
+    assert "future_key" not in policy

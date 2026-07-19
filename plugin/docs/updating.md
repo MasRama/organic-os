@@ -76,9 +76,13 @@ Practical consequences:
 - Free-text editorial rules in your brand rulebook (for example "add at
   least three internal links per post" or "every claim needs a named
   source") are read and honored by the content pipeline today. Structured
-  enforcement of such rules, the way the answer capsule and readability
-  target are enforced as hard QA checks, is planned on the roadmap as an
-  `editorial:` profile section - additive when it arrives.
+  enforcement of such rules now exists as the additive `editorial:`
+  profile section: link minimums, external-link caps, image
+  requirements, sourcing mode, and a required reviewer note are
+  enforced as hard QA checks, the way the answer capsule and
+  readability target already are (see the editorial section in
+  `site-repo-contract.md`). The prose rulebook still applies on top -
+  the policy keys are the enforceable floor, the prose is the voice.
 - If your organization needs review stages beyond the standard approval
   gate (for example a compliance review before publish), that belongs to
   the multi-approver work on the roadmap. Until then, the approval

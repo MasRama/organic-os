@@ -38,10 +38,10 @@ both, but only ends on the second - see Postflight scorecard.
   form" - the value itself never appears in chat, in a summary table, or
   in any file except the site env file.
 - **Show progress.** Prefix each question with where the user is - e.g.
-  "question 3 of roughly 9" for the full setup interview (count whatever
+  "question 3 of roughly 10" for the full setup interview (count whatever
   this run will actually ask: reviewing/editing the proposed profile,
-  operator knowledge, Google Ads, WordPress, approval channel, runtime,
-  brain path, brain mode - the connector wizard runs as its own probe-and-
+  operator knowledge, editorial rules, Google Ads, WordPress, approval
+  channel, runtime, brain path, brain mode - the connector wizard runs as its own probe-and-
   verify flow and is not counted in this total), "question 2 of 3" for
   quick-start, "question 1 of 2" for a targeted update-mode re-ask.
 - **End with a summary table.** After the last question and the scaffold/
@@ -196,9 +196,9 @@ setup session).
    point (this is where a future major version's migration steps would run
    too). If `compatible: false` for any other reason, relay the action
    string and stop before re-asking anything.
-3. Re-ask **only** the sections the user picks (site, brand, audience,
-   keywords, competitors, connectors, Google Ads, WordPress, approval
-   channel, runtime). Do not re-run the full setup interview. If the user
+3. Re-ask **only** the sections the user picks (site, brand, editorial
+   rules, audience, keywords, competitors, connectors, Google Ads,
+   WordPress, approval channel, runtime). Do not re-run the full setup interview. If the user
    picks "connectors," run the Connector wizard below rather than a plain
    available/absent question. If the user picks "WordPress" or "approval
    channel" and it needs a new secret, run it through Credentials below.
@@ -398,6 +398,19 @@ it could not answer.
    tips, channels, formats?" Each answer becomes a skillbook entry tagged
    `evidence: anecdotal`. The audit cannot infer this - always ask it,
    regardless of how the profile above was filled in.
+2b. **Editorial rules**, AskUserQuestion chips: does the organization
+   have written editorial conventions the QA pass should enforce as
+   hard checks? Options: **Use the defaults (Recommended)** - sourcing
+   on key claims only, no link or image minimums; **Set link, image,
+   and sourcing rules now** - one question per key (minimum internal
+   links, external-link cap, minimum in-content images, sourcing mode
+   key-claims or every-claim, require a named human reviewer), each
+   with its default stated; **Later, via update mode**. Answers land in
+   the profile's `editorial:` section; the canonical defaults live in
+   `core.contracts.editorial_policy`, so an absent section means the
+   defaults, and free-text conventions still belong in the brand
+   rulebook - the structured keys are the enforceable floor, the prose
+   is the voice.
 3. **Connectors**: run the **Connector wizard** below for GA4 and GSC (the
    heartbeat pair) first, then Notion, Slack, Canva as optional extras.
    This replaces a plain available/absent question - every connector this

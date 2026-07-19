@@ -11,10 +11,16 @@ brand:
   # readability_target: "grade 9-10"  # optional; ce-qa's readability hard check target (absence = grade 9-10)
   # properties: []       # optional; exact public property URLs (GitHub org/repo, LinkedIn page) the
   #                      # monthly entity-consistency audit compares - never guessed (absence = own site only)
-# editorial:              # optional; first key of the future editorial: section (ROADMAP:
-#   oversight_threshold: 7  # editorial policy in the profile). ce-editor's human-review-necessity
-#                           # score at or above this recommends a human line-edit before publish;
-#                           # onsite-publish surfaces it in the approval message (absence = 7)
+# editorial:              # optional; the enforceable editorial-policy floor. ce-qa enforces these
+#                         # as hard checks; free-text rules stay in brand.rulebook. Defaults are
+#                         # canonical in core.contracts.editorial_policy; absent keys mean:
+#   oversight_threshold: 7    # ce-editor's human-review-necessity score at or above this recommends
+#                             # a human line-edit; onsite-publish surfaces it in the approval message
+#   internal_links_min: 0     # minimum same-site links per draft; 0 = check off
+#   external_links_max: null  # cap on external links per draft; null = no cap
+#   images_min: 0             # minimum in-content images (or attached image briefs); 0 = check off
+#   sourcing: key-claims      # key-claims (statistics + comparative claims need sources) | every-claim
+#   require_reviewer_note: false  # true = draft notes must name a human reviewer before publish
 audience:
   segments: []           # ICP segments
   geos: []               # e.g. ["IN", "US"]

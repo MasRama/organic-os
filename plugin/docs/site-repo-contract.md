@@ -73,16 +73,50 @@ Nine optional `site-profile.yaml` keys are additive the same way
   check proposes stay gated and on-site; anything on a third-party
   property is a named human step.
 
-- `editorial: {oversight_threshold: 7}` - the human-review-necessity
-  score (0-10, built by ce-editor's final pass from named factors:
-  claims density, YMYL adjacency, competitor mentions, legal/compliance
-  surface, verbatim research survival) at or above which the draft
-  notes recommend a human line-edit before publish and onsite-publish
-  surfaces that recommendation prominently in the approval-channel
-  message. Absence means 7. The score informs the approver; publishing
-  stays gated by the same single approval either way. This is the first
-  key of the future `editorial:` section (see ROADMAP: editorial policy
-  in the site profile).
+- `editorial: {...}` - the editorial-policy section: an organization's
+  written conventions as hard QA checks, the way the answer capsule and
+  readability target are enforced. The canonical defaults live in
+  `core.contracts.editorial_policy` (`plugin/lib/core/contracts.py`);
+  absent keys mean the defaults, unknown keys are ignored (additive
+  both ways), and an invalid value refuses naming the key. ce-qa
+  enforces every key below except `oversight_threshold`, which belongs
+  to ce-editor's scoring pass. Free-text rules in `brand.rulebook`
+  still apply on top: the policy keys are the enforceable floor, the
+  prose is the voice.
+
+  ```yaml
+  editorial:
+    oversight_threshold: 7      # default 7
+    internal_links_min: 0       # default 0 (off)
+    external_links_max: null    # default null (no cap)
+    images_min: 0               # default 0 (off)
+    sourcing: key-claims        # default key-claims
+    require_reviewer_note: false  # default false
+  ```
+
+  - `oversight_threshold` - the human-review-necessity score (0-10,
+    built by ce-editor's final pass from named factors: claims density,
+    YMYL adjacency, competitor mentions, legal/compliance surface,
+    verbatim research survival) at or above which the draft notes
+    recommend a human line-edit before publish and onsite-publish
+    surfaces that recommendation prominently in the approval-channel
+    message. The score informs the approver; publishing stays gated by
+    the same single approval either way.
+  - `internal_links_min` - when above 0, a draft linking fewer than N
+    same-site pages is returned to the writer.
+  - `external_links_max` - when set, a draft over the cap is returned
+    to the writer.
+  - `images_min` - when above 0, a draft with fewer in-content images
+    than N needs an image brief attached per missing image
+    (skills/ce-image's `<slug>-image-brief.md` shape) before it can
+    pass QA.
+  - `sourcing` - `key-claims`: statistics and comparative claims need
+    sources; `every-claim`: every factual claim does.
+  - `require_reviewer_note` - when true, the draft notes must name a
+    human reviewer before publish qualifies.
+
+  Regulated-industry review stages (a compliance reviewer before
+  publish) are v1.0 multi-approver work, not this section.
 
 - `alerts: {threshold_pct: 40}` - the deviation percent at which the
   daily anomaly check (skills/hoo-daily step 2.7) flags a headline
