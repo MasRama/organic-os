@@ -187,14 +187,27 @@ this project's terms - evidence-tiered, BYO-credential, no scraping.
   surface as one alert on the channel the operator already watches.
   Source: alerting is the retention feature of every commercial monitor;
   ours rides the existing channel taxonomy instead of adding a dashboard.
+  **Landed early** in v0.4.0-alpha.3: hoo-daily's anomaly check compares
+  each headline metric to its trailing 7-day median (default 40 percent
+  threshold, additive `alerts: {threshold_pct: 40}` profile key, noise
+  floor and baseline minimum stated in the skill) and the flags join the
+  existing actionable-only daily alert - see CHANGELOG.md.
 - **Keyword-portfolio tracking from GSC.** A tracked keyword set with
   position over time, honestly labeled: GSC average position, not scraped
   SERP rank. Source: rank tracking is the most-requested gap left by
-  ADR-0006; GSC is the licensed data that closes most of it.
+  ADR-0006; GSC is the licensed data that closes most of it. **Landed
+  early** in v0.4.0-alpha.3: hoo-weekly's Keyword portfolio section
+  appends per-keyword GSC history to `keywords/history.tsv`, reports
+  weekly movement, and feeds the biggest mover to the Monday report,
+  with the honesty rule stated in every output - see CHANGELOG.md.
 - **CSV export from the brain for BI tools.** Signals, outcomes, and
   tracking flatten to CSV on demand. Source: commercial tools gate export
   behind top tiers; our data is the user's own files, so export is a
-  right, not an upsell.
+  right, not an upsell. **Landed early** in v0.4.0-alpha.3:
+  `core.export.export_all` writes signals.csv, keywords.csv, and
+  outcomes.csv into a dated run dir; the hoo-export skill and
+  `/organic-os:export` command deliver them, no tier gate - see
+  CHANGELOG.md.
 - **Citation-tracker depth.** More engines via BYO credentials, plus
   sentiment and position within answers, not just cited-or-not. Source:
   per-answer position and sentiment are the paid tiers of every

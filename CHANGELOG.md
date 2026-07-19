@@ -2,6 +2,49 @@
 
 ## [Unreleased]
 
+## [0.4.0-alpha.3] - 2026-07-19
+
+Three more market-validated v0.4 items land: sharp metric breaks reach
+the channel the operator already watches, tracked keywords earn an
+honest position history, and the whole brain flattens to CSV on demand.
+
+- **feat(hoo): anomaly alerts in the daily observe.** hoo-daily gains a
+  step 2.7 anomaly check: each headline metric the run actually has
+  (GSC clicks, impressions, GA4 sessions, ai_referrals) is compared to
+  its median across the trailing 7 daily signals; a deviation past the
+  threshold (default 40 percent, profile-configurable via the additive
+  `alerts: {threshold_pct: 40}` key) becomes one P1 signal in
+  falsifiable form - metric, today, median, direction, a likely-cause
+  hypothesis, and the stated caveat that weekends and seasonality can
+  trip the check. Flags ride the existing actionable-only daily alert,
+  never a separate message. Noise floor: medians below 10 are skipped;
+  fewer than 4 prior daily signals means a one-line skip note, no
+  baseline, no alert. A new step 2.6 records the day's pulls as one
+  structured metrics line so the trailing window is parseable.
+- **feat(hoo): keyword-portfolio tracking, honestly labeled.**
+  hoo-weekly gains a Keyword portfolio section: when GSC is reachable
+  and `keywords/tracking.yaml` has entries, each tracked keyword's
+  last-28-day GSC average position, clicks, and impressions append one
+  row to `keywords/history.tsv` (tab-separated, append-only, additive -
+  documented in site-repo-contract.md). Movement vs the previous
+  recorded week lands in the weekly REPORT.md; the biggest mover gets
+  one line in the Monday report's What moved. The honesty rule is
+  stated in the skill and every output: GSC average position for
+  queries matching the tracked term, not a scraped SERP snapshot;
+  zero-impression positions are unknown, recorded as absent, never
+  guessed. hoo-keyword-intel points at tracking.yaml management.
+- **feat: CSV export for BI tools.** `core.export` (stdlib only):
+  `export_signals` parses the daily's structured metric tokens into
+  signals.csv (date, metric, value; unparseable lines skipped and
+  counted, never guessed), `export_keywords` converts history.tsv
+  verbatim, `export_outcomes` best-effort-parses outcome records
+  (date, item, action, status, verified), and `export_all` writes the
+  set into `runs/<UTCdate>-export/`. New hoo-export skill +
+  `/organic-os:export` command present the files and offer document
+  delivery where the channel carries files. Your data is files in your
+  own repo, so there is no locked tier and no gate - commercial tools
+  sell exactly this connector behind top tiers. 12 new tests (263).
+
 ## [0.4.0-alpha.2] - 2026-07-19
 
 Marketer-grade onboarding: the install form + click-through interview;
