@@ -112,6 +112,40 @@ whichever shape your backend matches.
   `capabilities()` flags are true and why, backed by the backend's docs,
   and point at the fake-transport test file.
 
+## Contributing an analytics adapter
+
+The analytics capability slot (ADR-0009) covers the read-side pulls the
+daily and weekly routines make: sessions, referral segmentation (the
+AI-surface list in `plugin/skills/hoo-daily/SKILL.md`), and per-page
+metrics. GA4, reached through the user's own connector, is adapter one.
+
+A Microsoft Clarity or Matomo adapter is a skill-readable doc, not a
+Python class: a page under `plugin/docs/` describing the tool's query
+surface (which of the pulls above it can answer, and how a skill should
+ask), the connector or credential path the user sets up to reach it, and
+the same graceful-degradation rule the skills already hold to - a source
+that is not reachable this run is stated as missing, never guessed. No
+lib contract exists yet, and that is deliberate: analytics is read-only
+through connectors, so there is no mutation to gate and no interface to
+implement. The doc plus the skills' slot language is the whole contract
+until a real need forces a code one.
+
+## Contributing an image-generation adapter
+
+The image-generation slot's job is ce-image's featured-image step
+(`plugin/skills/ce-image/SKILL.md`): turn a drafted post's title and
+visual concept into a 1200x630 featured image saved next to the draft.
+Canva, through the user's connector, is adapter one.
+
+A Gemini or local-generator adapter has the same shape: a doc describing
+how to invoke it (the connector or credential path, the generation
+call), and what it returns - an image file saved next to the draft, or
+the image-brief fallback (`<slug>-image-brief.md`, as ce-image already
+writes without Canva) when generation is not possible. The no-fake-
+success rule applies: an adapter never claims an image was generated
+when it was not - the brief fallback plus a plain statement is the
+honest degradation.
+
 ## Standards
 
 - **TDD for `lib/core`, `lib/hoo`, `lib/onsite` code.** Write the failing

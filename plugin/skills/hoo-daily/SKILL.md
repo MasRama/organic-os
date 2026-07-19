@@ -13,6 +13,9 @@ scheduled runs receive the brain path from the routine configuration.
 
 1. Read site-profile.yaml. Determine available sources: GSC connector, GA4
    connector, tracked keywords in keywords/tracking.yaml, WordPress endpoint.
+   The sessions and referral pulls read the analytics slot (ADR-0009) -
+   GA4 is the adapter today; see CONTRIBUTING.md's "Contributing an
+   analytics adapter" to add Clarity or Matomo.
 2. Pull, for yesterday (or since the last signal date - read the latest file in
    signals/): GSC clicks/impressions/CTR/position for top and tracked queries;
    GA4 sessions; spot-check 3 tracked keywords in one AI engine, rotating.

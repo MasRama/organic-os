@@ -15,3 +15,6 @@ description: Use to create the featured image / social card for a drafted post -
    1200x630, concept description, exact overlay text, alt text - so the user
    can produce it in any tool. State plainly that no image was generated.
 4. Always write the alt text into the draft frontmatter (alt: ...).
+5. Steps 2-3 are the image-generation slot (ADR-0009) - Canva is the
+   adapter today; see CONTRIBUTING.md's "Contributing an image-generation
+   adapter" to add Gemini or a local generator.

@@ -158,9 +158,24 @@ each one is a capability users demonstrably pay for elsewhere, rebuilt on
 this project's terms - evidence-tiered, BYO-credential, no scraping.
 
 - **Analytics adapter slot.** GA4 is the first adapter; Microsoft Clarity
-  and Matomo are welcome contributions.
+  and Matomo are welcome contributions. **Landed early** in
+  v0.4.0-alpha.4 as a formalized contribution contract:
+  CONTRIBUTING.md's "Contributing an analytics adapter" section defines
+  the slot's job (the daily/weekly read-side pulls) and the doc-shaped
+  adapter contract - analytics is read-only through connectors, so
+  there is deliberately no lib interface yet - and hoo-daily names the
+  slot per ADR-0009. We did not build a Clarity or Matomo adapter; the
+  first alternative adapters are community-welcome against that
+  contract.
 - **Image-generation adapter slot.** Canva is the first adapter; Gemini
-  and local generators fit the same slot.
+  and local generators fit the same slot. **Landed early** in
+  v0.4.0-alpha.4 the same way: CONTRIBUTING.md's "Contributing an
+  image-generation adapter" section defines the slot's job (ce-image's
+  featured-image step), the invoke-and-return shape (an image file or
+  the image-brief fallback), and the no-fake-success rule, and ce-image
+  names the slot per ADR-0009. We did not build a Gemini or
+  local-generator adapter; contributions are welcome against that
+  contract.
 - **Gated image and alt-text fix workflow.** The audit already finds the
   gaps; close the loop with proposals the apply path executes.
 - **Editorial policy in the site profile.** An additive `editorial:`
