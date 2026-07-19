@@ -17,7 +17,9 @@ description: Use for any broad organic-growth request - "audit my organic presen
 3. Synthesize results. Deduplicate findings. Rank by impact x confidence.
 4. File outputs through lib/core ONLY:
    - observations -> `append_signal` (one call per signal line)
-   - content ideas -> `create_item(kind="content-brief", ...)`
+   - content ideas -> `create_item(kind="content-brief", ...)`; ideas born
+     from comparison-intent queries (vs, alternative, best X for) set
+     `brief_type="comparison"` - absence means explainer
    - on-page fixes -> `create_item(kind="onpage-fix", ...)`
    - run artifacts -> `runs/YYYYMMDD-orchestrator/` (numbered raw files + REPORT.md)
    Items are created ONLY via `create_item` (born `proposed`, empty

@@ -37,3 +37,27 @@ description: Use to produce a publish-ready draft from an approved content brief
 7. At each stage boundary, append a one-line progress marker with a UTC
    timestamp to the run report file before starting the stage - headless
    runs are watched by tailing that file, not a terminal.
+
+## Comparison briefs (brief_type: comparison)
+
+When the brief's frontmatter carries `brief_type: comparison` (the field
+is additive; absence means explainer - see docs/site-repo-contract.md),
+the same six stages run with comparison-specific guidance layered on:
+
+- ce-researcher: verify EVERY claim about a third-party product against
+  that product's live public pages - pricing and features change, so each
+  claim destined for the comparison table needs a fetch-verified source
+  URL and a checked-on date in the research pack. Never from memory.
+- ce-writer: produce the X-vs-Y structure - the answer capsule states the
+  honest one-line difference between the two; the comparison table
+  carries only rows the research pack verified; a "who should pick which"
+  section treats the competitors fairly, naming where each is the better
+  pick.
+- ce-qa: two comparison-specific hard checks on top of the standard ones:
+  (1) no unverifiable competitor claims - a row whose cells cannot be
+  matched to a fetch-verified source is dropped, never guessed; (2) no
+  disparagement - factual differences only, no adjectives about
+  competitors.
+
+Rationale: X-vs-Y and listicle shapes are the most-cited content shapes
+in AI search (https://www.position.digital/blog/digital-pr-tactics/).

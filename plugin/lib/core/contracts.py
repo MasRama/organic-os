@@ -31,6 +31,8 @@ TRANSITIONS = {
     "published": {"measured"},
 }
 KINDS = {"onpage-fix", "content-brief", "publish", "strategy"}
+# content-brief shape; absence of the frontmatter field means "explainer".
+BRIEF_TYPES = {"explainer", "comparison"}
 
 SCHEMA_VERSION = 1
 
@@ -145,9 +147,16 @@ def _folder(root: Path, kind: str) -> Path:
 
 
 def create_item(root, kind: str, slug: str, title: str, body: str,
-                target: str, source: str) -> Path:
+                target: str, source: str, brief_type: str | None = None) -> Path:
     if kind not in KINDS:
         raise ContractError(f"unknown kind {kind!r}")
+    if brief_type is not None:
+        if kind != "content-brief":
+            raise ContractError(
+                f"brief_type applies to content-brief items only, not {kind!r}")
+        if brief_type not in BRIEF_TYPES:
+            raise ContractError(
+                f"unknown brief_type {brief_type!r} - one of {sorted(BRIEF_TYPES)}")
     if not re.fullmatch(r"[a-z0-9][a-z0-9-]*", slug):
         raise ContractError(f"bad slug {slug!r} - use lowercase letters, digits, hyphens")
     root = Path(root)
@@ -158,6 +167,8 @@ def create_item(root, kind: str, slug: str, title: str, body: str,
     meta = {"id": f"{'b' if kind == 'content-brief' else 'p'}-{date}-{slug}",
             "kind": kind, "status": "proposed", "created": _now(),
             "title": title, "target": target, "source": source, "approvals": []}
+    if brief_type is not None:
+        meta["brief_type"] = brief_type
     _dump(path, meta, body)
     return path
 

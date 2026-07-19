@@ -130,6 +130,15 @@ produced it - a signal, an audit finding, an operator note), and
 `set_status` records an `approved` or `rejected` decision: `actor`,
 `channel`, `decision`, `at`).
 
+Content briefs may carry one more optional field, `brief_type` - additive
+(`schema_version` stays `1`; absence means the default, `explainer`). The
+other value is `comparison`, marking an X-vs-Y brief: the content pipeline
+drafts it with comparison-specific stage guidance (see skills/ce-produce),
+and the signal-driven skills set it when comparison-intent queries
+(vs / alternative / best-X-for) produced the brief. The field is written
+only through `create_item(..., brief_type=...)`; an unknown value refuses,
+naming the supported types (`BRIEF_TYPES` in `plugin/lib/core/contracts.py`).
+
 ### Status lifecycle
 
 ```

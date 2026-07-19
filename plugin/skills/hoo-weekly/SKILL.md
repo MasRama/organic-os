@@ -29,6 +29,10 @@ scheduled runs receive the brain path from the routine configuration.
    Only send items where `is_notified(item)` is false; call `mark_notified(path)`
    right after a successful send. Commit + push if git.
 
+Any content brief this run emits for comparison-intent queries (vs,
+alternative, best X for) sets `brief_type="comparison"` on `create_item`;
+absence means explainer (see docs/site-repo-contract.md).
+
 Run cost: wrapper-invoked runs land one row in
 `~/.config/organic-os/cost-ledger-YYYYMM.tsv` (written by the runtime
 wrapper, never by this skill); the Monday report is what surfaces it.

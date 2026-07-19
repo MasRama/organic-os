@@ -34,6 +34,33 @@ def test_create_and_load_proposal(root):
     assert "Rewrite /pricing" in item["meta"]["title"]
 
 
+def test_create_item_brief_type_comparison(root):
+    p = C.create_item(root, kind="content-brief", slug="x-vs-y",
+                      title="X vs Y", body="b", target="https://ex.com/x-vs-y",
+                      source="s", brief_type="comparison")
+    assert C.load_item(p)["meta"]["brief_type"] == "comparison"
+
+
+def test_create_item_brief_type_absent_by_default(root):
+    p = C.create_item(root, kind="content-brief", slug="plain", title="t",
+                      body="b", target="https://ex.com/plain", source="s")
+    assert "brief_type" not in C.load_item(p)["meta"]  # absence means explainer
+
+
+def test_create_item_brief_type_unknown_raises(root):
+    with pytest.raises(C.ContractError):
+        C.create_item(root, kind="content-brief", slug="bad", title="t",
+                      body="b", target="", source="s", brief_type="listicle")
+    assert list((root / "briefs").glob("*.md")) == []
+
+
+def test_create_item_brief_type_wrong_kind_raises(root):
+    with pytest.raises(C.ContractError):
+        C.create_item(root, kind="onpage-fix", slug="fix", title="t",
+                      body="b", target="", source="s", brief_type="comparison")
+    assert list((root / "proposals").glob("*.md")) == []
+
+
 def test_status_lifecycle_enforced(root):
     p = C.create_item(root, kind="onpage-fix", slug="x", title="t", body="b",
                       target="https://ex.com/x", source="s")
