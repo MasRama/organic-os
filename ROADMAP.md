@@ -58,7 +58,17 @@ them, proven by verify-gates probe 7), and Bing Webmaster + IndexNow
 submission (key generation, root-file verification, and per-ship URL
 submission with the status recorded in the outcome) - see CHANGELOG.md.
 
-## v0.3 - Execution breadth
+## v0.3 - Execution breadth - COMPLETE
+
+Closed by the v0.3.0 release (2026-07-19), which finalizes the alpha
+train rather than shipping new capability: the phase landed the CMS
+adapter contract plus the WordPress and git-static adapters, link
+health plus the gated redirect and 404 workflow, mention opportunities
+plus entity consistency plus AI-referral segmentation, comparison
+briefs plus topic clustering plus editorial-oversight scoring, and the
+claude-seo audit import. Everything landed early across
+v0.3.0-alpha.1 through v0.3.0-alpha.8, as itemized below; the open
+items move to v0.4.
 
 **Landed early:** the CMS adapter contract, the structural priority for
 this release, shipped in v0.3.0-alpha.1: `plugin/lib/onsite/cms.py`
@@ -121,23 +131,26 @@ second gate - scaled, unedited AI content correlates with
 deindexation,
 [source](https://www.rankability.com/data/does-google-penalize-ai-content/)).
 The `editorial:` profile section has begun with its first key,
-`editorial.oversight_threshold`; the full editorial-policy item below
-stays open. See CHANGELOG.md. Also landed early, in v0.3.0-alpha.8:
-the claude-seo audit import - "they audit, we operate".
-`/organic-os:import-audit` parses a claude-seo report or action plan
-defensively (`hoo.audit_import`, stdlib only; the format is theirs and
-may vary between versions, so whatever cannot be parsed is preserved
-as a raw excerpt, never dropped), keeps every finding's original
-evidence label and text verbatim, maps findings onto our onsite-audit
-dimensions where they overlap and marks the rest external-only
-(llms.txt findings carry the deliberate-skip note per
+`editorial.oversight_threshold`; the full editorial-policy item (moved
+to v0.4) stays open. See CHANGELOG.md. Also landed early, in
+v0.3.0-alpha.8: the claude-seo audit import - "they audit, we
+operate". `/organic-os:import-audit` parses a claude-seo report or
+action plan defensively (`hoo.audit_import`, stdlib only; the format
+is theirs and may vary between versions, so whatever cannot be parsed
+is preserved as a raw excerpt, never dropped), keeps every finding's
+original evidence label and text verbatim, maps findings onto our
+onsite-audit dimensions where they overlap and marks the rest
+external-only (llms.txt findings carry the deliberate-skip note per
 `plugin/docs/evidence.md`), and creates at most five ranked proposals
 via `create_item` - born `proposed` on the normal gate, never
-auto-approved. See CHANGELOG.md. Still open in v0.3, itemized below:
-the analytics adapter slot, the image-generation adapter slot, the
-gated image and alt-text fix workflow, and the full editorial-policy
-section; the Shopify adapter stays deprioritized (below) and pipeline
-parallelism stays upstream-gated.
+auto-approved. See CHANGELOG.md. Open items move to v0.4, itemized
+there: the analytics adapter slot, the image-generation adapter slot,
+the gated image and alt-text fix workflow, and the full
+editorial-policy section; the Shopify adapter stays deprioritized
+(below, under "Deprioritized, with reasons") and pipeline parallelism
+stays upstream-gated.
+
+## v0.4 - Adapter breadth and editorial depth
 
 - **Analytics adapter slot.** GA4 is the first adapter; Microsoft Clarity
   and Matomo are welcome contributions.
@@ -157,6 +170,10 @@ parallelism stays upstream-gated.
 - **Pipeline parallelism.** Per-page audit fan-out and research prefetch
   when sub-agent dispatch is reliable in headless runs (upstream
   dependency).
+
+The Shopify adapter does not move here: it stays parked under
+"Deprioritized, with reasons" below, still demand-gated on the first
+external request.
 
 ## v1.0 - Many sites, many hands
 

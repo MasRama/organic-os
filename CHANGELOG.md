@@ -2,6 +2,26 @@
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-07-19
+
+This finalizes the alpha train - v0.3.0-alpha.1 through v0.3.0-alpha.8,
+each itemized in its own entry below - closing the v0.3 phase with no
+further code change.
+
+**v0.3 in aggregate.** The phase shipped entirely across the eight
+alpha releases above: the CMS adapter contract plus the WordPress and
+git-static adapters, internal-link graph analysis plus the gated
+redirect and 404 workflow, the three observe-side items (digital-PR
+mention signals, the entity-consistency audit, AI-referral traffic
+segmentation), the content batch (the comparison-content brief type,
+topic clustering for content architecture, editorial-oversight scoring
+before publish), and the claude-seo audit import - "they audit, we
+operate".
+
+Open items move to v0.4: the analytics adapter slot, the
+image-generation adapter slot, the gated image and alt-text fix
+workflow, and the full editorial-policy section (see ROADMAP.md).
+
 ## [0.3.0-alpha.8] - 2026-07-19
 
 They audit, we operate: the claude-seo import lands. A point-in-time
