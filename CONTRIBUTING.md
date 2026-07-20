@@ -164,6 +164,23 @@ honest degradation.
   layout); when you add a load-bearing fact, add its row to the map in the
   same commit.
 
+## Sign your commits (DCO)
+
+organic-os uses the [Developer Certificate of Origin](https://developercertificate.org/)
+(DCO), not a CLA. The DCO is a one-line attestation that you wrote the patch,
+or otherwise have the right to submit it under the project's MIT license. Sign
+every commit with a `Signed-off-by` trailer:
+
+```
+Signed-off-by: Your Name <your.email@example.com>
+```
+
+`git commit -s` adds it for you from your configured `user.name` and
+`user.email`. Why DCO and not a CLA: it is the lowest-friction way to record
+provenance, it needs no separate signing service or account to click through,
+and for an MIT-licensed project a CLA would add process without adding any
+right the license does not already grant.
+
 ## PR checklist
 
 Mirrors `.github/PULL_REQUEST_TEMPLATE.md` - see that file for the exact

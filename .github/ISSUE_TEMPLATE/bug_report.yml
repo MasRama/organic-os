@@ -1,0 +1,48 @@
+name: Bug report
+description: Something in organic-os did not work as documented.
+labels: ["bug"]
+body:
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What you ran, what you expected, and what actually happened.
+      placeholder: I ran /organic-os:onsite-audit and expected ..., but ...
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: The shortest sequence that reproduces it.
+      placeholder: |
+        1. ...
+        2. ...
+        3. ...
+    validations:
+      required: true
+  - type: dropdown
+    id: client
+    attributes:
+      label: Where you ran it
+      options:
+        - Claude Code (CLI)
+        - Claude Cowork
+    validations:
+      required: true
+  - type: input
+    id: runtime
+    attributes:
+      label: Runtime
+      description: Output of `python3 --version`, and whether `python3 -c "import yaml"` succeeds.
+      placeholder: Python 3.11.6, import yaml OK
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: organic-os version
+      description: The version from the README badge or `plugin.json`.
+      placeholder: 0.4.1
+    validations:
+      required: true

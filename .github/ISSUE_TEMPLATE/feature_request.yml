@@ -1,0 +1,26 @@
+name: Feature request
+description: Suggest a capability or change. Reprioritization requests are welcome too.
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: The problem
+      description: What are you trying to do that organic-os does not support today?
+      placeholder: When I run the weekly routine I cannot ...
+    validations:
+      required: true
+  - type: textarea
+    id: proposed
+    attributes:
+      label: Proposed solution
+      description: What would you like organic-os to do? Name the skill, command, or adapter if you know it.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Other approaches you weighed, or how you work around this today.
+    validations:
+      required: false

@@ -1,0 +1,32 @@
+name: Setup help
+description: Stuck installing, connecting, or configuring organic-os.
+labels: ["question", "setup"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Before filing, the getting-started guide (`plugin/docs/getting-started.md`)
+        and the connector guide (`plugin/docs/connectors.md`) cover most setup steps.
+  - type: textarea
+    id: goal
+    attributes:
+      label: What you are trying to do
+      description: The outcome you want, in one or two sentences.
+      placeholder: Connect GA4 and GSC so the daily routine has data.
+    validations:
+      required: true
+  - type: input
+    id: step
+    attributes:
+      label: Which step
+      description: The command or setup step where you are stuck.
+      placeholder: /organic-os:setup connector wizard
+    validations:
+      required: true
+  - type: textarea
+    id: observed
+    attributes:
+      label: What you see
+      description: The message, prompt, or behavior you are getting. Keep any secret value out of this report.
+    validations:
+      required: true

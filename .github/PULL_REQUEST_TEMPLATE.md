@@ -10,6 +10,9 @@
       rulebooks, competitor lists, or skillbook content - see
       [CONTRIBUTING.md's data boundary](../CONTRIBUTING.md#the-data-boundary-hard-rule))
 - [ ] No secrets (API keys, tokens, passwords, `.env` files)
+- [ ] Commits are signed off (DCO): `git commit -s` adds the
+      `Signed-off-by` trailer - we use DCO, not a CLA (see
+      [CONTRIBUTING.md's DCO section](../CONTRIBUTING.md#sign-your-commits-dco))
 - [ ] Every evidence/claim/statistic in this PR is sourced (a link, a study,
       a real citation)
 - [ ] No em-dashes; no hype words (seamless, robust, delve, transform,

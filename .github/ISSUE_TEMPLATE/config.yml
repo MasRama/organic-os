@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Setup and usage docs
+    url: https://github.com/shalintripathi/organic-os/blob/main/plugin/docs/getting-started.md
+    about: The getting-started and connector guides answer most setup and usage questions before you file an issue.
