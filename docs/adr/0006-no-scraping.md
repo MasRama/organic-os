@@ -32,6 +32,5 @@ connects with their own credentials.
 
 ## Agent Context
 Proposed by the agent from research evidence; approved by the human in the
-2026-07-18 design session. Evidence: docs/specs/2026-07-18-organic-os-design.md
-section 2 ("No SERP/autocomplete scraping, ever"), citing Google SearchGuard
-and the SerpApi lawsuit, December 2025.
+2026-07-18 design session, from its "No SERP/autocomplete scraping, ever"
+analysis, citing Google SearchGuard and the SerpApi lawsuit, December 2025.

@@ -31,6 +31,5 @@ markdown-only skills and agents with no lib directory.
 
 ## Agent Context
 Proposed by the agent from research evidence; approved by the human in the
-2026-07-18 design session. Evidence: docs/specs/2026-07-18-organic-os-design.md
-section 1 ("One install, separate insides") and the module-boundary design in
-section 3.
+2026-07-18 design session, from its "One install, separate insides" analysis
+and its module-boundary design.

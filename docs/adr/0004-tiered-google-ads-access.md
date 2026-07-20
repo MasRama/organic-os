@@ -33,6 +33,5 @@ Insights exports).
 
 ## Agent Context
 Proposed by the agent from research evidence; approved by the human in the
-2026-07-18 design session. Evidence: docs/specs/2026-07-18-organic-os-design.md
-section 7 (hoo-keyword-intel tiering) and the 2026 Google Ads API Basic-access
-approval backlog.
+2026-07-18 design session, from its hoo-keyword-intel tiering analysis and the
+2026 Google Ads API Basic-access approval backlog.

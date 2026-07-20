@@ -31,6 +31,5 @@ local-schedule runtime.
 
 ## Agent Context
 Proposed by the agent from research evidence; approved by the human in the
-2026-07-18 design session. Evidence: docs/specs/2026-07-18-organic-os-design.md
-section 4 ("The site repo (the brain)") and section 6 (execution-agnostic
-routines and runtimes).
+2026-07-18 design session, from its "The site repo (the brain)" analysis and
+its execution-agnostic routines-and-runtimes design.

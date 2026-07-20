@@ -15,7 +15,7 @@ hits=$(grep -rniE "$PERSONAL" $EXCLUDES --exclude-dir=specs --exclude-dir=plans 
 
 # 2. Secrets patterns.
 SECRETS='AKIA[0-9A-Z]{16}|-----BEGIN|ghp_[A-Za-z0-9]{20,}|xox[baprs]-|sk-ant-|AIza[0-9A-Za-z_-]{30,}'
-hits=$(grep -rnE "$SECRETS" $EXCLUDES --exclude-dir=specs --exclude-dir=plans --exclude=audit.sh . || true)
+hits=$(grep -rnE "$SECRETS" $EXCLUDES --exclude=audit.sh . || true)
 [ -n "$hits" ] && { say "FAIL secret-like string:"; say "$hits"; fail=1; }
 
 # 3. Em-dash ban (all shipped text).
@@ -23,9 +23,8 @@ hits=$(grep -rn "$(printf '\xe2\x80\x94')" $EXCLUDES --exclude=audit.sh . || tru
 [ -n "$hits" ] && { say "FAIL em-dash found:"; say "$hits"; fail=1; }
 
 # 4. Banned phrases in shipped copy (plugin/, docs/, README).
-# docs/specs is an engineering meta-doc that quotes the rules.
 BANNED='seamless|robust(ly)?|delve|dive into|in today.s fast-paced|transform(ative|ing)?|unlock|unleash|supercharge|game-chang|cutting-edge|world-class|best-in-class|synergy|holistic|revolutionary'
-hits=$(grep -rniE "$BANNED" $EXCLUDES --exclude-dir=specs --exclude-dir=plans --exclude=audit.sh plugin docs README.md SECURITY.md CONTRIBUTING.md ROADMAP.md CHANGELOG.md 2>/dev/null || true)
+hits=$(grep -rniE "$BANNED" $EXCLUDES --exclude=audit.sh plugin docs README.md SECURITY.md CONTRIBUTING.md ROADMAP.md CHANGELOG.md 2>/dev/null || true)
 [ -n "$hits" ] && { say "FAIL banned phrase:"; say "$hits"; fail=1; }
 
 # 5. Module boundary: no cross-module imports (absolute, package, or relative).

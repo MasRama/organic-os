@@ -33,5 +33,5 @@ themselves.
 
 ## Agent Context
 Proposed by the agent from research evidence; approved by the human in the
-2026-07-18 design session. Evidence: docs/specs/2026-07-18-organic-os-design.md
-section 6 ("Routines and runtimes (execution-agnostic)").
+2026-07-18 design session, from its "Routines and runtimes
+(execution-agnostic)" analysis.
