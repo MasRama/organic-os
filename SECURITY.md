@@ -58,7 +58,10 @@ value, stop it - that is not expected behavior.
 
 ## Reporting an issue
 
-Open a GitHub issue at `https://github.com/shalintripathi/organic-os/issues`.
-If the issue involves a credential-handling bug or another sensitive
-finding, say so in the title and keep the actual secret value out of the
-report; describe the pattern instead.
+For an ordinary bug, open a GitHub issue at
+`https://github.com/shalintripathi/organic-os/issues` using the bug-report
+form. For a security or credential-handling finding, do not open a public
+issue: open a private security advisory on the repository (GitHub > Security >
+Advisories), or contact the maintainer through their GitHub profile
+(@shalintripathi). Either way, keep the actual secret value out of the report
+and describe the pattern instead.

@@ -28,6 +28,8 @@ means a human consults this map when the canonical source changes.
 | Anomaly-alert threshold default (40 percent vs the trailing 7-day median; noise floor: median below 10 skipped; baseline minimum: 4 prior daily signals; profile key `alerts: {threshold_pct: 40}`) | anomaly-check step (2.7) in `plugin/skills/hoo-daily/SKILL.md` | `plugin/docs/site-repo-contract.md` alerts key bullet | manual |
 | Export file set (signals.csv date/metric/value from the daily's structured metric tokens; keywords.csv verbatim from history.tsv; outcomes.csv date/item/action/status/verified; run dir `runs/<UTCdate>-export/`) | `plugin/lib/core/export.py` | `plugin/skills/hoo-export/SKILL.md`; `plugin/docs/site-repo-contract.md` export run-dir section | manual |
 | Citation-tracker default engine set (ChatGPT, Perplexity, Google AI Overviews, Gemini, Microsoft Copilot; profile key `citations: {engines: [...]}`) | Engine set section in `plugin/skills/hoo-citation-tracker/SKILL.md` | `plugin/docs/site-repo-contract.md` citations key bullet | manual |
+| Plugin permissions and scopes (capability -> what it accesses -> credential -> where the credential lives) | `THREAT-MODEL.md` permissions table | `SECURITY.md` "What organic-os touches" + "What organic-os never does"; `README.md` human-gates paragraph | manual |
+| Security-report + Code-of-Conduct enforcement contact (private security advisory on the repo, or the maintainer's GitHub profile @shalintripathi; never a personal email) | `CODE_OF_CONDUCT.md` Enforcement section | `SECURITY.md` "Reporting an issue"; `SUPPORT.md` security-issues section | manual |
 
 Check 8 also verifies that every relative markdown link in the repo
 resolves to an existing file, so cross-references never silently rot when

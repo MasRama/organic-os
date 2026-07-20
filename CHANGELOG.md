@@ -2,6 +2,37 @@
 
 ## [Unreleased]
 
+## [0.4.1] - 2026-07-19
+
+A cleanup and community-health release. No new plugin capability; the loop
+and its tests are unchanged at 292.
+
+- **chore: removed internal build docs from the public repo.** `docs/specs`
+  held internal build scaffolding (a design spec referencing a specific
+  deployment), not audience content. Removed; the ADRs in `docs/adr/` stay,
+  and the five ADRs that cited the spec keep the historical fact while
+  dropping the now-dead link. Audit checks 2 and 4 lose their
+  `--exclude-dir=specs/plans` flags.
+- **chore(audit): generalized the personal-data check.** Check 1 hardcoded
+  one contributor's employer, email fragment, phone fragment, and private
+  metrics - inappropriate for a community repo and a mild self-leak. Replaced
+  with a generic PII guard (personal-email providers plus a phone-shaped
+  digit run) that names no one. Verified empirically.
+- **feat: community-health files.** A Contributor Covenant 2.1 Code of
+  Conduct (enforcement routed to a private security advisory or the
+  maintainer's GitHub profile, never a personal email), three YAML issue
+  forms (bug, feature, setup help) plus a config disabling blank issues,
+  `.github/CODEOWNERS`, `SUPPORT.md`, and a DCO section in CONTRIBUTING plus
+  a sign-off checkbox in the PR template - DCO, not a CLA.
+- **docs: THREAT-MODEL.md.** A permissions table (capability, what it
+  accesses, credential, where the credential lives), the blast radius of a
+  mis-approval with its layered mitigations, what the plugin never does, and
+  a release-integrity model that names Sigstore/SLSA build attestation as a
+  roadmap item rather than implying it exists. README and SECURITY.md
+  cross-link it; ROADMAP adds signed release provenance as an honest future
+  item. SECURITY.md's reporting section now routes sensitive findings to a
+  private advisory, matching the Code of Conduct and SUPPORT.
+
 ## [0.4.0] - 2026-07-19
 
 This finalizes the alpha train - v0.4.0-alpha.1 through v0.4.0-alpha.5,
