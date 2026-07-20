@@ -1,5 +1,10 @@
 # Security
 
+For the full permissions table, the blast radius of a mis-approval, and the
+release-integrity model, see [THREAT-MODEL.md](THREAT-MODEL.md). This file
+covers what organic-os touches, what it never does, the env-file convention,
+and how to report an issue.
+
 ## What organic-os touches
 
 - **Your site repo (the brain).** Everything organic-os knows about a site

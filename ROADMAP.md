@@ -290,6 +290,12 @@ external request.
 - **Adapter contribution guide.** A how-to for the CMS/channel adapter
   pattern established in v0.3, once there are enough real adapters to
   generalize from.
+- **Signed release provenance (Sigstore / SLSA build attestation).** Today
+  a release is a tag on a CI-green commit, and that tag is the integrity
+  anchor (see `THREAT-MODEL.md`). Cryptographic build-provenance attestation
+  would let an installer verify the tree came from this repo's CI and was
+  not tampered with in between. Named here honestly as not-yet-implemented
+  rather than implied anywhere in the docs.
 - **Read-only MCP surface over the brain repo.** Commercial tools now
   sell MCP access to their data; ours would be thin and optional, because
   the brain is already plain files in the user's own git repo. A richer

@@ -192,7 +192,9 @@ recording instead every change it would have made. There is no telemetry, no
 SERP or autocomplete scraping (see ADR-0006), and credentials never live in
 any repo - only env-file references do. Your brain repo is yours: it lives
 wherever you put it, private by default, and organic-os never pushes it
-anywhere you did not configure. Full detail: `SECURITY.md` and
+anywhere you did not configure. Full detail: `SECURITY.md`,
+[THREAT-MODEL.md](THREAT-MODEL.md) (the permissions table, blast radius, and
+what the plugin never does), and
 [CONTRIBUTING.md's data boundary](CONTRIBUTING.md#the-data-boundary-hard-rule).
 
 ## How it compares
