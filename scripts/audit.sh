@@ -7,10 +7,11 @@ fail=0
 say() { printf '%s\n' "$*"; }
 EXCLUDES='--exclude-dir=.git --exclude-dir=__pycache__ --exclude-dir=.venv'
 
-# 1. Personal/employer data must never appear (spec §15). Case-insensitive.
-# docs/specs quotes the blocklist verbatim; audit.sh defines it.
-PERSONAL='exotel|ameyo|wsofi|78382|32X|29X MROI|4\.2M|5-FTE|MQL to SQL|CAC reduction'
-hits=$(grep -rniE "$PERSONAL" $EXCLUDES --exclude-dir=specs --exclude-dir=plans --exclude=audit.sh . || true)
+# 1. Personal PII must never appear. Case-insensitive. Generic guard, no
+# names: personal-email providers and a phone-shaped digit run. This is an
+# engine repo - a contributor's private contact details do not belong in it.
+PERSONAL='[a-z0-9._%+-]+@(gmail|yahoo|hotmail|outlook|proton(mail)?)\.(com|me)|\+?[0-9]{1,3}[ -]?[0-9]{5}[ -]?[0-9]{5}'
+hits=$(grep -rniE "$PERSONAL" $EXCLUDES --exclude=audit.sh . || true)
 [ -n "$hits" ] && { say "FAIL personal/employer data:"; say "$hits"; fail=1; }
 
 # 2. Secrets patterns.
