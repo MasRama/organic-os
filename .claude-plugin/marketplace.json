@@ -1,12 +1,36 @@
 {
   "name": "organic-os",
-  "owner": { "name": "Shivaa Tripathi", "url": "https://shivaatripathi.com" },
+  "owner": {
+    "name": "Shivaa Tripathi",
+    "url": "https://shivaatripathi.com"
+  },
   "plugins": [
     {
       "name": "organic-os",
       "source": "./plugin",
       "description": "An agentic organic-growth operating system: observe, decide, approve, apply, verify, learn. SEO + AEO/GEO + content + on-page execution with a memory that compounds.",
-      "version": "0.4.1"
+      "version": "0.4.1",
+      "keywords": [
+        "seo",
+        "aeo",
+        "geo",
+        "answer-engine-optimization",
+        "generative-engine-optimization",
+        "ai-seo",
+        "seo-automation",
+        "marketing-automation",
+        "wordpress",
+        "claude",
+        "claude-code",
+        "claude-code-plugin",
+        "agent-skills",
+        "ai-agents",
+        "llm",
+        "ai-search",
+        "content-marketing",
+        "search-console"
+      ],
+      "category": "marketing"
     }
   ]
 }

@@ -1,12 +1,47 @@
 # organic-os
 
-An agentic organic-growth operating system for any website, as a single
-Claude plugin. The loop is the product.
+**An always-on organic growth team for your website.** It watches your search
+and AI-answer performance, proposes work with the reasoning attached, applies
+the changes you approve to WordPress, verifies they actually landed, and
+learns from what moved. You approve every change - the gate is enforced in
+code, not by trust.
 
-![License](https://img.shields.io/badge/license-MIT-blue.svg)
-![Tests](https://img.shields.io/badge/tests-292%20passing-brightgreen.svg)
-![Version](https://img.shields.io/badge/version-0.4.1-blue.svg)
-![Works with](https://img.shields.io/badge/works%20with-Claude%20Code%20%2B%20Cowork-6f42c1.svg)
+Free and open source (MIT). A Claude plugin: no server, no database, no
+account, no telemetry.
+
+[![CI](https://github.com/shalintripathi/organic-os/actions/workflows/ci.yml/badge.svg)](https://github.com/shalintripathi/organic-os/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/shalintripathi/organic-os?sort=semver)](https://github.com/shalintripathi/organic-os/releases)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+![Telemetry](https://img.shields.io/badge/telemetry-none-success)
+![Scraping](https://img.shields.io/badge/scraping-none-success)
+![Writes](https://img.shields.io/badge/writes-approval--gated-6f42c1)
+
+## Install
+
+```
+/plugin marketplace add shalintripathi/organic-os
+/plugin install organic-os@organic-os
+```
+
+Works identically on Claude Code CLI and Claude Cowork. Prerequisite:
+Python 3.9+ with PyYAML (`python3 -m pip install --user pyyaml`).
+
+Then run `/organic-os:setup`. To try it with **zero credentials**, run
+`/organic-os:onsite-audit https://yoursite.com` - it audits any public page
+with no login.
+
+If this is useful to you, a star helps other people find it.
+
+## Who this is for
+
+| You are | What you get | Credentials needed |
+|---|---|---|
+| **Auditing any site** | An on-page SEO/AEO audit of any public URL | None |
+| **Running analytics** | Daily/weekly signals from GA4 + Search Console, with proposals | GA4 / GSC connectors |
+| **Running WordPress** | Approved fixes applied and verified on your site, outcomes measured | An Editor-role Application Password |
+
+See it running on its own site, with a public work log of every change and
+outcome: [organicos.shivaatripathi.com/proof](https://organicos.shivaatripathi.com/proof/)
 
 ## The loop
 
@@ -32,7 +67,7 @@ into the site's skillbook - which feeds the next observe pass.
 
 - [Why this exists](#why-this-exists)
 - [What you get](#what-you-get)
-- [Install](#install)
+- [Install in detail](#install-in-detail)
 - [Quickstart by persona](#quickstart-by-persona)
 - [Human gates and your data](#human-gates-and-your-data)
 - [How it compares](#how-it-compares)
@@ -98,19 +133,10 @@ head-of-organic without WordPress is still an analytics/strategy tool,
 content-engine without head-of-organic accepts manually written briefs,
 onsite-optimizer without the others is a standalone on-page audit/fix tool.
 
-## Install
+## Install in detail
 
-```
-/plugin marketplace add shalintripathi/organic-os
-/plugin install organic-os@organic-os
-```
-
-Works identically on Claude Code CLI and Claude Cowork - there is nothing
-to host. The plugin is skills, agents, slash commands, and plain scripts
-invoked over Bash; no server process, no stdio MCP server, no database.
-
-Prerequisite: Python 3.9+ with PyYAML (`python3 -m pip install --user
-pyyaml`). Nothing to host.
+The plugin is skills, agents, slash commands, and plain scripts invoked over
+Bash; no server process, no stdio MCP server, no database.
 
 ### Install, step by step
 

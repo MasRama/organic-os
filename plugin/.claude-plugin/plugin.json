@@ -2,7 +2,10 @@
   "name": "organic-os",
   "version": "0.4.1",
   "description": "Agentic organic growth for any website: analytics-driven signals, keyword intelligence, AI-citation tracking, gated on-page execution on WordPress, and a learning loop that compounds in a per-site git repo. An optional configuration form appears when you enable the plugin; setup reads it so nothing is asked twice.",
-  "author": { "name": "Shivaa Tripathi", "url": "https://shivaatripathi.com" },
+  "author": {
+    "name": "Shivaa Tripathi",
+    "url": "https://shivaatripathi.com"
+  },
   "homepage": "https://github.com/shalintripathi/organic-os",
   "license": "MIT",
   "userConfig": {
@@ -38,5 +41,25 @@
       "required": false,
       "description": "Optional: the WordPress user the Application Password belongs to."
     }
-  }
+  },
+  "keywords": [
+    "seo",
+    "aeo",
+    "geo",
+    "answer-engine-optimization",
+    "generative-engine-optimization",
+    "ai-seo",
+    "seo-automation",
+    "marketing-automation",
+    "wordpress",
+    "claude",
+    "claude-code",
+    "claude-code-plugin",
+    "agent-skills",
+    "ai-agents",
+    "llm",
+    "ai-search",
+    "content-marketing",
+    "search-console"
+  ]
 }
