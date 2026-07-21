@@ -83,11 +83,15 @@ for name in md_files:
 # (b) Version sync: plugin.json is canonical.
 version = json.load(open("plugin/.claude-plugin/plugin.json"))["version"]
 readme = Path("README.md").read_text(encoding="utf-8")
-badge = next((l for l in readme.splitlines()
-              if "img.shields.io/badge/version-" in l), "")
-if f"version-{version}-" not in badge:
-    problems.append(f"README version badge out of sync with plugin.json "
-                    f"{version}: {badge.strip() or '(badge line missing)'}")
+# A live release badge cannot go stale, so it satisfies this check.
+# Otherwise a hardcoded version badge must match plugin.json.
+live_release = "img.shields.io/github/v/release/" in readme
+if not live_release:
+    badge = next((l for l in readme.splitlines()
+                  if "img.shields.io/badge/version-" in l), "")
+    if f"version-{version}-" not in badge:
+        problems.append(f"README version badge out of sync with plugin.json "
+                        f"{version}: {badge.strip() or '(badge line missing)'}")
 marketplace = json.load(open(".claude-plugin/marketplace.json"))
 mp_version = next(p["version"] for p in marketplace["plugins"]
                   if p["name"] == "organic-os")
@@ -125,7 +129,11 @@ else:
         if actual is not None and actual != int(quoted):
             problems.append(f"README inventory says {quoted} {label}, "
                             f"canonical source says {actual}")
-if tests is not None and f"tests-{tests}%20passing" not in readme:
+# A live CI badge reflects real test status, so it satisfies this check.
+# Otherwise a hardcoded tests badge must match the collected count.
+live_ci = "actions/workflows/ci.yml/badge.svg" in readme
+if (tests is not None and not live_ci
+        and f"tests-{tests}%20passing" not in readme):
     problems.append(f"README tests badge out of sync: canonical count "
                     f"is {tests}")
 
