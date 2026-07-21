@@ -26,8 +26,8 @@ account, no telemetry.
 Works identically on Claude Code CLI and Claude Cowork. Prerequisite:
 Python 3.9+ with PyYAML (`python3 -m pip install --user pyyaml`).
 
-Then run `/organic-os:setup`. For the full command list, see
-[plugin/docs/commands.md](plugin/docs/commands.md). To try it with **zero credentials**, run
+Then run `/organic-os:setup`. For what each command does and which skill it
+invokes, see [plugin/docs/commands.md](plugin/docs/commands.md). To try it with **zero credentials**, run
 `/organic-os:onsite-audit https://yoursite.com` - it audits any public page
 with no login.
 

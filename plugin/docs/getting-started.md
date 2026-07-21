@@ -23,7 +23,8 @@ process.
 Every organic-os command is namespaced by the plugin name -
 `/organic-os:setup`, `/organic-os:daily`, and so on - so there is no
 collision with another plugin's `/setup` or `/daily` command in the same
-session. See the full command reference in [plugin/docs/commands.md](commands.md).
+session. Each command, what it does, and the skill it invokes, grouped by
+product area: [plugin/docs/commands.md](commands.md).
 
 ## The enable form
 
