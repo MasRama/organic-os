@@ -42,3 +42,9 @@ land together with their quotes. When a change introduces a new
 load-bearing fact (anything about to be quoted in a second file), add its
 row here in that same commit, and prefer wiring it into audit check 8
 over leaving it `manual`.
+
+## Command reference
+
+| Fact | Canonical source | Quoted in | Checked by |
+|---|---|---|---|
+| Command reference table | `plugin/docs/commands.md` | `README.md` install section; `plugin/docs/getting-started.md` install section | manual |
