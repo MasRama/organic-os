@@ -2,6 +2,46 @@
 
 ## [Unreleased]
 
+## [0.4.2] - 2026-07-22
+
+A documentation and audit-correctness release. The loop is unchanged and
+tests stay at 292. It also reconciles the work that landed after the
+v0.4.1 tag and was never released.
+
+- **docs: a command reference for all 22 slash commands**, contributed by
+  AK-Lmn in #9 against issue #8. First reference in the repo that lists
+  every command in one place, with descriptions taken verbatim from each
+  command's frontmatter.
+- **docs: completed that reference.** Three gaps against #8 closed. Every
+  row now shows the full invocation form (`/organic-os:<name>`), since the
+  bare names it shipped with invoke nothing when typed. A third column
+  records which skill each command invokes (`status` has none and carries
+  a dash). Rows are grouped by product area - getting started, observe and
+  report, act on the site, content - rather than alphabetically. The
+  README and getting-started pointers stay, reworded so neither claims a
+  completeness that could rot.
+- **docs(readme): benefit-first rewrite.** Hero states what the plugin
+  does for the reader before how it is built, install moves above the
+  fold, and live CI and release badges replace hardcoded ones. Both
+  manifests gained a keyword list and a marketplace category for
+  discoverability.
+- **fix(plugin): every userConfig field now declares a `title`.** All six
+  fields (site URL, brand name, approval channel, Telegram bot token,
+  WordPress application password, WordPress username) were missing the
+  required key, so the enable-time configuration form could render them
+  without labels.
+- **fix(audit): the badge assertions work again.** Making them conditional
+  on live badges being present turned both permanently inert once the
+  README carried live badges. They now assert only when a hardcoded badge
+  exists, so a stale one added later is caught and the live-badge state
+  passes trivially.
+- **feat(audit): check 9, command reference sync.** Fails if a command file
+  is missing from `plugin/docs/commands.md`, if the table lists a command
+  that does not exist, or if a description has drifted from its
+  frontmatter. `docs/INFORMATION-MAP.md` records the frontmatter as
+  canonical and the reference as its quoter, checked by audit-9 rather
+  than by hand.
+
 ## [0.4.1] - 2026-07-19
 
 A cleanup and community-health release. No new plugin capability; the loop
