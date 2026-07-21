@@ -83,15 +83,13 @@ for name in md_files:
 # (b) Version sync: plugin.json is canonical.
 version = json.load(open("plugin/.claude-plugin/plugin.json"))["version"]
 readme = Path("README.md").read_text(encoding="utf-8")
-# A live release badge cannot go stale, so it satisfies this check.
-# Otherwise a hardcoded version badge must match plugin.json.
-live_release = "img.shields.io/github/v/release/" in readme
-if not live_release:
-    badge = next((l for l in readme.splitlines()
-                  if "img.shields.io/badge/version-" in l), "")
-    if f"version-{version}-" not in badge:
-        problems.append(f"README version badge out of sync with plugin.json "
-                        f"{version}: {badge.strip() or '(badge line missing)'}")
+# Only a HARDCODED version badge can go stale, so only that is asserted.
+# A live release badge, or no badge at all, has nothing to keep in sync.
+badge = next((l for l in readme.splitlines()
+              if "img.shields.io/badge/version-" in l), "")
+if badge and f"version-{version}-" not in badge:
+    problems.append(f"README hardcoded version badge out of sync with "
+                    f"plugin.json {version}: {badge.strip()}")
 marketplace = json.load(open(".claude-plugin/marketplace.json"))
 mp_version = next(p["version"] for p in marketplace["plugins"]
                   if p["name"] == "organic-os")
@@ -129,18 +127,61 @@ else:
         if actual is not None and actual != int(quoted):
             problems.append(f"README inventory says {quoted} {label}, "
                             f"canonical source says {actual}")
-# A live CI badge reflects real test status, so it satisfies this check.
-# Otherwise a hardcoded tests badge must match the collected count.
-live_ci = "actions/workflows/ci.yml/badge.svg" in readme
-if (tests is not None and not live_ci
-        and f"tests-{tests}%20passing" not in readme):
-    problems.append(f"README tests badge out of sync: canonical count "
-                    f"is {tests}")
+# Same rule for the tests badge: a live CI badge reflects real status and
+# no badge is nothing to sync, but a hardcoded count must match pytest.
+tests_badge = re.search(r"img\.shields\.io/badge/tests-(\d+)", readme)
+if tests_badge and tests is not None and int(tests_badge.group(1)) != tests:
+    problems.append(f"README hardcoded tests badge says "
+                    f"{tests_badge.group(1)}, canonical count is {tests}")
 
 print("\n".join(problems))
 PYEOF
 )
 [ -n "$hits" ] && { say "FAIL information integrity:"; say "$hits"; fail=1; }
+
+# 9. Command reference sync: plugin/docs/commands.md quotes the `description:`
+# frontmatter of every plugin/commands/*.md and must cover exactly that set.
+hits=$(python3 - <<'PYEOF'
+import re
+from pathlib import Path
+
+problems = []
+DESCRIPTION = re.compile(r"^description:[ ]*(.+?)[ ]*$", re.M)
+ROW = re.compile(r"^\|\s*`/organic-os:([a-z0-9-]+)`\s*\|([^|]*)\|", re.M)
+
+canonical = {}
+for path in sorted(Path("plugin/commands").glob("*.md")):
+    parts = path.read_text(encoding="utf-8").split("---", 2)
+    m = DESCRIPTION.search(parts[1]) if len(parts) > 2 else None
+    if m is None:
+        problems.append(f"{path}: no description: frontmatter")
+        continue
+    canonical[path.stem] = m.group(1)
+
+quoted = {}
+doc = Path("plugin/docs/commands.md").read_text(encoding="utf-8")
+for name, desc in ROW.findall(doc):
+    if name in quoted:
+        problems.append(f"commands.md lists /organic-os:{name} twice")
+    quoted[name] = desc.strip()
+
+for name in sorted(set(canonical) - set(quoted)):
+    problems.append(f"commands.md is missing /organic-os:{name} "
+                    f"(plugin/commands/{name}.md exists)")
+for name in sorted(set(quoted) - set(canonical)):
+    problems.append(f"commands.md lists /organic-os:{name} but "
+                    f"plugin/commands/{name}.md does not exist")
+for name in sorted(set(canonical) & set(quoted)):
+    if canonical[name] != quoted[name]:
+        problems.append(
+            f"commands.md description for /organic-os:{name} does not match "
+            f"its frontmatter:\n  frontmatter: {canonical[name]}\n"
+            f"  commands.md: {quoted[name]}")
+
+print("\n".join(problems))
+PYEOF
+)
+[ -n "$hits" ] && { say "FAIL command reference sync:"; say "$hits"; fail=1; }
 
 [ "$fail" -eq 0 ] && say "audit: clean"
 exit "$fail"

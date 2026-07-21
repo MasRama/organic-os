@@ -2,8 +2,8 @@
 
 Load-bearing facts that appear in more than one file drift unless something
 guards them. This map names each fact, the single place it is canonical,
-every file that quotes it, and what checks the quote: `audit-8` means
-`scripts/audit.sh` check 8 verifies it mechanically on every run; `manual`
+every file that quotes it, and what checks the quote: `audit-N` means
+`scripts/audit.sh` check N verifies it mechanically on every run; `manual`
 means a human consults this map when the canonical source changes.
 
 | Fact | Canonical source | Quoted in | Checked by |
@@ -11,6 +11,7 @@ means a human consults this map when the canonical source changes.
 | Plugin version | `version` in `plugin/.claude-plugin/plugin.json` | `README.md` version badge; `.claude-plugin/marketplace.json` plugin entry; `CHANGELOG.md` release heading; `docs/images/install-2-install.svg`; `docs/images/install-4-form.svg` | audit-8 (badge, marketplace); manual (CHANGELOG, SVGs) |
 | Test count | `python3 -m pytest --collect-only -q tests` | `README.md` tests badge; `README.md` inventory line | audit-8 |
 | Skill / command / agent counts | Filesystem: dirs holding a `SKILL.md` under `plugin/skills/`; `plugin/commands/*.md`; `plugin/agents/*.md` | `README.md` inventory line; `docs/images/install-2-install.svg` | audit-8 (README); manual (SVG) |
+| Command set, each command's description, and the skill it invokes | `plugin/commands/*.md`: the filenames, the `description:` frontmatter, and the skill named in each body | `plugin/docs/commands.md` command reference tables | audit-9 (set + descriptions); manual (skill column) |
 | Approval TTL default (30 days) | `approval_ttl_days` in `plugin/lib/core/contracts.py` | `plugin/docs/approval-channels.md`; `README.md` human-gates paragraph; `docs/adr/0008-approval-expiry.md`; `plugin/docs/site-repo-contract.md` | manual |
 | Schema version | `SCHEMA_VERSION` in `plugin/lib/core/contracts.py` | `plugin/docs/updating.md`; `plugin/docs/site-repo-contract.md` | manual |
 | Install commands | Marketplace and plugin name in `.claude-plugin/marketplace.json` | `README.md`; `plugin/docs/getting-started.md`; `docs/images/install-1-marketplace.svg`; `docs/images/install-2-install.svg` | manual |
@@ -40,11 +41,5 @@ this map before committing and updates every quoting file in the same
 commit - a version bump, a test added, a renamed doc, a new skill all
 land together with their quotes. When a change introduces a new
 load-bearing fact (anything about to be quoted in a second file), add its
-row here in that same commit, and prefer wiring it into audit check 8
+row here in that same commit, and prefer wiring it into an audit check
 over leaving it `manual`.
-
-## Command reference
-
-| Fact | Canonical source | Quoted in | Checked by |
-|---|---|---|---|
-| Command reference table | `plugin/docs/commands.md` | `README.md` install section; `plugin/docs/getting-started.md` install section | manual |
