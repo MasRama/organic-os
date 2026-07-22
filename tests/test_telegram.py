@@ -31,7 +31,12 @@ def test_send_proposal_formats_message():
                                 "target": "https://e.com/x"}, "body": "details"})
     url, payload = http.sent[0]
     assert "sendMessage" in url and "Fix titles" in payload["text"]
-    assert "approve p-1" in payload["text"]  # instructions included
+    assert payload["parse_mode"] == "HTML"
+    # short id -> tap buttons carry the decision, no typed id needed
+    kb = payload["reply_markup"]["inline_keyboard"][0]
+    assert kb[0]["callback_data"] == "a:p-1"
+    assert kb[1]["callback_data"] == "r:p-1"
+    assert "Approve" in kb[0]["text"] and "Reject" in kb[1]["text"]
 
 
 def test_poll_decisions_parses_both():
@@ -166,14 +171,61 @@ def test_reply_bare_no_rejects():
     assert decisions == [("p-20260718-fix1", "rejected", "")]
 
 
-def test_send_item_states_reply_format():
+def test_send_item_shows_buttons_for_a_normal_id():
     http = FakeHTTP()
     T.send_item(http, token="t", chat_id=42,
                 item={"meta": {"id": "p-2", "kind": "onpage-fix", "title": "T",
                                 "target": ""}, "body": "b"})
     _, payload = http.sent[0]
-    assert "Reply to this message" in payload["text"]
-    assert "approve p-2" in payload["text"]  # strict form still shown
+    assert payload["reply_markup"]["inline_keyboard"][0][0]["callback_data"] == "a:p-2"
+    assert "records your decision" in payload["text"]  # reassures a tap is safe
+
+
+def test_send_item_falls_back_to_typed_grammar_when_id_too_long():
+    http = FakeHTTP()
+    long_id = "b-20260721-" + ("x" * 60)  # pushes a:<id> past the 64-byte cap
+    T.send_item(http, token="t", chat_id=42,
+                item={"meta": {"id": long_id, "kind": "content-brief", "title": "T",
+                                "target": ""}, "body": "b"})
+    _, payload = http.sent[0]
+    assert "reply_markup" not in payload            # no button that cannot resolve
+    assert f"approve {long_id}" in payload["text"]  # typed path offered instead
+
+
+def test_poll_decisions_records_a_button_tap_and_acknowledges():
+    class TapHTTP(FakeHTTP):
+        def __init__(self):
+            super().__init__()
+            self.updates = {"result": [
+                {"update_id": 11, "callback_query": {
+                    "id": "cq99", "data": "a:b-20260721-wp-checklist",
+                    "message": {"chat": {"id": 42}}}},
+                {"update_id": 12, "callback_query": {
+                    "id": "cq100", "data": "r:p-20260721-thin",
+                    "message": {"chat": {"id": 42}}}},
+            ]}
+    http = TapHTTP()
+    decisions, last = T.poll_decisions(http, token="t", chat_id=42, offset=0)
+    assert decisions == [("b-20260721-wp-checklist", "approved", ""),
+                         ("p-20260721-thin", "rejected", "")]
+    assert last == 12
+    # both taps acknowledged via answerCallbackQuery so the buttons stop spinning
+    acks = [pl for url, pl in http.sent if "answerCallbackQuery" in url]
+    assert len(acks) == 2 and acks[0]["callback_query_id"] == "cq99"
+
+
+def test_poll_decisions_ignores_button_taps_from_another_chat():
+    class OtherChatHTTP(FakeHTTP):
+        def __init__(self):
+            super().__init__()
+            self.updates = {"result": [
+                {"update_id": 13, "callback_query": {
+                    "id": "cq1", "data": "a:b-20260721-x",
+                    "message": {"chat": {"id": 999}}}},
+            ]}
+    http = OtherChatHTTP()
+    decisions, _ = T.poll_decisions(http, token="t", chat_id=42, offset=0)
+    assert decisions == []
 
 
 # -- document delivery --------------------------------------------------------

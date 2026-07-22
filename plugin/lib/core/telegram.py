@@ -14,6 +14,7 @@ The negative set is deliberately narrow: deferrals ("wait", "hold",
 "later") are NOT decisions and must resolve nothing - deferring is not
 rejecting, so the item stays pending for a real answer.
 """
+import html
 import json
 import re
 import urllib.error
@@ -164,20 +165,79 @@ class UrllibHTTP:
             raise _telegram_api_error(e) from None
 
 
-def send_item(http, token: str, chat_id, item: dict) -> None:
+# Telegram caps inline-button callback_data at 64 bytes. Item ids are normally
+# well under that; a very long slug can overflow, in which case we ship the
+# message without buttons and fall back to the typed grammar rather than send a
+# button that silently cannot resolve.
+_CB_LIMIT = 64
+_KIND_LABEL = {"onpage-fix": "On-page fix", "content-brief": "Content brief",
+               "content": "Content", "image-brief": "Image brief"}
+
+
+def _callback_data(prefix, item_id):
+    data = f"{prefix}:{item_id}"
+    return data if len(data.encode()) <= _CB_LIMIT else None
+
+
+def build_item_message(item):
+    """Render an approval request a human can read, with tap buttons when they fit.
+
+    Returns the sendMessage payload WITHOUT chat_id (send_item adds it), so
+    tests can assert on formatting and buttons with no network. Bold title,
+    plain-language framing, an excerpt of the reasoning, and - when the id fits
+    the callback-data limit - Approve / Reject buttons. When it does not fit,
+    the message carries the typed instructions instead.
+    """
     m = item["meta"]
-    text = (f"organic-os proposal {m['id']}\n"
-            f"[{m['kind']}] {m['title']}\n"
-            f"target: {m.get('target') or '-'}\n\n"
-            f"{item['body'][:800]}\n\n"
-            f"Reply to this message with approve or reject "
-            f"(a bare 'approved' works as a reply).\n"
-            f"Or send: approve {m['id']}  |  reject {m['id']} <reason>")
-    note = redaction_note(text)
+    e = html.escape
+    kind = _KIND_LABEL.get(m.get("kind"),
+                           (m.get("kind") or "item").replace("-", " ").capitalize())
+    target = m.get("target")
+
+    lines = [f"<b>{e(m['title'])}</b>", "", f"{e(kind)} \u00b7 waiting for your decision"]
+    if target:
+        lines.append(f"For: {e(str(target))}")
+    lines.append("")
+
+    body = (item.get("body") or "").strip()
+    if body:
+        excerpt = body[:700].rstrip()
+        if len(body) > 700:
+            excerpt += "\u2026"
+        lines += [e(excerpt), ""]
+
+    approve_cb = _callback_data("a", m["id"])
+    reject_cb = _callback_data("r", m["id"])
+    use_buttons = approve_cb is not None and reject_cb is not None
+
+    if use_buttons:
+        lines.append("<i>Tap Approve or Reject below. Approving only records your "
+                     "decision - nothing changes on the site until the apply step "
+                     "runs.</i>")
+    else:
+        lines.append(f"<i>Reply approve or reject, or send:</i> approve {e(m['id'])}"
+                     f"  |  reject {e(m['id'])} &lt;reason&gt;")
+
+    payload = {"text": "\n".join(lines), "parse_mode": "HTML",
+               "disable_web_page_preview": True}
+    if use_buttons:
+        payload["reply_markup"] = {"inline_keyboard": [[
+            {"text": "\u2705 Approve", "callback_data": approve_cb},
+            {"text": "\u274c Reject", "callback_data": reject_cb},
+        ]]}
+    return payload
+
+
+def send_item(http, token: str, chat_id, item: dict) -> None:
+    payload = build_item_message(item)
+    # Redaction advisory (issue #x): scan the human-visible content, and if a
+    # credential looks planted in it, append one escaped advisory line. Never
+    # blocks the send.
+    note = redaction_note(payload["text"])
     if note:
-        text += f"\n\n{note}"
-    http.post(API.format(token=sanitize_bot_token(token), method="sendMessage"),
-              {"chat_id": chat_id, "text": text})
+        payload["text"] += "\n\n" + html.escape(note)
+    payload["chat_id"] = chat_id
+    http.post(API.format(token=sanitize_bot_token(token), method="sendMessage"), payload)
 
 
 def send_document(token: str, chat_id, file_path, caption=None, transport=None):
@@ -202,6 +262,26 @@ def poll_decisions(http, token: str, chat_id, offset: int = 0):
     decisions, last = [], offset
     for u in data.get("result", []):
         last = max(last, u["update_id"])
+        cq = u.get("callback_query")
+        if cq:
+            cq_msg = cq.get("message") or {}
+            if str(cq_msg.get("chat", {}).get("id")) != str(chat_id):
+                continue
+            cq_data = cq.get("data") or ""
+            prefix, _, item_id = cq_data.partition(":")
+            if item_id and prefix in ("a", "r"):
+                decisions.append((item_id,
+                                  "approved" if prefix == "a" else "rejected", ""))
+                # Acknowledge so the button stops spinning and the tapper gets
+                # feedback. Advisory: never let an ack failure drop the decision.
+                try:
+                    http.post(API.format(token=sanitize_bot_token(token),
+                                         method="answerCallbackQuery"),
+                              {"callback_query_id": cq.get("id"),
+                               "text": "Recorded \u2713"})
+                except Exception:
+                    pass
+            continue
         msg = u.get("message") or {}
         if str(msg.get("chat", {}).get("id")) != str(chat_id):
             continue
