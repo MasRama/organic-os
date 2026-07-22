@@ -2,7 +2,7 @@
 
 ## [Unreleased]
 
-## [0.4.4] - 2026-07-22
+## [0.4.4] - 2026-07-23
 
 A security release for the Telegram adapter, plus four follow-ups found
 while reviewing the merged contribution.
