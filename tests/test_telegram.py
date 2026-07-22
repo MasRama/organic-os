@@ -363,7 +363,12 @@ def test_urllibhttp_post_multipart_sanitizes_url_errors(monkeypatch):
 
 
 def test_urllibhttp_post_sanitizes_invalid_url(monkeypatch):
-    """InvalidURL (e.g. newline in token) must not leak the token (issue #12)."""
+    """InvalidURL (e.g. newline in token) must not leak the token (issue #12).
+
+    The client local is deliberately NOT named `http`: that would shadow the
+    `http` module inside fake_urlopen's closure, so `http.client.InvalidURL`
+    would raise AttributeError and the InvalidURL path would never run.
+    """
     import http.client
 
     token_url = "https://api.telegram.org/botSECRET-TOKEN-123\n/sendMessage"
@@ -374,9 +379,9 @@ def test_urllibhttp_post_sanitizes_invalid_url(monkeypatch):
         )
 
     monkeypatch.setattr(T.urllib.request, "urlopen", fake_urlopen)
-    http = T.UrllibHTTP()
+    client = T.UrllibHTTP()
     try:
-        http.post(token_url, {"chat_id": "1", "text": "hi"})
+        client.post(token_url, {"chat_id": "1", "text": "hi"})
     except RuntimeError as e:
         assert "SECRET-TOKEN-123" not in str(e)
         assert "telegram api error" in str(e)
@@ -441,8 +446,12 @@ def test_sanitize_bot_token_strips_and_rejects_controls():
     try:
         T.sanitize_bot_token("SECRET TOKEN WITH SPACE")
     except RuntimeError as e:
-        assert "SECRET" not in str(e) or "whitespace" in str(e).lower()
+        # Two independent assertions. The earlier `A or B` form could never
+        # fail: B ("whitespace" in the message) is always true, so a message
+        # that echoed the whole token would still have passed.
+        assert "SECRET" not in str(e)
         assert "SECRET TOKEN WITH SPACE" not in str(e)
+        assert "whitespace" in str(e).lower()  # names the rejection reason
     else:
         raise AssertionError("expected RuntimeError for spaced token")
 
