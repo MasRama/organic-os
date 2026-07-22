@@ -2,6 +2,45 @@
 
 ## [Unreleased]
 
+## [0.4.4] - 2026-07-22
+
+A security release for the Telegram adapter, plus four follow-ups found
+while reviewing the merged contribution.
+
+### Fixed
+- `UrllibHTTP.post`, `.get` and `.post_multipart` no longer leak the bot
+  token when urllib raises `InvalidURL` (a trailing newline in the token)
+  or `ValueError` (a scheme-less URL). Both escaped the HTTPError/URLError
+  handlers carrying the full token-bearing URL. The handlers now catch
+  broader, and `sanitize_bot_token()` validates the token at the boundary.
+  Contributed by kevinnft in #13, closing #12.
+- The sanitized message for a non-HTTP/URL failure now names the exception
+  class (`telegram api error: InvalidURL`) instead of collapsing every case
+  into one constant string. A malformed JSON response, a caller's
+  `TypeError` and a bad URL used to be indistinguishable in a log. A class
+  name cannot carry the token; the original message and the URL still stay
+  out.
+
+### Changed
+- `test_urllibhttp_post_sanitizes_invalid_url` bound its client to a local
+  named `http`, shadowing the `http` module inside the fake transport's
+  closure. `http.client.InvalidURL` raised `AttributeError`, which the
+  blanket handler folded into the same sanitized string, so the test passed
+  without ever exercising the InvalidURL path. The `get` and
+  `post_multipart` siblings do not rebind the name and were already sound.
+- The token-rejection assertion `"SECRET" not in str(e) or "whitespace" in
+  str(e).lower()` could never fail, because the right operand is always true
+  for that message. Split into independent assertions covering the absent
+  token and the named rejection reason.
+
+### Added
+- Tests pinning `sanitize_bot_token()` at all three call sites (`send_item`,
+  `send_document`, `poll_decisions`). Removing the call from every site left
+  the suite green, so nothing stopped a refactor from dropping it. Each site
+  is now pinned on both halves of the contract: a recoverable token reaches
+  the transport stripped, an unrecoverable one never reaches it at all.
+- README inventory reconciled to 313 tests, up from 306.
+
 ## [0.4.3] - 2026-07-22
 
 ### Added
