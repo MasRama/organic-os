@@ -11,6 +11,7 @@ Every organic-os command is namespaced, so type it in full: the leading slash, t
 | `/organic-os:sites` | Manage organic-os sites - add another website, switch the active site, or show registry status | `organic-os:setup` |
 | `/organic-os:status` | Show organic-os site status - pending approvals, recent signals, next routine | - |
 | `/organic-os:reset` | Guided teardown of an organic-os site - what gets deregistered automatically, what you must delete or revoke yourself, and why | `organic-os:reset` |
+| `/organic-os:diagnose` | Print a paste-ready diagnostic report - runtime, versions, connector status - that is never transmitted | `organic-os:diagnose` |
 
 ## Observe and report
 

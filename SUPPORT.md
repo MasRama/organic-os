@@ -43,6 +43,33 @@ open an issue with the right form:
 
 The forms ask for the few details needed to help you without a round trip.
 
+## Collect the details in one step
+
+`/organic-os:diagnose` prints your runtime, the plugin version, the brain's
+schema version, connector statuses and where each was probed, the last setup
+scorecard, and the last routine outcome. It PRINTS that report and nothing
+else: it never transmits, uploads, or files anything, credentials appear only
+as present or absent, and paths are shown in their `~/organic-hq/<slug>`
+shape rather than as your real home directory. You read it, cut anything you
+would rather not share, and paste what is left into the issue. See
+[the skill](plugin/skills/diagnose/SKILL.md) for exactly what it gathers.
+
+## How this project reads its own signals
+
+There is no telemetry in organic-os and there will not be
+([THREAT-MODEL.md](THREAT-MODEL.md)), so the maintainer sees only what
+GitHub itself reports and what you choose to say:
+
+- **GitHub's own traffic API** - clone counts, unique visitors, and referrer
+  sources for the repository, aggregated by GitHub and visible to the
+  maintainer for a rolling two-week window. No code in this project produces
+  any of it.
+- **Issues and Discussions themselves** - what people actually ask, in their
+  own words.
+
+That is the whole feedback loop. If something is broken and you say nothing,
+nothing here will tell us.
+
 ## What to expect
 
 This is a solo-maintained project, so treat every response time as best

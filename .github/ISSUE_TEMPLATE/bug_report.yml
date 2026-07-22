@@ -46,3 +46,15 @@ body:
       placeholder: 0.4.1
     validations:
       required: true
+  - type: textarea
+    id: diagnose
+    attributes:
+      label: Diagnose output (optional)
+      description: >-
+        Output of `/organic-os:diagnose`. That command only prints - it never
+        transmits anything on its own, credentials show as present or absent
+        rather than as values, and paths are relativised. Read it, remove
+        anything you would rather not share, and paste what is left.
+      render: text
+    validations:
+      required: false

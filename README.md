@@ -108,7 +108,7 @@ Three bounded modules, one install:
 | **onsite-optimizer** | Audits any public page with no credentials and maps the site's internal-link graph; with a WordPress connection, applies approved on-page fixes and publishes approved drafts, always verified and rollback-capable |
 | **content-engine** | Turns an approved brief (explainer or comparison) into a publish-ready draft - research, brand-voice compliance, SEO/authority pass, editorial QA, a human-review-necessity score for the approver - with an optional featured-image step |
 
-Verified inventory (2026-07-23): **22 skills, 22 slash commands, 14
+Verified inventory (2026-07-23): **23 skills, 23 slash commands, 14
 specialist agents, 382 passing tests.**
 
 ```mermaid
