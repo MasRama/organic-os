@@ -2,6 +2,23 @@
 
 ## [Unreleased]
 
+## [0.4.3] - 2026-07-22
+
+### Added
+- Regression tests pinning token sanitization for `UrllibHTTP.post` and `.get`,
+  plus the `post_multipart` URLError branch, so a future change cannot silently
+  reintroduce a token leak through those paths. Contributed by kevinnft in #10,
+  closing #6.
+
+### Fixed
+- `registry.register()` now rejects a URL that slugifies to an empty string
+  before writing anything, instead of creating a site entry that
+  `get_active()` can never return. Contributed by kevinnft in #11, closing #2.
+
+### Changed
+- README inventory reconciled to 301 tests and its verification date refreshed.
+  Both merged branches bumped the same line from 292 independently.
+
 ## [0.4.2] - 2026-07-22
 
 A documentation and audit-correctness release. The loop is unchanged and
