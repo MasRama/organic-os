@@ -313,6 +313,47 @@ time. The keys are additive: `schema_version` stays 1, and records
 without them (older applies, git-static deliveries, dry-run outcomes)
 are simply never re-checked this way.
 
+## Outcome records, and recomputing what they claim
+
+An outcome record is `outcomes/<item-id>.md`: markdown written by the
+apply or publish step and added to by the measurement step, so it is
+prose plus keys rather than a fixed schema. `core.outcomes.parse_outcome`
+reads one back into a stable seven-field shape, and the alias names it
+accepts for each field are canonical in `plugin/lib/core/outcomes.py`:
+
+| Field | Key names a record may use |
+|---|---|
+| `item` | `item`, `item_id`, `id`, `slug` (falls back to the filename stem) |
+| `url` | `url`, `target`, `target_url`, `page`, `permalink` |
+| `applied_at` | `applied_at`, `applied`, `date`, `when`, `published_at` |
+| `claimed_before` | `claimed_before`, `before`, `baseline` |
+| `claimed_after` | `claimed_after`, `after` |
+| `claimed_delta` | `claimed_delta`, `delta`, `change` |
+| `windows` | `windows`, `window`, `measurement_windows` |
+
+Every field is optional. A key the record never states parses as `None`,
+never as a zero or a guess, and prose lines are skipped rather than
+treated as an error. A key stated twice takes its last value, because
+these records are appended to. `windows` holds the before and after date
+ranges the claim was measured over:
+
+```yaml
+windows:
+  before: {start: 2026-05-04, end: 2026-05-31}
+  after: {start: 2026-06-02, end: 2026-06-29}
+```
+
+The windows are what make a claim checkable by someone who does not
+trust the run that wrote it. `/organic-os:verify-outcome`
+(skills/hoo-verify-outcome) reads the item, the URL and the windows from
+the record, pulls those windows fresh through the search-data and
+analytics slots, computes the delta, and only THEN reads the claimed
+numbers and calls `core.outcomes.compare`. That order is the point: a
+number already seen is a number the pull gets framed around. A divergence
+is appended as a signal, never suppressed; unreachable connectors mean
+the claim is unverified, never assumed correct. `plugin/docs/reproducing-results.md`
+documents the same check by hand in Search Console.
+
 ## drift/baseline.json
 
 The stored snapshot the daily drift watch (`hoo-daily`, `onsite.drift`)

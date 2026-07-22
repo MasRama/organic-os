@@ -268,6 +268,58 @@ The Shopify adapter does not move here: it stays parked under
 "Deprioritized, with reasons" below, still demand-gated on the first
 external request.
 
+## v0.5 - Memory integrity and honest boundaries - COMPLETE
+
+Closed by the v0.5.0 release (2026-07-23). The phase came out of studying
+[gstack](https://github.com/garrytan/gstack) and asking which of its
+patterns this project was missing: memory that is consulted before
+re-deciding, knowledge that expires, a boundary before content leaves,
+and claims a stranger can recompute. ADR-0011 records the decision, the
+four rules, and the not-adopted list with its reasons (telemetry even
+opt-in, a browser sidebar with an ML classifier stack, a bundled
+cross-model reviewer, LOC-style productivity claims). Nothing here adds a
+data source or a write path; all six items make the existing loop harder
+to fool, including harder for the loop to fool itself.
+
+- **Durable decision memory.** Every rejection writes a record to
+  `decisions/` (`core.decisions`, written by `set_status` so no skill has
+  to remember), and onsite-propose, hoo-orchestrator, and ce-produce
+  search those records before creating an item. A refused proposal is
+  either skipped and named in the run report, or re-raised carrying when
+  it was rejected, why, and what changed since. See CHANGELOG.md.
+- **Skillbook entries that expire by evidence tier.** `last-confirmed`
+  plus per-tier thresholds (anecdotal 90 days, moderate 180, strong 365,
+  overridable per tier in the site profile) feed a stale review in the
+  weekly reflection. Weak evidence goes stale fast, strong evidence keeps
+  for a year, and a human re-confirms or retires. Surfaced, never
+  enforced: nothing deletes a lesson on a timer.
+- **Advisory redaction at every outbound sink.** `core.redact` scans
+  content before it leaves through an approval channel, a Notion mirror,
+  a report, or a CSV export, and reports masked findings. It never
+  blocks, rewrites, or raises, and the limits are stated where the scan
+  runs: a high-tier finding means the value already left, so the response
+  is to rotate it, and a clean scan is the absence of a match rather than
+  a guarantee.
+- **`/organic-os:diagnose`, a report that never transmits.** The
+  install-shaped facts a bug report needs (runtime, versions, brain
+  schema, connector status with the context each probe ran in, last
+  routine outcome), collected locally, redacted, and printed. The
+  operator decides what to paste. This is the answer to "how do installs
+  fail" that telemetry would otherwise have been the answer to.
+- **Attribution that names the check that was run.** A cause claim needs
+  the claim, the comparison actually run, and what would falsify it;
+  where the comparison was not run, the record reads `cause: unknown` and
+  keeps the number. Canonical in hoo-daily's anomaly section and carried
+  through the weekly, the measure step, and every outcome record.
+- **`/organic-os:verify-outcome`, independent reproduction.**
+  `core.outcomes` parses a record and compares a claimed metric set
+  against a recomputed one; the skill pulls the raw windows and computes
+  the delta BEFORE reading what was claimed. Divergence is recorded as a
+  signal, unreachable connectors mean unverified rather than confirmed,
+  and `plugin/docs/reproducing-results.md` documents the same check by
+  hand in Search Console so the claim survives without the tool. See
+  CHANGELOG.md.
+
 ## v1.0 - Many sites, many hands
 
 - **Multi-site orchestration across brain repos.** The sites registry

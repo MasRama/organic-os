@@ -361,6 +361,7 @@ each carry the files to touch, the approach, and a definition of done.
 ## Credits and prior art
 
 - [AgriciDaniel/claude-seo](https://github.com/AgriciDaniel/claude-seo) - the point-in-time SEO audit this project's signal-quality bar borrows from directly. `/organic-os:import-audit` now imports its reports as gated proposals: they audit, we operate.
+- [garrytan/gstack](https://github.com/garrytan/gstack) - four patterns taken directly (see `docs/adr/0011-memory-integrity.md`): durable decisions consulted before re-deciding, learned knowledge that expires by evidence tier, a redaction boundary before any external sink, and the reproduction-script posture, applied here to our own claims about a site.
 - [seranking/seo-skills](https://github.com/seranking/seo-skills) - Claude Agent Skills for the SE Ranking MCP server; a reference for how to shape SEO data into finished deliverables as skills.
 - [WordPress/mcp-adapter](https://github.com/WordPress/mcp-adapter) - the official WordPress MCP bridge; not load-bearing in v1 (onsite-optimizer writes over plain REST) but tracked for its 1.0.
 - [Automattic/mcp-wordpress-remote](https://github.com/Automattic/mcp-wordpress-remote) - a reference implementation for remote WordPress MCP auth flows.
