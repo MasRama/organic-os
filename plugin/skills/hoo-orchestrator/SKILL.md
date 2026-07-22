@@ -15,6 +15,23 @@ description: Use for any broad organic-growth request - "audit my organic presen
 2. Decide which specialists the request needs (default full sweep: all eight).
    Launch them as parallel agents, each given the profile path + target URLs.
 3. Synthesize results. Deduplicate findings. Rank by impact x confidence.
+3b. Decision check, BEFORE any `create_item` call. For every brief topic and
+    every on-page fix, search the brain's decision memory:
+    `PYTHONPATH="$CLAUDE_PLUGIN_ROOT/lib" python3 -c "..."` snippet importing
+    `core.decisions` - `search(<brain>, [<page path>, <topic or keyword>])`.
+    It returns prior decisions newest first with `date`, `choice`, `scope`,
+    `item`, and the `rationale`. A hit whose `choice` is `rejected` means a
+    human already refused that work. Exactly two paths are allowed, never a
+    third:
+    - SKIP it, and say so in step 6's summary: name the topic, the decision
+      date, and the recorded reason.
+    - Or CREATE it with a line in the item body reading "previously rejected
+      on <date> because <reason>; proposing again because <what changed>".
+      What changed must be a concrete new fact from this run - a new signal,
+      a ranking move, a competitor change - never "worth another look".
+    Silently re-proposing rejected work is forbidden: an unread rejection is
+    how a loop wastes a human's attention twice. A hit with any other
+    `choice` is context to quote in the body, not a blocker.
 4. File outputs through lib/core ONLY:
    - observations -> `append_signal` (one call per signal line)
    - content ideas -> `create_item(kind="content-brief", ...)`; ideas born
