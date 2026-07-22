@@ -11,7 +11,10 @@ no channel of its own. The operator decides whether any of it is pasted
 anywhere.
 
 Read-only over everything: no brain file is written, no profile is edited,
-no connector is re-probed for the sake of this report.
+no connector is re-probed for the sake of this report. The one time it
+reaches the network is the Update currency section below - a single outbound
+READ of the latest public version number, never a write and never anything
+about you. Reading a public release tag is not transmitting your report.
 
 Print this line first, before any collected value:
 
@@ -53,6 +56,59 @@ is stated, never guessed.
    finished, and when.
 9. **Recent error** - the most recent error line from that log or from the
    last run report, if any. One line, quoted as found.
+
+## Update currency (one outbound read of a public version number)
+
+This is the single place diagnose reaches the network, and it reaches it
+only to READ. It compares the version you are running to the latest version
+published, so a stuck-on-old install is visible rather than silent. Be plain
+about what this is and is not: it is an inbound read of a version tag that is
+already public on GitHub, it carries nothing about you or your site, it is
+not telemetry, and it happens only because you ran diagnose. The diagnostic
+report itself is still never transmitted.
+
+1. **Running version** - the `version` field in
+   `$CLAUDE_PLUGIN_ROOT/.claude-plugin/plugin.json` (the same value as
+   item 3).
+2. **Latest published version** - `gh release view --json tagName --jq
+   .tagName` when the `gh` CLI is available and authenticated; otherwise a
+   plain GET of
+   `https://api.github.com/repos/shalintripathi/organic-os/releases/latest`,
+   reading its `tag_name` field. Both return a public tag such as `v0.5.1`.
+3. **If neither is reachable** - no network, a rate limit, `gh` absent and
+   the GET failing - print `latest: could not check (<one-line reason>)` and
+   stop this section. A missing check is stated, never guessed, and never
+   assumed to mean you are up to date.
+4. **Decide with `core.version.currency(running, latest)`**, which returns
+   one stable word so the ordering is never eyeballed (`0.5.10` is newer than
+   `0.5.9`):
+   - `current` - print `You are on the latest version (<running>).`
+   - `ahead` - print `You are running <running>, newer than the latest
+     published release (<latest>). Normal on a development checkout.`
+   - `behind` - print `A newer version is published: <latest> (you are on
+     <running>). Update with:` and then the upgrade command on its own line:
+     `/plugin update organic-os`
+   - `unknown` - treat as case 3 above and print `latest: could not check`.
+
+When the result is `behind`, always print this note directly under the
+upgrade command:
+
+> If you run the update and the version above does not change, Claude's
+> plugin updater has downloaded the new files but has not switched to them.
+> Fix: reinstall the plugin - see "Update says success but the version did
+> not change" in `plugin/docs/updating.md`.
+
+State honestly why diagnose cannot fix this itself: an update that reports
+success but leaves the running version unchanged is a Claude Code / Cowork
+plugin-manager behavior, not a defect organic-os can repair from the inside.
+A plugin does not run during its own update and cannot rewrite the host's
+active-version pointer. Diagnose can only make the gap visible and point at
+the remedy in updating.md; do not imply the plugin or this skill can fix the
+host updater.
+
+These lines join the assembled report and pass through the same redaction
+scan as everything else before anything prints (see below). The one external
+value read here, the public latest tag, is scanned along with the rest.
 
 ## What never goes in
 
