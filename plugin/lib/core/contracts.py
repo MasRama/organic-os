@@ -474,6 +474,87 @@ def skillbook_update(root, sid: str, helpful: int = 0, harmful: int = 0,
     _atomic_write(book, "\n".join(out) + "\n")
 
 
+# A lesson is only as good as its last confirmation. These are the days an
+# entry stays trusted before the weekly reflection asks a human to re-confirm
+# it, per evidence tier: weak evidence goes stale fast, strong evidence keeps
+# for a year. Canonical - plugin/docs/site-repo-contract.md and
+# plugin/skills/hoo-reflector quote them (docs/INFORMATION-MAP.md).
+STALE_DEFAULTS = {"anecdotal": 90, "moderate": 180, "strong": 365}
+
+
+def skillbook_stale_days(root) -> dict:
+    """Per-tier staleness thresholds for this site: the optional
+    `skillbook: {stale_days: {...}}` profile section merged over
+    STALE_DEFAULTS, per key. The section is additive (schema_version stays
+    1; an absent tier means its default). An invalid value raises
+    ContractError naming the key."""
+    path = Path(root) / "site-profile.yaml"
+    data = yaml.safe_load(path.read_text()) if path.exists() else {}
+    section = ((data or {}).get("skillbook") or {})
+    if not isinstance(section, dict):
+        raise ContractError(
+            f"skillbook: must be a mapping holding stale_days, got {section!r}")
+    override = section.get("stale_days")
+    if override is None:
+        override = {}
+    if not isinstance(override, dict):
+        raise ContractError(
+            "skillbook.stale_days must be a mapping of evidence tier -> days, "
+            f"got {override!r}")
+    days = dict(STALE_DEFAULTS)
+    for tier in STALE_DEFAULTS:
+        if tier not in override:
+            continue
+        v = override[tier]
+        if not isinstance(v, int) or isinstance(v, bool) or v < 1:
+            raise ContractError(
+                f"skillbook.stale_days.{tier} must be a positive integer "
+                f"number of days, got {v!r}")
+        days[tier] = v
+    return days
+
+
+def skillbook_stale(root, today=None) -> list:
+    """Active skillbook entries past their tier's staleness threshold,
+    most stale first: [{id, evidence, last_confirmed, days_stale,
+    threshold, text}].
+
+    An entry exactly at its threshold is still fresh; one day past is
+    stale. Deprecated entries are skipped - they are already retired, and
+    re-validating them is the one thing `skillbook_update` refuses.
+    Nothing here mutates the book: the reflector presents the list, a
+    human re-confirms (which `skillbook_update` stamps) or proposes a
+    deprecation. `today` is injectable so the boundary is testable.
+    """
+    thresholds = skillbook_stale_days(root)
+    if today is None:
+        today = _dt.datetime.now(_dt.timezone.utc).date()
+    elif isinstance(today, str):
+        today = _dt.date.fromisoformat(today)
+    book = Path(root) / "skillbook.md"
+    if not book.exists():
+        return []
+    stale = []
+    for line in book.read_text().splitlines():
+        m = _ENTRY.match(line)
+        if not m or m.group(1):          # not an entry, or deprecated
+            continue
+        threshold = thresholds.get(m.group(3))
+        if threshold is None:
+            continue                      # hand-edited tier: no threshold to judge by
+        try:
+            confirmed = _dt.date.fromisoformat(m.group(6))
+        except ValueError:
+            continue                      # unparseable date: leave it to the curator
+        days = (today - confirmed).days
+        if days > threshold:
+            stale.append({"id": m.group(2), "evidence": m.group(3),
+                          "last_confirmed": m.group(6), "days_stale": days,
+                          "threshold": threshold, "text": m.group(7)})
+    stale.sort(key=lambda e: (-e["days_stale"], e["id"]))
+    return stale
+
+
 # -- approvals queue ----------------------------------------------------------
 
 def rebuild_queue(root) -> Path:
