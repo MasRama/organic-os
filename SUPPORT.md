@@ -13,6 +13,9 @@ Most questions are answered in the shipped docs:
   organic-os cannot trigger an OAuth prompt itself.
 - [Routines and runtimes](plugin/docs/routines.md) - scheduling the daily,
   weekly, and monthly loops.
+- [Updating](plugin/docs/updating.md) - what an update touches and what it
+  cannot, and what to do when an update reports success but the running
+  version does not change.
 - [README](README.md) - the overview, the three modules, and the FAQ.
 
 ## Ask in Discussions

@@ -319,6 +319,14 @@ plugin directory and untouched by design. A brain-layout change ships a
 migration and a compatibility check blocks routines with a clear message
 instead of silent corruption. Full policy: `plugin/docs/updating.md`.
 
+**I updated but the version did not change.**
+That points to Claude's plugin manager downloading the new files without
+switching to them, not to a problem in organic-os - a plugin cannot advance
+the host's active-version pointer during its own update. Run
+`/organic-os:diagnose` to confirm the running version against the latest,
+then reinstall to fix it. Full steps:
+[Update says success but the version did not change](plugin/docs/updating.md#update-says-success-but-the-version-did-not-change).
+
 **Why does nothing prompt me to connect Google Analytics?**
 organic-os bundles no MCP servers and cannot trigger an OAuth prompt
 itself. `/organic-os:setup`'s connector wizard probes what you have
