@@ -2,6 +2,60 @@
 
 ## [Unreleased]
 
+## [0.5.1] - 2026-07-23
+
+Approval UX and release hygiene. The Telegram approval message a human
+actually taps becomes readable and gains buttons; diagnose learns to tell you
+when your install is behind and why an update can look applied without being
+applied; and a pre-release check plus troubleshooting docs close the gap that
+let a tested feature sit on main unreleased.
+
+### Added
+- **Inline Approve/Reject buttons and readable Telegram approvals.** Landed
+  on main in 43f266a and released here. `send_item` renders an approval
+  request a person can read - bold title, plain framing, a reasoning excerpt -
+  and attaches inline Approve / Reject buttons; `poll_decisions` records a
+  button tap through `callback_query` and answers it so the button stops
+  spinning and shows "Recorded". Telegram caps callback_data at 64 bytes, so a
+  too-long item id falls back to the typed `approve <id>` grammar rather than
+  shipping a button that cannot resolve. The redaction advisory now scans the
+  rendered human-visible text. The typed and reply-context grammars are
+  unchanged. Tests cover the button payload, the long-id fallback, tap
+  parsing, and the cross-chat guard.
+- **`/organic-os:diagnose` reports whether you are on the latest version.** It
+  reads the running version from the plugin manifest and reads the latest
+  public tag from GitHub (`gh`, or a plain GET of the public releases
+  endpoint), and prints current, behind, or ahead. This is an inbound read of
+  a version number already public on GitHub: not telemetry, nothing about you
+  sent, and only when you run diagnose. The diagnostic itself is still never
+  transmitted, and the read joins the same redaction scan. When you are behind
+  it prints the upgrade command and the known-issue note about an update that
+  reports success without changing the version. New `core.version` does the
+  comparison with no guesswork (0.5.10 is newer than 0.5.9; a leading `v` and
+  a pre-release suffix do not derail it; unknown never reads as up to date),
+  stdlib-only with no I/O, 8 new tests.
+- **`scripts/release-check.sh`.** A maintainer-run pre-release check that
+  fails when plugin code sits past the last vN tag without a version bump -
+  the exact state that made the Telegram feature invisible to the updater,
+  since a tagged-but-unbumped commit carries the same version string. Docs-
+  only or scripts-only work past a tag passes. Advisory and deliberately not
+  in the PR CI gate, since a contributor branch is expected to sit past the
+  last tag unbumped. Documented as the first required pre-release step in
+  CONTRIBUTING.md.
+
+### Changed
+- **Update troubleshooting is documented and detectable.** A user reported an
+  update that reported success, and even listed files to modify, while the
+  running version never moved and every later update re-offered the same diff.
+  The cause is host-side: Claude's plugin manager downloaded the new version
+  into its cache without advancing the active-version pointer, so the plugin
+  kept loading the old files. A plugin cannot fix this from inside its own
+  update, so `plugin/docs/updating.md` gains a section with the accurate cause
+  and the reinstall remedy for Claude Code CLI and Cowork; the README FAQ and
+  SUPPORT.md point at it, and diagnose's update-currency note links it.
+  `docs/INFORMATION-MAP.md` tracks the remedy.
+- README inventory reconciled to 415 tests.
+
 ## [0.5.0] - 2026-07-23
 
 Memory integrity and honest boundaries. Nothing here adds a data source
