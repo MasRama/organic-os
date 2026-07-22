@@ -49,6 +49,8 @@ table { border-collapse: collapse; width: 100%; margin: 0.8em 0;
 th, td { border: 1px solid #c9c9c9; padding: 6px 9px; text-align: left;
   vertical-align: top; }
 th { background: #f2f2f2; }
+p.redaction-note { border: 1px solid #b58900; background: #fdf6e3;
+  padding: 10px 12px; margin: 0 0 20px; font-size: 0.92em; }
 @media (max-width: 480px) {
   body { font-size: 15px; }
   main { padding: 16px 12px 32px; }
@@ -133,6 +135,28 @@ def _render_body(markdown_text: str) -> str:
     return "\n".join(out)
 
 
+def _redaction_note(markdown_text: str) -> str:
+    """A marked block naming what the report body carries, or "".
+
+    ADVISORY ONLY. The body is rendered exactly as written either way: this
+    reports, it does not redact, and it never stops a report from being
+    produced. Any failure inside the scan returns "" and the render
+    continues.
+    """
+    try:
+        from . import redact
+        line = redact.summarize(redact.scan(markdown_text))
+    except Exception:
+        return ""
+    if not line:
+        return ""
+    return ('<p class="redaction-note"><strong>Redaction check (advisory)</strong>'
+            f"<br>{_html.escape(line, quote=False)}"
+            "<br>Nothing was removed from this report and no send was "
+            "blocked. Check the flagged values before sharing this file; a "
+            "high-tier finding means the value is already in the report.</p>\n")
+
+
 def render_html(markdown_text: str, title: str, site_name: str) -> str:
     """The markdown report as one self-contained, phone-and-print-ready page."""
     return ("<!doctype html>\n"
@@ -142,6 +166,7 @@ def render_html(markdown_text: str, title: str, site_name: str) -> str:
             f"<style>{_CSS}</style>\n</head>\n<body>\n<main>\n"
             '<header class="site"><span class="name">'
             f"{_html.escape(site_name, quote=False)}</span></header>\n"
+            f"{_redaction_note(markdown_text)}"
             f"{_render_body(markdown_text)}\n"
             "</main>\n</body>\n</html>\n")
 

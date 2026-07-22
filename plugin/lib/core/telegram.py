@@ -75,6 +75,21 @@ def sanitize_bot_token(token: str) -> str:
     return cleaned
 
 
+def redaction_note(text) -> str:
+    """One advisory line about what the outbound text carries, or "".
+
+    ADVISORY ONLY. This never blocks a send, never edits the message, and
+    never raises: any failure inside the scan returns "" and the send
+    proceeds. A guard that becomes the reason a proposal never reaches its
+    approver is a worse failure than the one it was watching for.
+    """
+    try:
+        from . import redact
+        return redact.summarize(redact.scan(text))
+    except Exception:
+        return ""
+
+
 def _telegram_api_error(exc: BaseException) -> RuntimeError:
     """Re-raise transport failures without the token-bearing URL."""
     if isinstance(exc, urllib.error.HTTPError):
@@ -158,6 +173,9 @@ def send_item(http, token: str, chat_id, item: dict) -> None:
             f"Reply to this message with approve or reject "
             f"(a bare 'approved' works as a reply).\n"
             f"Or send: approve {m['id']}  |  reject {m['id']} <reason>")
+    note = redaction_note(text)
+    if note:
+        text += f"\n\n{note}"
     http.post(API.format(token=sanitize_bot_token(token), method="sendMessage"),
               {"chat_id": chat_id, "text": text})
 
@@ -172,7 +190,8 @@ def send_document(token: str, chat_id, file_path, caption=None, transport=None):
     path = Path(file_path)
     fields = {"chat_id": str(chat_id)}
     if caption:
-        fields["caption"] = caption
+        note = redaction_note(caption)
+        fields["caption"] = f"{caption}\n{note}" if note else caption
     return http.post_multipart(API.format(token=sanitize_bot_token(token), method="sendDocument"),
                                fields, "document", path.name, path.read_bytes())
 

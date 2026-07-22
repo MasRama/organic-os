@@ -66,7 +66,9 @@ _PATTERNS = (
      re.compile(r"\b[A-Za-z0-9._%+-]+@(?:gmail|yahoo|hotmail|outlook|"
                 r"proton(?:mail)?)\.[A-Za-z]{2,}\b", re.I), None),
     ("medium", "phone-number",
-     re.compile(r"(?<!\w)\+?\(?\d[\d\s().-]{7,}\d(?!\w)"), _phone_like),
+     # A single space is the only whitespace a phone number uses. \s here
+     # would let a value on one line join the next line's digits.
+     re.compile(r"(?<!\w)\+?\(?\d[\d ().-]{7,}\d(?!\w)"), _phone_like),
     ("low", "local-path",
      re.compile(r"(?:/Users/|/home/)[A-Za-z0-9._-]+(?:/[^\s\"'<>]*)?"
                 r"|\b[A-Za-z]:\\\\?[A-Za-z0-9._-]+(?:\\[^\s\"'<>]*)?"), None),

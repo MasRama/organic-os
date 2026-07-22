@@ -125,6 +125,16 @@ def test_prose_that_merely_looks_technical_does_not_false_positive():
     assert redact.scan(prose) == []
 
 
+def test_numbers_on_separate_lines_are_not_one_phone_number():
+    # A CSV column of numbers is not a phone number. Allowing whitespace
+    # inside the digit run let a value on one line join the date on the
+    # next, which is how the export sink first false-positived.
+    csv_text = ("date,metric,value\n"
+                "2026-07-17,clicks,41\n"
+                "2026-07-17,impressions,1200\n")
+    assert redact.scan(csv_text) == []
+
+
 def test_empty_input_is_clean():
     assert redact.scan("") == []
     assert redact.scan(None) == []

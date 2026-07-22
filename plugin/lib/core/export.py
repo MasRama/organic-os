@@ -112,10 +112,36 @@ def export_outcomes(root, out_dir) -> Path | None:
                       ["date", "item", "action", "status", "verified"], rows)
 
 
+def _redaction(files) -> dict:
+    """What the produced CSVs carry: {"summary": str, "findings": [...]}.
+
+    ADVISORY ONLY. The CSVs are written before this runs and are never
+    touched by it - they are the user's own data, and a guard that quietly
+    rewrote an export would be a worse surprise than the finding it
+    reported. Any failure inside the scan reports nothing rather than
+    costing the caller its export.
+    """
+    try:
+        from . import redact
+        findings, seen = [], set()
+        for path in files:
+            for f in redact.scan(Path(path).read_text()):
+                key = (f["pattern"], f["excerpt"])
+                if key in seen:
+                    continue
+                seen.add(key)
+                findings.append(f)
+        return {"summary": redact.summarize(findings), "findings": findings}
+    except Exception:
+        return {"summary": "", "findings": []}
+
+
 def export_all(root) -> dict:
     """Run all three exports into <root>/runs/<UTCdate>-export/. Returns
-    {"dir": Path, "files": [Path, ...], "skipped_lines": int} - absent
-    sources are simply not in the file list, never an error."""
+    {"dir": Path, "files": [Path, ...], "skipped_lines": int,
+    "redaction": {"summary": str, "findings": [...]}} - absent sources are
+    simply not in the file list, never an error. The redaction entry is
+    advisory: it reports what the CSVs carry and changes nothing."""
     root = Path(root)
     today = _dt.datetime.now(_dt.timezone.utc).date().strftime("%Y%m%d")
     out_dir = root / "runs" / f"{today}-export"
@@ -128,4 +154,5 @@ def export_all(root) -> dict:
         path = fn(root, out_dir)
         if path is not None:
             files.append(path)
-    return {"dir": out_dir, "files": files, "skipped_lines": skipped}
+    return {"dir": out_dir, "files": files, "skipped_lines": skipped,
+            "redaction": _redaction(files)}
