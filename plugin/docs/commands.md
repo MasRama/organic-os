@@ -36,6 +36,7 @@ Every organic-os command is namespaced, so type it in full: the leading slash, t
 | `/organic-os:apply` | Execute approved on-page proposals against WordPress (refuses anything not approved) | `organic-os:onsite-apply` |
 | `/organic-os:publish` | Publish an approved, drafted content item to WordPress (refuses unapproved items) | `organic-os:onsite-publish` |
 | `/organic-os:measure` | Measure applied or published on-page changes at day 7 and day 28 | `organic-os:onsite-measure` |
+| `/organic-os:verify-outcome` | Recompute a recorded outcome from raw data and compare it against what was claimed | `organic-os:hoo-verify-outcome` |
 | `/organic-os:import-audit` | Import an external claude-seo audit report as gated proposals | `organic-os:hoo-import-audit` |
 
 ## Content
