@@ -3,6 +3,8 @@ from pathlib import Path
 LIB = Path(__file__).resolve().parents[1] / "plugin" / "lib"
 sys.path.insert(0, str(LIB))
 
+import pytest  # noqa: E402
+
 from core import telegram as T  # noqa: E402
 
 
@@ -462,3 +464,82 @@ def test_send_document_empty_caption_omitted(tmp_path):
     http = FakeMultipartHTTP()
     T.send_document("tok", 42, doc, caption="", transport=http)
     assert "caption" not in http.calls[0]["fields"]
+
+
+# -- sanitizer wiring at the three public call sites --------------------------
+#
+# send_item, send_document and poll_decisions each build the API URL through
+# sanitize_bot_token(). Deleting that call from all three left the rest of
+# the suite green, so nothing pinned the wiring and a refactor could drop it
+# silently. These two parametrized tests pin both halves of the sanitizer's
+# contract at every call site: a recoverable token is normalized before it
+# reaches the transport, and an unrecoverable one never reaches it at all.
+
+CLEAN_TOKEN = "SECRET-TOKEN-123"
+TRAILING_NEWLINE_TOKEN = CLEAN_TOKEN + "\n"   # as an env file hands it over
+INTERIOR_CONTROL_TOKEN = "SECRET-TOKEN\n123"  # unrecoverable, must fail closed
+
+ENTRY_POINTS = ["send_item", "send_document", "poll_decisions"]
+
+
+class RecordingHTTP:
+    """Transport that records every URL it is handed, on any method."""
+
+    def __init__(self):
+        self.urls = []
+
+    def post(self, url, payload):
+        self.urls.append(url)
+        return {"ok": True, "result": {"message_id": 1}}
+
+    def get(self, url, params):
+        self.urls.append(url)
+        return {"result": []}
+
+    def post_multipart(self, url, fields, file_field, file_name, file_bytes):
+        self.urls.append(url)
+        return {"ok": True, "result": {"message_id": 1}}
+
+
+def _drive(entry, token, http, tmp_path):
+    """Call one public entry point with the given token and transport."""
+    if entry == "send_item":
+        return T.send_item(http, token=token, chat_id=42,
+                           item={"meta": {"id": "p-1", "kind": "onpage-fix",
+                                          "title": "T", "target": ""},
+                                 "body": "b"})
+    if entry == "send_document":
+        doc = tmp_path / "r.html"
+        doc.write_bytes(b"<p>x</p>")
+        return T.send_document(token, 42, doc, transport=http)
+    if entry == "poll_decisions":
+        return T.poll_decisions(http, token=token, chat_id=42, offset=0)
+    raise AssertionError(f"unknown entry point: {entry}")
+
+
+@pytest.mark.parametrize("entry", ENTRY_POINTS)
+def test_call_site_sanitizes_token_before_the_transport(entry, tmp_path):
+    http = RecordingHTTP()
+    _drive(entry, TRAILING_NEWLINE_TOKEN, http, tmp_path)
+    assert http.urls, f"{entry} never reached the transport"
+    for url in http.urls:
+        assert TRAILING_NEWLINE_TOKEN not in url, (
+            f"{entry} handed the transport a URL carrying the raw token; "
+            "sanitize_bot_token is not wired at that call site")
+        assert CLEAN_TOKEN in url, f"{entry} did not send the sanitized token"
+
+
+@pytest.mark.parametrize("entry", ENTRY_POINTS)
+def test_call_site_fails_closed_on_control_character_token(entry, tmp_path):
+    http = RecordingHTTP()
+    try:
+        _drive(entry, INTERIOR_CONTROL_TOKEN, http, tmp_path)
+    except RuntimeError as e:
+        assert "SECRET-TOKEN" not in str(e)
+        assert "control characters" in str(e)
+    else:
+        raise AssertionError(
+            f"{entry} accepted a control-character token; "
+            "sanitize_bot_token is not wired at that call site")
+    assert http.urls == [], (
+        f"{entry} reached the transport with an unsanitized token: {http.urls}")
