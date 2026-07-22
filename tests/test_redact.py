@@ -48,6 +48,18 @@ def test_high_tier_telegram_bot_token_shape():
     assert found[0]["pattern"] == "telegram-bot-token"
 
 
+def test_telegram_token_is_caught_inside_a_real_api_url():
+    """The likeliest shape of all: the token follows the letters of "bot".
+
+    A \\b anchor cannot match between "t" and a digit, so an earlier pattern
+    saw a bare token in prose and missed every token in an actual API URL.
+    """
+    url = f"https://api.telegram.org/bot{FAKES['telegram-bot-token']}/sendMessage"
+    found = redact.scan(url)
+    assert any(f["pattern"] == "telegram-bot-token" for f in found)
+    assert all(FAKES["telegram-bot-token"] not in f["excerpt"] for f in found)
+
+
 def test_high_tier_wordpress_application_password_shape():
     found = redact.scan(f"app password {FAKES['wordpress-app-password']} for the editor")
     assert any(f["tier"] == "high" and f["pattern"] == "wordpress-app-password"

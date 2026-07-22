@@ -109,7 +109,7 @@ Three bounded modules, one install:
 | **content-engine** | Turns an approved brief (explainer or comparison) into a publish-ready draft - research, brand-voice compliance, SEO/authority pass, editorial QA, a human-review-necessity score for the approver - with an optional featured-image step |
 
 Verified inventory (2026-07-23): **23 skills, 23 slash commands, 14
-specialist agents, 382 passing tests.**
+specialist agents, 383 passing tests.**
 
 ```mermaid
 flowchart TB

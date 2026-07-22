@@ -54,8 +54,11 @@ def _phone_like(match: str) -> bool:
 # (tier, name, pattern, extra validator or None). Names are stable: skills
 # and docs quote them.
 _PATTERNS = (
+    # Lookbehind, not \b: a token in a real API URL is preceded by the letters
+    # of "bot" (https://api.telegram.org/bot<token>), and \b never matches
+    # between two word characters, so \b missed the likeliest shape of all.
     ("high", "telegram-bot-token",
-     re.compile(r"\b\d{6,12}:[A-Za-z0-9_-]{30,}"), None),
+     re.compile(r"(?<![\d:])\d{6,12}:[A-Za-z0-9_-]{30,}"), None),
     ("high", "wordpress-app-password",
      re.compile(r"\b[A-Za-z0-9]{4}(?: [A-Za-z0-9]{4}){5}\b"), _has_digit),
     ("high", "authorization-bearer",
