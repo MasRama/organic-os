@@ -2,6 +2,114 @@
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-07-23
+
+Memory integrity and honest boundaries. Nothing here adds a data source
+or a write path: six changes that make the existing loop harder to fool,
+including harder for the loop to fool itself. The patterns come from
+studying [gstack](https://github.com/garrytan/gstack) and asking which of
+them this project was missing - durable decisions consulted before
+re-deciding, learned knowledge that expires, a redaction boundary before
+external sinks, and the reproduction-script posture applied to our own
+claims. `docs/adr/0011-memory-integrity.md` records the decision and the
+not-adopted list with reasons (telemetry even opt-in, a browser sidebar
+with an ML classifier stack, a bundled cross-model reviewer, LOC-style
+productivity claims).
+
+### Added
+- **Durable decision memory.** `core.decisions` writes one record per
+  decision to `decisions/<UTCdate>-<slug>.md` (frontmatter plus the
+  rationale as the body) and searches them back by case-insensitive token
+  overlap, newest first, with no index file. `set_status` writes one on
+  every rejection, so no skill has to remember to log it, and a second
+  decision with the same title on the same day takes a numeric suffix
+  rather than overwriting the first. onsite-propose, hoo-orchestrator and
+  ce-produce search before `create_item`: a prior rejection leaves two
+  paths, skip it and name it in the run report, or re-raise it carrying
+  when it was rejected, why, and what changed since. Silently re-creating
+  refused work is forbidden in all three.
+- **Skillbook entries that go stale by evidence tier.** Entries carry
+  `last-confirmed`, and `skillbook_stale` reports the ones past their
+  tier's threshold (`STALE_DEFAULTS`: anecdotal 90 days, moderate 180,
+  strong 365; overridable per tier via the additive `skillbook:
+  {stale_days: {...}}` profile key, each tier falling back
+  independently). At the threshold is fresh, one day past is stale. The
+  weekly reflector presents each aged entry next to the week's evidence
+  for a human to re-confirm or to approve a deprecation; it never
+  auto-deprecates, and nothing deletes a lesson on a timer.
+- **Advisory redaction at every outbound sink.** `core.redact.scan`
+  returns `{tier, pattern, excerpt}` findings across three tiers
+  (credential shapes high, personal email and phone runs medium, absolute
+  local paths low), with excerpts masked in the module to the first four
+  and last two characters, and `summarize` folds them into one line.
+  Wired into the four places content leaves the brain: the Telegram item
+  and document sends, the rendered report, the CSV export, and the task
+  board's Notion mirror. Every sink swallows a scanner failure and
+  delivers anyway, pinned by tests - a guard that becomes the reason a
+  proposal never reaches its approver is a worse failure than the one it
+  watches for.
+- **`/organic-os:diagnose`.** Runtime, Python and plugin versions,
+  PyYAML presence, brain schema, registry counts with only the active
+  slug's URL, connector statuses with the context each was probed in, the
+  last setup scorecard, the last routine outcome, and any recent error -
+  collected locally, redacted, and printed. No channel, no upload, no
+  issue filed; the operator decides what to paste. Credentials are
+  reported present or absent and never read, and paths are relativised.
+  SUPPORT.md points at it and states the project's actual feedback loop,
+  since there is no telemetry and silence reads as nothing wrong.
+- **`/organic-os:verify-outcome` and `core.outcomes`.** `parse_outcome`
+  reads an outcome record into a stable seven-field shape (prose plus
+  keys, absent keys parse as None, the filename is the item identity),
+  and `compare` puts a claimed metric set next to a recomputed one:
+  divergences beyond a relative tolerance, one-sided or non-numeric
+  metrics reported as unverifiable rather than as disagreement, and
+  agreement claimed only when at least one metric was actually compared.
+  The skill runs it in the order that makes it worth something - item,
+  URL and windows from the record, a fresh pull through the search-data
+  and analytics slots, the delta, and only THEN the claimed numbers.
+  Unreachable connectors mean the claim is unverified, never assumed
+  correct, and a divergence is appended as a signal instead of being
+  re-run away.
+- **`plugin/docs/reproducing-results.md`.** How anyone rechecks a claim
+  organic-os makes about a site, by command or by hand in Search Console
+  with the windows the record names, and what reproduction does not
+  prove: attribution to a single change stays unprovable, only
+  consistency between claim and data is checkable.
+
+### Changed
+- **Attribution now requires naming the check that was run.** A cause may
+  not be asserted without the claim, the comparison actually performed,
+  and what would falsify it; where the comparison was not run, the record
+  reads `cause: unknown`. Canonical in hoo-daily's anomaly step, binding
+  hoo-weekly's striking-distance, cannibalization and content-decay
+  detectors and onsite-measure. "Weekend seasonality" was the specific
+  offender: a phrase that reads like an explanation while asserting a
+  same-weekday comparison nobody ran. The reflector scores skillbook
+  entries off exactly these records, so a confident story nobody checked
+  teaches the loop the wrong lesson.
+- THREAT-MODEL.md and `plugin/docs/connectors.md` state the redaction
+  guard's limits where the guard is described: it reports rather than
+  prevents, a high-tier finding means the value has already left the
+  brain and the response is to rotate it, and a clean scan is the absence
+  of a known pattern rather than the absence of a secret.
+- `plugin/docs/site-repo-contract.md` documents the decision-record
+  format, the additive `skillbook.stale_days` key, and the outcome-record
+  fields with the key aliases each accepts. `docs/INFORMATION-MAP.md`
+  gains rows for every fact those files now quote in more than one place.
+- README inventory reconciled to 24 skills, 24 slash commands, 404
+  passing tests, and the credits section names gstack for the four
+  patterns taken from it.
+
+### Fixed
+- The redaction phone pattern allowed any whitespace inside a digit run,
+  so a CSV value on one line joined the date on the next and reported a
+  false positive on the export sink's first run. Whitespace is now a
+  single literal space, pinned by a regression test.
+- The Telegram bot-token pattern used `\b`, which never matches between
+  two word characters and so missed the likeliest shape of all: a token
+  inside a real API URL, where the digits are preceded by the letters of
+  `bot`. Replaced with a lookbehind.
+
 ## [0.4.4] - 2026-07-23
 
 A security release for the Telegram adapter, plus four follow-ups found
