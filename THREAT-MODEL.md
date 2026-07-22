@@ -63,6 +63,33 @@ The mitigations, layered:
   Once expired, both gates block until you re-confirm, so a stale yes never
   ships months later.
 
+## The redaction guard, and what it is not
+
+Content leaving the brain - a Telegram message or document, a rendered
+report, an exported CSV, anything mirrored to Notion - is scanned by
+`core.redact` for credential shapes (high), personal email and phone-shaped
+runs (medium), and absolute local paths (low). Findings are reported with the
+matched value masked to its first four and last two characters.
+
+This is **advisory, and it is not a control**. Read it honestly:
+
+- **It reports; it does not prevent.** No send is blocked, no report is
+  withheld, no CSV is rewritten. Every sink wraps the scan so that a failure
+  inside it is swallowed and the send proceeds, because a guard that becomes
+  the reason a proposal never reaches its approver fails worse than the leak
+  it was watching for.
+- **A high-tier finding means the value has already left the brain.** It was
+  in the outbound text at the moment it was scanned. The correct response is
+  to rotate that credential and find what put it there, never to treat the
+  finding as proof the guard held.
+- **A clean scan proves nothing.** Pattern matching sees only what it was
+  taught: an unfamiliar key format, a paraphrased secret, or a value split
+  across lines passes it silently. Absence of a finding is absence of a
+  match, not absence of a secret.
+- **The real controls are elsewhere**: credentials live outside every repo
+  (the table above), the audit fails the build on brain-shaped or secret-like
+  content, and nothing is transmitted that a human did not send.
+
 ## What it never does
 
 - **No SERP or autocomplete scraping**, ever, by design
