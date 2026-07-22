@@ -317,6 +317,30 @@ def test_reset_to_proposed_refuses_item_with_approval_history(root):
     assert C.load_item(p)["meta"]["status"] == "approved"  # untouched
 
 
+def test_rejection_auto_records_exactly_one_decision(root):
+    p = C.create_item(root, kind="onpage-fix", slug="pricing-title",
+                      title="Rewrite /pricing title tag", body="b",
+                      target="https://ex.com/pricing", source="s")
+    C.set_status(p, "rejected", actor="shivaa", channel="in-session",
+                 note="legal owns that page's wording this quarter")
+    files = list((root / "decisions").glob("*.md"))
+    assert len(files) == 1
+    doc = C.load_item(files[0])
+    assert doc["meta"]["choice"] == "rejected"
+    assert doc["meta"]["actor"] == "shivaa"
+    assert p.name in doc["meta"]["item"]          # the decision names the item
+    assert "pricing" in doc["meta"]["scope"]      # scope derived from the title
+    assert "legal owns that page" in doc["body"]  # the reason is the rationale
+
+
+def test_approval_records_no_decision_file(root):
+    p = C.create_item(root, kind="onpage-fix", slug="approved-fix", title="t",
+                      body="b", target="https://ex.com/a", source="s")
+    C.set_status(p, "approved", actor="shivaa", channel="in-session")
+    C.set_status(p, "applied", actor="agent")
+    assert list((root / "decisions").glob("*.md")) == []
+
+
 def test_reset_to_proposed_already_proposed_refuses(root):
     p = C.create_item(root, kind="onpage-fix", slug="fine-as-is", title="t",
                       body="b", target="https://ex.com/f", source="s")

@@ -266,6 +266,33 @@ def set_status(path, status: str, actor: str, channel: str | None = None,
         # partially-applied item) live on the item, not in approvals.
         item["meta"]["status_note"] = note
     _dump(Path(path), item["meta"], item["body"])
+    if status == "rejected":
+        _record_rejection(Path(path), item["meta"], actor, note)
+
+
+def _record_rejection(path: Path, meta: dict, actor: str, note: str | None) -> None:
+    """A rejection outlives the item it killed. Without a durable record the
+    loop re-proposes the same work next week, because nothing outside the
+    item file remembers the human said no. Written after the transition is
+    committed - the status change is the contract, the record is its memory.
+
+    Imported here, not at module scope: decisions.py imports this module for
+    the atomic writer, so a top-level import would be circular."""
+    from . import decisions as _decisions
+    title = str(meta.get("title") or path.stem)
+    root = path.resolve().parent.parent  # items live at <root>/{briefs,proposals}/
+    try:
+        where = str(path.resolve().relative_to(root))
+    except ValueError:
+        where = str(path)
+    _decisions.record(
+        root,
+        title=f"rejected: {title}",
+        choice="rejected",
+        rationale=note or "no reason recorded at rejection",
+        actor=actor,
+        scope=title,
+        item=where)
 
 
 def reset_to_proposed(path, actor: str, note: str | None = None) -> None:
