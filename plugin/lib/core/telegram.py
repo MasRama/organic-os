@@ -81,8 +81,13 @@ def _telegram_api_error(exc: BaseException) -> RuntimeError:
         return RuntimeError(f"telegram api error: HTTP {exc.code} {exc.reason}")
     if isinstance(exc, urllib.error.URLError):
         return RuntimeError(f"telegram api error: {exc.reason}")
-    # InvalidURL / ValueError / anything else that may embed the URL.
-    return RuntimeError("telegram api error: invalid request")
+    # InvalidURL / ValueError / anything else that may embed the URL. The
+    # class name is safe (a type name can never carry the token) and names
+    # the failure: at 3am a JSONDecodeError, a TypeError and an InvalidURL
+    # read differently instead of collapsing into one constant string. The
+    # original message stays out, because that is what embeds the URL.
+    return RuntimeError(f"telegram api error: {type(exc).__name__} "
+                        "(message withheld: it may embed the token)")
 
 
 class UrllibHTTP:

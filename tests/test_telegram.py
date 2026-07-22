@@ -387,6 +387,8 @@ def test_urllibhttp_post_sanitizes_invalid_url(monkeypatch):
     except RuntimeError as e:
         assert "SECRET-TOKEN-123" not in str(e)
         assert "telegram api error" in str(e)
+        assert "InvalidURL" in str(e)  # the class names the failure
+        assert "control characters" not in str(e)  # the original message stays out
     else:
         raise AssertionError("post did not raise on InvalidURL")
 
@@ -439,8 +441,54 @@ def test_urllibhttp_post_sanitizes_value_error_unknown_url_type(monkeypatch):
     except RuntimeError as e:
         assert "SECRET-TOKEN-123" not in str(e)
         assert "unknown url type" not in str(e)
+        assert "ValueError" in str(e)  # the class names the failure
     else:
         raise AssertionError("post did not raise on ValueError")
+
+
+def test_urllibhttp_names_the_failure_class_without_the_url(monkeypatch):
+    """A malformed response and a caller TypeError must read differently.
+
+    The blanket handler used to fold every non-HTTP/URL failure into one
+    constant string, so an operator could not tell a broken response from a
+    broken token at 3am. The exception class name is safe to surface: a type
+    name can never carry the token. The original message still stays out,
+    because that is the part that embeds the URL.
+    """
+    token_url = "https://api.telegram.org/botSECRET-TOKEN-123/sendMessage"
+
+    class BadJSONResponse:
+        def __enter__(self):
+            return self
+        def __exit__(self, *a):
+            return False
+        def read(self):
+            return b"<html>502 Bad Gateway</html>"
+
+    def json_failure(req, timeout=None):
+        return BadJSONResponse()
+
+    def type_failure(req, timeout=None):
+        raise TypeError(f"a bytes-like object is required, not 'str': {token_url}")
+
+    messages = {}
+    for label, fake in (("json", json_failure), ("type", type_failure)):
+        monkeypatch.setattr(T.urllib.request, "urlopen", fake)
+        try:
+            T.UrllibHTTP().post(token_url, {"chat_id": "1", "text": "hi"})
+        except RuntimeError as e:
+            messages[label] = str(e)
+        else:
+            raise AssertionError(f"post did not raise on the {label} failure")
+
+    assert "JSONDecodeError" in messages["json"]
+    assert "TypeError" in messages["type"]
+    assert messages["json"] != messages["type"], \
+        "the two failures are still indistinguishable"
+    for msg in messages.values():
+        assert "SECRET-TOKEN-123" not in msg
+        assert token_url not in msg
+        assert "bytes-like object" not in msg  # original message withheld
 
 
 def test_sanitize_bot_token_strips_and_rejects_controls():
