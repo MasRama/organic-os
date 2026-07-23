@@ -160,3 +160,52 @@ def test_export_all_missing_sources_do_not_crash(tmp_path):
     summary = export.export_all(root)
     assert [p.name for p in summary["files"]] == ["signals.csv"]
     assert summary["skipped_lines"] == 0
+
+
+# -- advisory redaction over the produced CSVs ---------------------------------
+#
+# export reports what its own output carries. It never edits a CSV: the files
+# are the user's data, and a guard that quietly rewrites them would be worse
+# than the finding it reported.
+
+from core import redact  # noqa: E402
+
+PLANTED_KEY = "api_key=FAKE-API-KEY-VALUE-abcdefghij"
+
+
+def test_export_all_reports_a_finding_in_the_produced_csv(tmp_path):
+    root = _brain(tmp_path)
+    (root / "outcomes").mkdir(exist_ok=True)
+    (root / "outcomes" / "p-20260720-title.md").write_text(
+        "date: 2026-07-20\n"
+        f"action: rotated the key, {PLANTED_KEY}, then re-applied the title\n"
+        "status: applied\n")
+    out = export.export_all(root)
+    assert "redaction" in out
+    assert "1 high" in out["redaction"]["summary"]
+    assert out["redaction"]["findings"][0]["tier"] == "high"
+    # Masked in the report, untouched in the file.
+    assert PLANTED_KEY not in out["redaction"]["findings"][0]["excerpt"]
+    written = (out["dir"] / "outcomes.csv").read_text()
+    assert PLANTED_KEY in written, "export edited the CSV instead of reporting"
+
+
+def test_export_all_reports_nothing_for_a_clean_brain(tmp_path):
+    root = _brain(tmp_path)
+    (root / "signals" / "2026-07-17.md").write_text(
+        "- [2026-07-17T06:00:00Z] clicks: 41, impressions: 1200\n")
+    out = export.export_all(root)
+    assert out["redaction"] == {"summary": "", "findings": []}
+
+
+def test_export_all_still_exports_when_the_scan_raises(tmp_path, monkeypatch):
+    def boom(_text):
+        raise RuntimeError("scanner exploded")
+
+    monkeypatch.setattr(redact, "scan", boom)
+    root = _brain(tmp_path)
+    (root / "signals" / "2026-07-17.md").write_text(
+        "- [2026-07-17T06:00:00Z] clicks: 41\n")
+    out = export.export_all(root)
+    assert out["files"], "the guard cost us the export"
+    assert out["redaction"] == {"summary": "", "findings": []}

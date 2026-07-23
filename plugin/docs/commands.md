@@ -11,6 +11,7 @@ Every organic-os command is namespaced, so type it in full: the leading slash, t
 | `/organic-os:sites` | Manage organic-os sites - add another website, switch the active site, or show registry status | `organic-os:setup` |
 | `/organic-os:status` | Show organic-os site status - pending approvals, recent signals, next routine | - |
 | `/organic-os:reset` | Guided teardown of an organic-os site - what gets deregistered automatically, what you must delete or revoke yourself, and why | `organic-os:reset` |
+| `/organic-os:diagnose` | Print a paste-ready diagnostic report - runtime, versions, connector status - that is never transmitted | `organic-os:diagnose` |
 
 ## Observe and report
 
@@ -35,6 +36,7 @@ Every organic-os command is namespaced, so type it in full: the leading slash, t
 | `/organic-os:apply` | Execute approved on-page proposals against WordPress (refuses anything not approved) | `organic-os:onsite-apply` |
 | `/organic-os:publish` | Publish an approved, drafted content item to WordPress (refuses unapproved items) | `organic-os:onsite-publish` |
 | `/organic-os:measure` | Measure applied or published on-page changes at day 7 and day 28 | `organic-os:onsite-measure` |
+| `/organic-os:verify-outcome` | Recompute a recorded outcome from raw data and compare it against what was claimed | `organic-os:hoo-verify-outcome` |
 | `/organic-os:import-audit` | Import an external claude-seo audit report as gated proposals | `organic-os:hoo-import-audit` |
 
 ## Content

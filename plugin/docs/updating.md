@@ -33,6 +33,50 @@ outside `plugin/lib/core/templates/`. If the repo you are updating from
 passes that check, as every released version does, there is nothing brain-
 shaped in it to overwrite yours with.
 
+## Update says success but the version did not change
+
+**Symptom.** `/plugin update` (Claude Code) or the Cowork update flow reports
+success, and may list a number of files it will modify, but the version you
+are actually running does not move. The next update offers the same file
+diff, and the one after that offers it again. It says updated, but it is not.
+
+**Cause.** The host plugin manager downloaded the new version into its cache
+but did not advance the active-version pointer, so the plugin keeps loading
+the old files while the new ones sit unused. This is a Claude Code / Cowork
+plugin-manager behavior, not something organic-os controls: a plugin does not
+run during its own update and cannot rewrite the host's record of which
+version is active. organic-os can make the gap visible, which is what the
+update-currency check in `/organic-os:diagnose` is for, but it cannot switch
+the pointer from inside itself.
+
+**Verify it is this.** Run `/organic-os:diagnose` and read the Update
+currency section: it prints the version you are running next to the latest
+published one. If diagnose reports you are behind right after an update that
+claimed success, this is the case.
+
+**Fix (Claude Code CLI).** Reinstall cleanly:
+
+```
+/plugin uninstall organic-os
+/plugin install organic-os@organic-os
+```
+
+If the install still resolves the old version, refresh the marketplace first
+(`/plugin marketplace add shalintripathi/organic-os` re-points it at the
+current ref), then reinstall. A clean reinstall is safe and loses nothing:
+your sites, config, and brain repo(s) live outside the plugin directory (see
+the guarantees above), so removing and re-adding the plugin cannot touch
+them.
+
+**Fix (Claude Cowork).** Remove the plugin and re-add it through the Cowork
+plugin interface. The same no-data-loss guarantee holds: your brain repo(s)
+and `~/.config/organic-os/` sit outside the plugin either way, so a
+remove-and-re-add leaves them untouched.
+
+This is worth a `/bug` report to the Claude Code team. The
+download-succeeded-but-pointer-not-advanced behavior is client-side, so the
+durable fix belongs there rather than in any plugin.
+
 ## Compatibility policy
 
 organic-os follows semver, stated here as commitments rather than

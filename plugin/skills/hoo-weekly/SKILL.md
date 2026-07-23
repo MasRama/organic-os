@@ -68,6 +68,17 @@ tracked term - real user impressions, not a scraped SERP snapshot
 Positions for keywords with zero impressions are unknown, recorded as
 absent, never guessed.
 
+## Attribution, for every detector below
+
+The attribution rule is canonical in hoo-daily's anomaly section (step
+2.7); it binds the three detectors below without restatement. In short: a
+cause may not be asserted without naming the comparison that was actually
+run, and every causal claim carries the claim, the comparison performed,
+and what would falsify it. Where the comparison was not run, the signal
+records `cause: unknown (no <comparison> run)` instead of a likely story.
+A named diagnosis that no one checked is worse than an admitted unknown,
+because the next run treats it as settled.
+
 ## Striking distance
 
 1. Pull GSC queries for the last 28 days for the profile's site.
@@ -76,7 +87,12 @@ absent, never guessed.
 3. Group the filtered queries by landing page.
 4. For the top 5 opportunities, write one P2 signal per opportunity in
    falsifiable form: query | page | position | impressions | leading
-   indicator to watch.
+   indicator to watch. Any reason offered for why a page sits stuck at
+   that position - thin content, missing internal links, a stronger
+   competitor - names the comparison that produced it (the pages
+   actually inspected, the link graph actually read). No comparison, no
+   reason: write `cause: unknown` and let the opportunity stand on the
+   numbers, which are enough to justify the work.
 5. Where a single page carries 2+ striking-distance queries, `create_item(
    kind="onpage-fix", ...)` naming the specific on-page focus (the queries
    it should consolidate around) - gated through the approval queue like
@@ -93,9 +109,13 @@ No GSC connector: skip this section and note it as one line in REPORT.md
    impressions).
 2. For the top 3 offending queries by total impressions, write one P2
    signal each: the query, both pages with their positions, the
-   impression split between them, and the falsifiability check - "if
-   consolidating did not lift the primary page's position within 28 days,
-   the diagnosis was wrong."
+   impression split between them, the comparison that produced the
+   diagnosis (the per-page impression split across the same 28-day pull,
+   named explicitly), and the falsifiability check - "if consolidating
+   did not lift the primary page's position within 28 days, the
+   diagnosis was wrong." Cannibalization is a claim about two pages
+   competing; without the split actually computed for both, it is a
+   guess and the signal says `cause: unknown` instead.
 3. Where a page on this list also appears in the striking-distance list
    above, note the linkage in the signal: cannibalization is often the
    blocker behind a stuck striking-distance position, not a content or
@@ -120,10 +140,14 @@ No GSC connector: skip this section and note it as one line in REPORT.md
    page swinging 30% is not a signal).
 3. For the top 3 flagged pages by absolute click loss, write one P2
    signal each: the page, both window values, the decline percent, and a
-   likely-cause hypothesis read off position-vs-CTR movement across the
-   same two windows - position fell = ranking problem; position held but
-   CTR fell = SERP feature intrusion or title/meta staleness. Name which
-   one the data points to.
+   cause line naming the comparison behind it. The comparison here is
+   position-vs-CTR movement across the same two windows - position fell
+   = ranking problem; position held but CTR fell = SERP feature
+   intrusion or title/meta staleness. Name which one the data points to
+   AND state that this is the comparison that produced it. If position
+   and CTR were not both pulled for both windows, the comparison did not
+   happen: record `cause: unknown (position-vs-CTR not pulled for both
+   windows)` and report the decline on its own.
 4. For the single clearest case, `create_item(kind="content-brief", ...)`
    as a refresh brief - target the decayed page, cite the decline and the
    likely-cause hypothesis, and let it move through the normal brief

@@ -17,6 +17,24 @@ description: Use to produce a publish-ready draft from an approved content brief
    pipeline until `python3 -m core reset-to-proposed` repairs it. A brief
    this pipeline will draft still starts `proposed` and reaches `drafted`
    only through its approved lineage (step 4).
+1b. Decision check, BEFORE registering a manual brief with `create_item`.
+   Search the brain's decision memory for the topic:
+   `PYTHONPATH="$CLAUDE_PLUGIN_ROOT/lib" python3 -c "..."` snippet importing
+   `core.decisions` - `search(<brain>, [<topic>, <target keyword>])`. It
+   returns prior decisions newest first with `date`, `choice`, `scope`,
+   `item`, and the `rationale`. A hit whose `choice` is `rejected` means a
+   human already refused this piece. Exactly two paths are allowed, never a
+   third:
+   - SKIP it: tell the user the topic was rejected on <date> because
+     <reason>, and stop before creating anything.
+   - Or CREATE it with a line in the brief body reading "previously
+     rejected on <date> because <reason>; proposing again because <what
+     changed>". What changed must be concrete - a new signal, a search-
+     demand shift, a product change - never "worth another look".
+   Silently re-registering a rejected topic is forbidden. A hit with any
+   other `choice` is context for the brief, not a blocker. An already
+   approved brief arriving from the queue has cleared this check at
+   proposal time; do not re-run it there.
 2. Stages, sequential agents (each receives profile path + prior artifacts):
    ce-researcher -> ce-writer -> ce-brand-auditor -> ce-seo-aeo -> ce-qa ->
    ce-editor.

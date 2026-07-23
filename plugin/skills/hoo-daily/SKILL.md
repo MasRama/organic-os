@@ -56,12 +56,29 @@ scheduled runs receive the brain path from the routine configuration.
      key in site-profile.yaml (absence means 40; see
      docs/site-repo-contract.md).
    Each flagged metric -> one P1 signal in falsifiable form: the metric,
-   today's value, the 7-day median, the direction, a one-line
-   likely-cause hypothesis (a weekend, a deploy, a tracking change, a
-   SERP feature shift - whichever the data points to), and the honest
-   caveat stated in the signal itself: weekends and seasonality can trip
-   this check. These P1 signals JOIN the daily alert below - never a
-   separate message.
+   today's value, the 7-day median, the direction, and a cause line that
+   obeys the attribution rule below. These P1 signals JOIN the daily
+   alert below - never a separate message.
+
+   THE ATTRIBUTION RULE, canonical here; hoo-weekly and onsite-measure
+   quote it. A cause may not be asserted without naming the comparison
+   that was actually run. Every causal claim carries three parts:
+   - the claim: "clicks fell because it was a weekend";
+   - the comparison actually performed: "today vs the 3 most recent
+     same-weekday signals";
+   - what would falsify it: "if next Saturday lands at the weekday
+     median, seasonality was not the cause".
+   If the comparison was not run, the cause is recorded as
+   `cause: unknown (no same-weekday comparison run)` - never a
+   plausible-sounding guess. "Weekend seasonality" is not an explanation
+   unless the same-weekday prior-period comparison was actually made,
+   and a deploy is not an explanation unless the deploy record was
+   actually read. Candidates worth comparing against: same-weekday prior
+   periods, a deploy or release record, a tracking or tag change, a SERP
+   feature shift. An unknown cause is a complete signal, not a failed
+   one: it says what moved and what has not yet been checked.
+   The caveat still rides in the signal itself: this check compares one
+   day against a 7-day median, so seasonality can trip it.
    Rationale: alerting is the retention feature of every commercial
    monitor; ours rides the existing channel taxonomy instead of adding a
    dashboard (ROADMAP, v0.4).

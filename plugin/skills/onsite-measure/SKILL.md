@@ -14,6 +14,17 @@ description: Use to measure applied/published changes at day 7 and day 28 - "mea
    No GSC connector: record "unmeasured (no GSC)" honestly.
 3. Append the delta to the outcome record + one signal line
    ("outcome <item-id>: position 8.2 -> 5.9 after title rewrite").
+   "After" is a sequence, not a cause. Attributing the move to the change
+   follows the attribution rule (canonical in hoo-daily's anomaly
+   section, step 2.7): the claim, the comparison actually run, and what
+   would falsify it - for example "compared the 28 days after against the
+   same 28-day window before, same URL; if the site-wide trend moved the
+   same way over those windows, the change is not what did it." Where
+   that comparison was not run, the record reads `cause: unknown
+   (before/after window not compared)` and keeps the delta. A measured
+   number with an honest unknown is what lets the reflector score a
+   skillbook entry later; a confident story that nobody checked teaches
+   the loop the wrong lesson.
 4. Wins and losses BOTH matter: the reflector reads outcomes to score
    skillbook entries helpful/harmful. At day-28, set the item to measured
    via `PYTHONPATH="$CLAUDE_PLUGIN_ROOT/lib" python3 -m core status

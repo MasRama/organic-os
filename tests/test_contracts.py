@@ -109,6 +109,113 @@ def test_skillbook_update_deprecated_entry_raises(root):
     assert (root / "skillbook.md").read_text() == before  # line unchanged
 
 
+# -- skillbook staleness -------------------------------------------------------
+
+def _set_stale_days(root, value):
+    p = root / "site-profile.yaml"
+    data = yaml.safe_load(p.read_text()) or {}
+    data["skillbook"] = {"stale_days": value}
+    p.write_text(yaml.safe_dump(data))
+
+
+def _confirmed_on(root, sid, date):
+    """Simulates an entry last confirmed on `date` (a datetime.date)."""
+    book = root / "skillbook.md"
+    out = []
+    for line in book.read_text().splitlines():
+        if line.startswith(f"{sid} "):
+            line = line.replace(
+                line.split("last-confirmed: ")[1].split("]")[0], date.isoformat())
+        out.append(line)
+    book.write_text("\n".join(out) + "\n")
+
+
+def _aged_entry(root, evidence, days_ago, today):
+    sid = C.skillbook_append(root, f"a {evidence} lesson", evidence=evidence,
+                             source="test")
+    _confirmed_on(root, sid, today - dt.timedelta(days=days_ago))
+    return sid
+
+
+TIERS = [("anecdotal", 90), ("moderate", 180), ("strong", 365)]
+
+
+@pytest.mark.parametrize("evidence,threshold", TIERS)
+def test_entry_exactly_at_its_threshold_is_not_stale(root, evidence, threshold):
+    today = dt.date(2026, 7, 23)
+    _aged_entry(root, evidence, threshold, today)
+    assert C.skillbook_stale(root, today=today) == []
+
+
+@pytest.mark.parametrize("evidence,threshold", TIERS)
+def test_entry_one_day_past_its_threshold_is_stale(root, evidence, threshold):
+    today = dt.date(2026, 7, 23)
+    sid = _aged_entry(root, evidence, threshold + 1, today)
+    stale = C.skillbook_stale(root, today=today)
+    assert [e["id"] for e in stale] == [sid]
+    entry = stale[0]
+    assert entry["evidence"] == evidence
+    assert entry["threshold"] == threshold
+    assert entry["days_stale"] == threshold + 1
+    assert entry["last_confirmed"] == (today - dt.timedelta(days=threshold + 1)).isoformat()
+    assert f"a {evidence} lesson" in entry["text"]
+
+
+def test_deprecated_entry_is_never_returned_as_stale(root):
+    today = dt.date(2026, 7, 23)
+    sid = _aged_entry(root, "anecdotal", 900, today)
+    C.skillbook_update(root, sid, deprecate=True)
+    _confirmed_on(root, f"~~{sid}", today - dt.timedelta(days=900))
+    assert C.skillbook_stale(root, today=today) == []
+
+
+def test_profile_stale_days_override_is_honoured(root):
+    today = dt.date(2026, 7, 23)
+    sid = _aged_entry(root, "strong", 40, today)
+    assert C.skillbook_stale(root, today=today) == []   # 40 days < default 365
+    _set_stale_days(root, {"strong": 30})
+    stale = C.skillbook_stale(root, today=today)
+    assert [e["id"] for e in stale] == [sid]
+    assert stale[0]["threshold"] == 30
+
+
+def test_stale_days_partial_override_keeps_other_tiers_at_defaults(root):
+    _set_stale_days(root, {"anecdotal": 7})
+    assert C.skillbook_stale_days(root) == {"anecdotal": 7, "moderate": 180,
+                                            "strong": 365}
+
+
+def test_stale_days_defaults_without_a_profile_section(root):
+    assert C.skillbook_stale_days(root) == C.STALE_DEFAULTS
+
+
+@pytest.mark.parametrize("bad", [{"strong": 0}, {"strong": -5}, {"strong": "many"},
+                                 {"strong": True}, {"anecdotal": 1.5}])
+def test_malformed_stale_days_value_raises_naming_the_key(root, bad):
+    _set_stale_days(root, bad)
+    with pytest.raises(C.ContractError) as exc:
+        C.skillbook_stale(root)
+    assert f"skillbook.stale_days.{list(bad)[0]}" in str(exc.value)
+
+
+def test_stale_days_not_a_mapping_raises(root):
+    _set_stale_days(root, 90)
+    with pytest.raises(C.ContractError) as exc:
+        C.skillbook_stale_days(root)
+    assert "skillbook.stale_days" in str(exc.value)
+
+
+def test_empty_skillbook_has_nothing_stale(root):
+    assert C.skillbook_stale(root) == []
+
+
+def test_stale_list_is_most_stale_first(root):
+    today = dt.date(2026, 7, 23)
+    fresher = _aged_entry(root, "anecdotal", 100, today)
+    older = _aged_entry(root, "anecdotal", 400, today)
+    assert [e["id"] for e in C.skillbook_stale(root, today=today)] == [older, fresher]
+
+
 def test_create_item_rejects_path_escape_slug(root):
     with pytest.raises(C.ContractError):
         C.create_item(root, kind="onpage-fix", slug="../../escape", title="t", body="b",
@@ -315,6 +422,30 @@ def test_reset_to_proposed_refuses_item_with_approval_history(root):
     with pytest.raises(C.ContractError, match="approval history"):
         C.reset_to_proposed(p, actor="operator")
     assert C.load_item(p)["meta"]["status"] == "approved"  # untouched
+
+
+def test_rejection_auto_records_exactly_one_decision(root):
+    p = C.create_item(root, kind="onpage-fix", slug="pricing-title",
+                      title="Rewrite /pricing title tag", body="b",
+                      target="https://ex.com/pricing", source="s")
+    C.set_status(p, "rejected", actor="shivaa", channel="in-session",
+                 note="legal owns that page's wording this quarter")
+    files = list((root / "decisions").glob("*.md"))
+    assert len(files) == 1
+    doc = C.load_item(files[0])
+    assert doc["meta"]["choice"] == "rejected"
+    assert doc["meta"]["actor"] == "shivaa"
+    assert p.name in doc["meta"]["item"]          # the decision names the item
+    assert "pricing" in doc["meta"]["scope"]      # scope derived from the title
+    assert "legal owns that page" in doc["body"]  # the reason is the rationale
+
+
+def test_approval_records_no_decision_file(root):
+    p = C.create_item(root, kind="onpage-fix", slug="approved-fix", title="t",
+                      body="b", target="https://ex.com/a", source="s")
+    C.set_status(p, "approved", actor="shivaa", channel="in-session")
+    C.set_status(p, "applied", actor="agent")
+    assert list((root / "decisions").glob("*.md")) == []
 
 
 def test_reset_to_proposed_already_proposed_refuses(root):

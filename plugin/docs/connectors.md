@@ -94,6 +94,26 @@ connector reachable from the setup session is not the same claim as one
 reachable from wherever routines actually run. See `plugin/docs/
 updating.md` for how this boundary holds across plugin updates.
 
+## The redaction guard on outbound content
+
+Anything a connector carries out of the brain - a proposal sent to Telegram,
+a report document, an exported CSV, a board mirrored to Notion - is scanned
+first by `core.redact`, and any finding is reported next to the content as a
+single counts line with the matched value masked.
+
+The guard is advisory and nothing more. It reports; it does not prevent. It
+never blocks a send, never edits what you are sending, and never raises: if
+the scan itself fails, the send goes ahead and says the scan did not run. So
+a high-tier finding does not mean a leak was stopped - it means a
+credential-shaped string was already in the outbound content, which is a
+reason to rotate that credential and check what put it there. Equally, a
+clean scan is not a clearance: it matches known shapes, so an unusual key
+format or a value split across lines passes it in silence. Keeping
+credentials out of the brain in the first place (see the paragraph above:
+setup stores only what a probe found, never a value) is the control; this
+scan is a second pair of eyes on the way out. See
+[THREAT-MODEL.md](../../THREAT-MODEL.md).
+
 ## No-data escalation in the daily routine
 
 `hoo-daily` needs GSC/GA4 to produce anything beyond "no sources

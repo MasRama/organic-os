@@ -186,6 +186,35 @@ right the license does not already grant.
 Mirrors `.github/PULL_REQUEST_TEMPLATE.md` - see that file for the exact
 checkboxes a PR should carry.
 
+## Cutting a release (maintainers)
+
+Releases are cut by the maintainer, not by CI. Before tagging a new version,
+run the pre-release check:
+
+```
+./scripts/release-check.sh
+```
+
+It fails when plugin code sits past the last tag without a version bump - the
+one gap the plugin updater cannot see through. A tagged-but-unbumped commit
+carries the same version string, so an installed plugin never advances to it
+(the symptom and remedy are in `plugin/docs/updating.md`). The check is
+advisory and deliberately NOT part of the PR CI gate: a contributor branch is
+expected to sit past the last tag unbumped, so gating PRs on it would fight
+normal contribution.
+
+Required pre-release steps, in order:
+
+1. `./scripts/release-check.sh` prints OK (bump the version if it does not).
+2. Bump `version` in `plugin/.claude-plugin/plugin.json` and
+   `.claude-plugin/marketplace.json`, plus any version string in
+   `docs/images/install-*.svg`.
+3. Add a dated `CHANGELOG.md` entry, and reconcile the README inventory line
+   if counts changed (audit checks 8 and 9 enforce this).
+4. `./scripts/audit.sh`, `python3 -m pytest tests -q`, and
+   `./scripts/verify-gates.sh` are all green.
+5. Tag `vX.Y.Z` and push the tag.
+
 ## Code of conduct
 
 Be professional. Disagree about code, not people. Assume good faith on a

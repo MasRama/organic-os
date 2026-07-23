@@ -9,6 +9,23 @@ description: Use to turn audit findings or signals into concrete gated change pr
 2. For each change, draft the exact after-state: new title (<= 60 chars),
    new meta description (<= 155 chars), canonical, focus keyword, schema
    JSON-LD payload, or a content edit (quote the exact before/after text).
+2b. Decision check, BEFORE any `create_item` call. For every target, search
+   the brain's decision memory:
+   `PYTHONPATH="$CLAUDE_PLUGIN_ROOT/lib" python3 -c "..."` snippet importing
+   `core.decisions` - `search(<brain>, [<page path>, <focus keyword>,
+   <what the fix does>])`. It returns prior decisions newest first with
+   `date`, `choice`, `scope`, `item`, and the `rationale`.
+   A hit whose `choice` is `rejected` means a human already refused this
+   work. Exactly two paths are allowed, never a third:
+   - SKIP it, and say so in the run report: name the page, the decision
+     date, and the recorded reason.
+   - Or CREATE it with a line in the proposal body reading "previously
+     rejected on <date> because <reason>; proposing again because <what
+     changed>". What changed must be a concrete new fact - a new signal, a
+     ranking move, a competitor or site change - never "worth another
+     look".
+   Silently re-creating a rejected proposal is forbidden. A hit with any
+   other `choice` is context to quote in the body, not a blocker.
 3. One proposal item per page: `create_item(kind="onpage-fix", target=<url>,
    body=<before/after table + rationale + expected effect + falsifiability>)`.
    `create_item` is the ONLY birth path - items are born `proposed` with an

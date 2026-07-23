@@ -23,6 +23,7 @@ organic-hq-<site>/
   skillbook.md              curated playbook, one entry per line (see below)
   signals/YYYY-MM-DD.md     daily raw observations, append-only, never edited
   reflections/YYYY-Www.md   weekly reflector output: proposed skillbook deltas by entry ID
+  decisions/<date>-<slug>.md decision records: what was chosen, by whom, why
   decisions/NNNN-*.md       ADRs for this site, MADR-lite + Agent Context section
   briefs/                   content briefs, one file each, status frontmatter
   proposals/                on-page fix proposals, same status lifecycle as briefs
@@ -57,7 +58,7 @@ stays `1`, and the directory only comes into existence the first time
 connector (`onsite.drift.save_baseline` creates it on demand). A brain
 repo with no WordPress connection never gets a `drift/` directory at all.
 
-Nine optional `site-profile.yaml` keys are additive the same way
+Ten optional `site-profile.yaml` keys are additive the same way
 (`schema_version` stays `1`; absence means off, or the stated default):
 
 - `brand: {readability_target: "grade 9-10"}` - the readability target
@@ -145,6 +146,18 @@ Nine optional `site-profile.yaml` keys are additive the same way
   default of 30. Below 1 refuses - to disable expiry, set a large value
   deliberately (see `plugin/docs/approval-channels.md` and docs/adr/0008
   in the repo).
+- `skillbook: {stale_days: {anecdotal: 90, moderate: 180, strong: 365}}` -
+  how many days a skillbook entry stays trusted, per evidence tier, before
+  the weekly reflection asks a human to re-confirm it. The canonical
+  defaults live in `core.contracts.STALE_DEFAULTS`
+  (`plugin/lib/core/contracts.py`); each tier falls back to its default
+  independently, so overriding one leaves the other two alone, and a value
+  below 1 (or a non-integer) refuses naming the key. Weak evidence goes
+  stale fast, strong evidence keeps for a year. An entry exactly at its
+  threshold is still fresh; one day past is stale. Staleness is surfaced,
+  never enforced: `skillbook_stale` reads, the reflector presents, a human
+  re-confirms (which stamps `last-confirmed` to today) or approves a
+  deprecation.
 - `cms: {type: wordpress}` - which CMS adapter the onsite write path
   uses (`onsite.cms.adapter_for` builds it; the contract is `CmsAdapter`
   in `plugin/lib/onsite/cms.py`, per docs/adr/0009 in the repo). Absence
@@ -300,6 +313,47 @@ time. The keys are additive: `schema_version` stays 1, and records
 without them (older applies, git-static deliveries, dry-run outcomes)
 are simply never re-checked this way.
 
+## Outcome records, and recomputing what they claim
+
+An outcome record is `outcomes/<item-id>.md`: markdown written by the
+apply or publish step and added to by the measurement step, so it is
+prose plus keys rather than a fixed schema. `core.outcomes.parse_outcome`
+reads one back into a stable seven-field shape, and the alias names it
+accepts for each field are canonical in `plugin/lib/core/outcomes.py`:
+
+| Field | Key names a record may use |
+|---|---|
+| `item` | `item`, `item_id`, `id`, `slug` (falls back to the filename stem) |
+| `url` | `url`, `target`, `target_url`, `page`, `permalink` |
+| `applied_at` | `applied_at`, `applied`, `date`, `when`, `published_at` |
+| `claimed_before` | `claimed_before`, `before`, `baseline` |
+| `claimed_after` | `claimed_after`, `after` |
+| `claimed_delta` | `claimed_delta`, `delta`, `change` |
+| `windows` | `windows`, `window`, `measurement_windows` |
+
+Every field is optional. A key the record never states parses as `None`,
+never as a zero or a guess, and prose lines are skipped rather than
+treated as an error. A key stated twice takes its last value, because
+these records are appended to. `windows` holds the before and after date
+ranges the claim was measured over:
+
+```yaml
+windows:
+  before: {start: 2026-05-04, end: 2026-05-31}
+  after: {start: 2026-06-02, end: 2026-06-29}
+```
+
+The windows are what make a claim checkable by someone who does not
+trust the run that wrote it. `/organic-os:verify-outcome`
+(skills/hoo-verify-outcome) reads the item, the URL and the windows from
+the record, pulls those windows fresh through the search-data and
+analytics slots, computes the delta, and only THEN reads the claimed
+numbers and calls `core.outcomes.compare`. That order is the point: a
+number already seen is a number the pull gets framed around. A divergence
+is appended as a signal, never suppressed; unreachable connectors mean
+the claim is unverified, never assumed correct. `plugin/docs/reproducing-results.md`
+documents the same check by hand in Search Console.
+
 ## drift/baseline.json
 
 The stored snapshot the daily drift watch (`hoo-daily`, `onsite.drift`)
@@ -317,6 +371,46 @@ connector simply has nothing to compare against yet. `onsite-apply`
 refreshes the entry for a page it just changed as part of its own verify
 step, so an intentional, approved change is never reported back as drift.
 
+## decisions/
+
+The brain's decision memory: what was chosen, by whom, and why, kept
+where the next run can find it. Without it a rejection dies with the item
+that carried it, and the loop re-proposes work a human already refused.
+
+One file per decision, written by `core.decisions.record`:
+`decisions/<UTCdate>-<slug>.md`, the slug derived from the title under the
+same rule `create_item` enforces (lowercase letters, digits, hyphens).
+A second decision with the same title on the same day takes a `-2`, `-3`
+suffix - a new record never overwrites an older one. The frontmatter and
+body:
+
+```yaml
+---
+date: 2026-07-23              # UTC date of the decision
+title: 'rejected: Rewrite /pricing title tag'
+choice: rejected              # what was decided
+actor: shivaa                 # who decided
+scope: Rewrite /pricing title tag   # what the decision covers (searched)
+item: proposals/20260723-pricing-title.md   # optional: the item it came from
+---
+legal owns that page's wording this quarter
+```
+
+The body is the rationale, verbatim. `set_status` writes one of these on
+every rejection, taking the reason from the `note` the approver gave (an
+unexplained rejection records "no reason recorded at rejection" rather
+than an empty file), so no skill has to remember to log it.
+
+`core.decisions.search(root, terms)` reads them back: case-insensitive
+token overlap against title, scope, and rationale, newest first, no index
+file. `onsite-propose`, `hoo-orchestrator`, and `ce-produce` call it
+before `create_item`; a matching `rejected` decision means the work is
+either skipped and named in the run report, or re-proposed with a line in
+the item body stating when it was rejected, why, and what changed since.
+Hand-written per-site ADRs keep their `NNNN-*.md` numbered form in the
+same directory; anything `search` cannot parse as frontmatter is skipped,
+not rewritten.
+
 ## Skillbook
 
 `skillbook.md` is the curated, compounding memory: tactical lessons the
@@ -333,7 +427,10 @@ S-014 [evidence: strong] [helpful: 3, harmful: 0, last-confirmed: 2026-07-18] Ti
   confidence is comparable across the whole plugin.
 - **helpful / harmful** counters increment via `skillbook_update` whenever
   an outcome confirms or contradicts the lesson; they never reset.
-- **last-confirmed** updates to today every time the entry is touched.
+- **last-confirmed** updates to today every time the entry is touched, and
+  is what `skillbook_stale` judges: past its tier's threshold (the
+  `skillbook.stale_days` key above), the entry joins the weekly
+  reflection's stale review for a human to re-confirm or retire.
 - The trailing `(source)` is the item id or the origin the lesson came
   from, so every lesson traces back to the evidence that produced it.
 

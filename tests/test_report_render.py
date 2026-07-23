@@ -130,3 +130,66 @@ def test_to_pdf_unknown_converter_returns_none(tmp_path):
     html = tmp_path / "r.html"
     html.write_text("<p>hi</p>")
     assert R.to_pdf(html, "not-a-converter") is None
+
+
+# -- advisory redaction note ---------------------------------------------------
+#
+# The renderer reports what the report body carries. It never edits the body
+# and never refuses to render.
+
+from core import redact  # noqa: E402
+
+PLANTED_REPORT = """# Monday report
+
+## What shipped
+
+- rotated the key, api_key=FAKE-API-KEY-VALUE-abcdefghij, on Tuesday
+"""
+
+
+def test_render_html_notes_a_finding_near_the_top():
+    html = R.render_html(PLANTED_REPORT, "Monday report", "Example")
+    assert "Redaction check" in html
+    assert "redaction: 1 high finding(s)" in html
+    # Near the top: ahead of the body's first heading.
+    assert html.index("Redaction check") < html.index("<h1>")
+
+
+def test_render_html_does_not_edit_the_body_it_flags():
+    html = R.render_html(PLANTED_REPORT, "Monday report", "Example")
+    assert "api_key=FAKE-API-KEY-VALUE-abcdefghij" in html
+
+
+def test_render_html_adds_no_note_to_a_clean_report():
+    html = R.render_html(SAMPLE, "Monday report", "Example")
+    assert "Redaction check" not in html
+
+
+def test_render_html_still_renders_when_the_scan_raises(monkeypatch):
+    def boom(_text):
+        raise RuntimeError("scanner exploded")
+
+    monkeypatch.setattr(redact, "scan", boom)
+    html = R.render_html(PLANTED_REPORT, "Monday report", "Example")
+    assert "Redaction check" not in html
+    assert "<h1>Monday report</h1>" in html
+
+
+def test_render_html_inline_code_spans():
+    out = R.render_html("- `p-20260713-title` [onpage-fix] Fix the title",
+                        title="T", site_name="S")
+    assert "<code>p-20260713-title</code>" in out
+    assert "`p-20260713-title`" not in out
+
+
+def test_render_html_code_spans_are_literal():
+    md = "before `**not bold** [not a link](x)` after"
+    out = R.render_html(md, title="T", site_name="S")
+    assert "<code>**not bold** [not a link](x)</code>" in out
+    assert "<strong>" not in out.split("<code>")[1].split("</code>")[0]
+    assert "<a href" not in out.split("<code>")[1].split("</code>")[0]
+
+
+def test_render_html_escapes_inside_code_spans():
+    out = R.render_html("x `<script>y</script>` z", title="T", site_name="S")
+    assert "<code>&lt;script&gt;y&lt;/script&gt;</code>" in out

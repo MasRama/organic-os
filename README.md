@@ -108,8 +108,8 @@ Three bounded modules, one install:
 | **onsite-optimizer** | Audits any public page with no credentials and maps the site's internal-link graph; with a WordPress connection, applies approved on-page fixes and publishes approved drafts, always verified and rollback-capable |
 | **content-engine** | Turns an approved brief (explainer or comparison) into a publish-ready draft - research, brand-voice compliance, SEO/authority pass, editorial QA, a human-review-necessity score for the approver - with an optional featured-image step |
 
-Verified inventory (2026-07-22): **22 skills, 22 slash commands, 14
-specialist agents, 316 passing tests.**
+Verified inventory (2026-07-23): **24 skills, 24 slash commands, 14
+specialist agents, 422 passing tests.**
 
 ```mermaid
 flowchart TB
@@ -319,6 +319,14 @@ plugin directory and untouched by design. A brain-layout change ships a
 migration and a compatibility check blocks routines with a clear message
 instead of silent corruption. Full policy: `plugin/docs/updating.md`.
 
+**I updated but the version did not change.**
+That points to Claude's plugin manager downloading the new files without
+switching to them, not to a problem in organic-os - a plugin cannot advance
+the host's active-version pointer during its own update. Run
+`/organic-os:diagnose` to confirm the running version against the latest,
+then reinstall to fix it. Full steps:
+[Update says success but the version did not change](plugin/docs/updating.md#update-says-success-but-the-version-did-not-change).
+
 **Why does nothing prompt me to connect Google Analytics?**
 organic-os bundles no MCP servers and cannot trigger an OAuth prompt
 itself. `/organic-os:setup`'s connector wizard probes what you have
@@ -361,6 +369,7 @@ each carry the files to touch, the approach, and a definition of done.
 ## Credits and prior art
 
 - [AgriciDaniel/claude-seo](https://github.com/AgriciDaniel/claude-seo) - the point-in-time SEO audit this project's signal-quality bar borrows from directly. `/organic-os:import-audit` now imports its reports as gated proposals: they audit, we operate.
+- [garrytan/gstack](https://github.com/garrytan/gstack) - four patterns taken directly (see `docs/adr/0011-memory-integrity.md`): durable decisions consulted before re-deciding, learned knowledge that expires by evidence tier, a redaction boundary before any external sink, and the reproduction-script posture, applied here to our own claims about a site.
 - [seranking/seo-skills](https://github.com/seranking/seo-skills) - Claude Agent Skills for the SE Ranking MCP server; a reference for how to shape SEO data into finished deliverables as skills.
 - [WordPress/mcp-adapter](https://github.com/WordPress/mcp-adapter) - the official WordPress MCP bridge; not load-bearing in v1 (onsite-optimizer writes over plain REST) but tracked for its 1.0.
 - [Automattic/mcp-wordpress-remote](https://github.com/Automattic/mcp-wordpress-remote) - a reference implementation for remote WordPress MCP auth flows.
